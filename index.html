@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Creature Evolution Arena</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="startScreen" class="start-screen">
+    <div class="start-card">
+      <h1>Creature Evolution Arena</h1>
+      <p>Scegli il tuo mazzo e inizia la battaglia.</p>
+
+      <div class="deck-grid">
+        <button class="deck-btn fire" data-deck="fire">🔥 Fuoco</button>
+        <button class="deck-btn water" data-deck="water">🌊 Acqua</button>
+        <button class="deck-btn forest" data-deck="forest">🌿 Foresta</button>
+        <button class="deck-btn shadow" data-deck="shadow">🌑 Ombra</button>
+        <button class="deck-btn light" data-deck="light">☀️ Luce</button>
+        <button class="deck-btn balanced" data-deck="balanced">⚔️ Bilanciato</button>
+      </div>
+
+      <div class="saved-stats">
+        <span>Vittorie: <strong id="menuWins">0</strong></span>
+        <span>Sconfitte: <strong id="menuLosses">0</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="game-screen hidden">
+
+    <header class="top-bar">
+      <div>
+        <h1>Evolution Arena</h1>
+        <p id="deckName">Mazzo</p>
+      </div>
+
+      <div class="top-actions">
+        <button id="backMenuBtn" class="small-btn secondary-btn">Menu</button>
+        <button id="restartBtn" class="small-btn">Restart</button>
+      </div>
+    </header>
+
+    <section class="hud">
+      <div class="hud-box enemy">
+        <strong>Nemico</strong>
+        <span>❤️ <b id="enemyLife">30</b></span>
+        <span>⚡ <b id="enemyEnergy">0</b>/<b id="enemyMaxEnergy">0</b></span>
+        <span>🃏 <b id="enemyHandCount">0</b></span>
+      </div>
+
+      <div class="hud-box center">
+        <strong id="turnText">Tuo turno</strong>
+        <span id="message">Gioca una carta.</span>
+      </div>
+
+      <div class="hud-box player">
+        <strong>Tu</strong>
+        <span>❤️ <b id="playerLife">30</b></span>
+        <span>⚡ <b id="playerEnergy">0</b>/<b id="playerMaxEnergy">0</b></span>
+        <span>📦 <b id="playerDeckCount">0</b></span>
+      </div>
+    </section>
+
+    <main class="board">
+
+      <section class="zone mini-zone">
+        <div class="zone-title">
+          <h3>Nemico</h3>
+          <span>Mazzo: <b id="enemyDeckCount">0</b></span>
+        </div>
+        <div id="enemyField" class="field compact-field"></div>
+      </section>
+
+      <section class="zone mini-zone">
+        <div class="zone-title">
+          <h3>Il tuo campo</h3>
+          <button id="endTurnBtn" class="small-btn">Fine turno</button>
+        </div>
+        <div id="playerField" class="field compact-field"></div>
+      </section>
+
+      <section class="zone hand-zone">
+        <div class="zone-title">
+          <h3>Mano</h3>
+          <span><b id="playerHandCount">0</b> carte</span>
+        </div>
+        <div id="playerHand" class="hand"></div>
+      </section>
+
+      <section class="zone log-wrapper collapsed" id="logWrapper">
+        <div class="zone-title clickable" id="toggleLogBtn">
+          <h3>Log partita</h3>
+          <span>apri/chiudi</span>
+        </div>
+        <div id="battleLog" class="battle-log"></div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
