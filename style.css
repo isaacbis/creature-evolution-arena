@@ -374,12 +374,15 @@ button:disabled {
 .compact-field {
   min-height: 112px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 3px;
+  align-items: flex-start;
 }
 
 .hand {
   min-height: 150px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 5px;
 }
 
@@ -628,7 +631,7 @@ button:disabled {
   font-size: 9px;
 }
 
-/* Nascondo i pulsanti nella mano: ora si gioca cliccando la carta */
+/* La mano ora funziona cliccando direttamente la carta */
 .hand .card-actions {
   display: none;
 }
@@ -645,7 +648,7 @@ button:disabled {
   transform: scale(0.96);
 }
 
-/* Nel campo invece i tasti attacco restano visibili */
+/* Nel campo i tasti attacco restano visibili */
 #playerField .card-actions {
   display: flex;
 }
@@ -877,10 +880,11 @@ button:disabled {
 
   .compact-field {
     min-height: 0;
-    height: 72px;
+    height: 104px;
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 2px;
+    align-items: flex-start;
   }
 
   .hand-zone {
@@ -890,7 +894,7 @@ button:disabled {
 
   .hand {
     min-height: 0;
-    height: 102px;
+    height: 112px;
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 3px;
@@ -987,7 +991,7 @@ button:disabled {
   }
 
   .empty-field {
-    height: 62px;
+    height: 88px;
     min-width: 80px;
     font-size: 8px;
     border-radius: 10px;
@@ -1050,11 +1054,11 @@ button:disabled {
   }
 
   .compact-field {
-    height: 68px;
+    height: 98px;
   }
 
   .hand {
-    height: 96px;
+    height: 104px;
   }
 
   .card {
@@ -1092,7 +1096,7 @@ button:disabled {
   }
 
   .empty-field {
-    height: 58px;
+    height: 82px;
     min-width: 76px;
     font-size: 8px;
   }
