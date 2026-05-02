@@ -10,8 +10,21 @@
 
   <div id="startScreen" class="start-screen">
     <div class="start-card">
-      <h1>Creature Evolution Arena</h1>
-      <p>Scegli il tuo mazzo e inizia la battaglia.</p>
+      <div class="title-row">
+        <div>
+          <h1>Creature Evolution Arena</h1>
+          <p>Combatti, evolvi, sblocca carte e supera i boss.</p>
+        </div>
+      </div>
+
+      <div class="menu-stats">
+        <span>🏆 Vittorie: <strong id="menuWins">0</strong></span>
+        <span>💀 Sconfitte: <strong id="menuLosses">0</strong></span>
+        <span>⭐ Livello max: <strong id="menuMaxLevel">1</strong></span>
+        <span>🃏 Carte sbloccate: <strong id="menuUnlocked">0</strong></span>
+      </div>
+
+      <h2>Scegli mazzo</h2>
 
       <div class="deck-grid">
         <button class="deck-btn fire" data-deck="fire">🔥 Fuoco</button>
@@ -22,9 +35,18 @@
         <button class="deck-btn balanced" data-deck="balanced">⚔️ Bilanciato</button>
       </div>
 
-      <div class="saved-stats">
-        <span>Vittorie: <strong id="menuWins">0</strong></span>
-        <span>Sconfitte: <strong id="menuLosses">0</strong></span>
+      <div class="menu-actions">
+        <button id="collectionBtn" class="secondary-btn">Collezione</button>
+        <button id="resetProgressBtn" class="danger-btn">Reset progressi</button>
+      </div>
+
+      <div id="collectionPanel" class="collection-panel hidden">
+        <div class="panel-header">
+          <h2>Collezione</h2>
+          <button id="closeCollectionBtn" class="small-btn secondary-btn">Chiudi</button>
+        </div>
+        <p class="small-note">Le carte bloccate si sbloccano vincendo partite e battendo i boss.</p>
+        <div id="collectionList" class="collection-list"></div>
       </div>
     </div>
   </div>
@@ -45,7 +67,7 @@
 
     <section class="hud">
       <div class="hud-box enemy">
-        <strong>Nemico</strong>
+        <strong id="enemyTitle">Nemico</strong>
         <span>❤️ <b id="enemyLife">30</b></span>
         <span>⚡ <b id="enemyEnergy">0</b>/<b id="enemyMaxEnergy">0</b></span>
         <span>🃏 <b id="enemyHandCount">0</b></span>
@@ -53,6 +75,7 @@
 
       <div class="hud-box center">
         <strong id="turnText">Tuo turno</strong>
+        <span id="levelText">Livello 1</span>
         <span id="message">Gioca una carta.</span>
       </div>
 
@@ -68,7 +91,7 @@
 
       <section class="zone mini-zone">
         <div class="zone-title">
-          <h3>Nemico</h3>
+          <h3>Campo nemico</h3>
           <span>Mazzo: <b id="enemyDeckCount">0</b></span>
         </div>
         <div id="enemyField" class="field compact-field"></div>
@@ -100,6 +123,25 @@
 
     </main>
 
+  </div>
+
+  <div id="resultModal" class="modal hidden">
+    <div class="modal-card">
+      <div id="resultIcon" class="result-icon">🏆</div>
+      <h2 id="resultTitle">Vittoria</h2>
+      <p id="resultText">Hai vinto.</p>
+
+      <div id="rewardBox" class="reward-box hidden">
+        <strong>Nuova carta sbloccata</strong>
+        <span id="rewardText"></span>
+      </div>
+
+      <div class="modal-actions">
+        <button id="nextLevelBtn">Prossimo livello</button>
+        <button id="playAgainBtn" class="secondary-btn">Rigioca</button>
+        <button id="modalMenuBtn" class="secondary-btn">Menu</button>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
