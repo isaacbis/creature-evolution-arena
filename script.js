@@ -629,7 +629,7 @@ function startPlayerTurn() {
   prepareCreatures(game.player);
   drawCard(game.player);
 
-  setMessage("Tuo turno: gioca, evolvi o attacca.");
+  setMessage("Tuo turno: clicca una carta per giocarla.");
   addLog(`<strong>Turno ${game.turnNumber}</strong>: inizi tu.`);
   checkGameOver();
   render();
@@ -943,6 +943,37 @@ function playSpell(owner, opponent, cardId, isPlayer = true) {
   checkGameOver();
   render();
   return true;
+}
+
+function handleHandCardClick(cardId) {
+  if (game.turn !== "player" || game.ended) return;
+
+  const card = game.player.hand.find(c => c.id === cardId);
+  if (!card) return;
+
+  if (card.type === "spell") {
+    playSpell(game.player, game.enemy, card.id, true);
+    return;
+  }
+
+  if (card.type === "creature" && card.stage === 1) {
+    playCreature(game.player, card.id, true);
+    return;
+  }
+
+  if (card.type === "creature" && card.stage > 1) {
+    const targetIndex = game.player.field.findIndex(fieldCard =>
+      fieldCard.family === card.family &&
+      fieldCard.stage === card.stage - 1
+    );
+
+    if (targetIndex === -1) {
+      setMessage("Non hai la creatura giusta da evolvere.");
+      return;
+    }
+
+    evolveCreature(game.player, card.id, targetIndex, true);
+  }
 }
 
 function applyEntryEffect(card, owner, opponent) {
@@ -1408,58 +1439,15 @@ function renderHand() {
   game.player.hand.forEach(card => {
     const cardEl = createCardEl(card, "hand-card");
 
-    const actions = document.createElement("div");
-    actions.className = "card-actions";
-
-    if (game.turn !== "player" || game.ended) {
-      const info = document.createElement("small");
-      info.textContent = "Non ora";
-      actions.appendChild(info);
-      cardEl.appendChild(actions);
-      playerHandEl.appendChild(cardEl);
-      return;
-    }
-
-    if (card.type === "spell") {
-      const btn = document.createElement("button");
-      btn.textContent = "Gioca";
-      btn.disabled = game.player.energy < card.cost;
-      btn.onclick = () => playSpell(game.player, game.enemy, card.id, true);
-      actions.appendChild(btn);
-    }
-
-    if (card.type === "creature" && card.stage === 1) {
-      const btn = document.createElement("button");
-      btn.textContent = "Evoca";
-      btn.disabled = game.player.energy < card.cost || game.player.field.length >= MAX_FIELD_SIZE;
-      btn.onclick = () => playCreature(game.player, card.id, true);
-      actions.appendChild(btn);
-    }
-
-    if (card.type === "creature" && card.stage > 1) {
-      const targets = game.player.field
-        .map((fieldCard, index) => ({ fieldCard, index }))
-        .filter(item =>
-          item.fieldCard.family === card.family &&
-          item.fieldCard.stage === card.stage - 1
-        );
-
-      if (targets.length === 0) {
-        const info = document.createElement("small");
-        info.textContent = "Serve base";
-        actions.appendChild(info);
-      }
-
-      targets.forEach(item => {
-        const btn = document.createElement("button");
-        btn.textContent = "Evolvi";
-        btn.disabled = game.player.energy < card.cost;
-        btn.onclick = () => evolveCreature(game.player, card.id, item.index, true);
-        actions.appendChild(btn);
+    if (game.turn === "player" && !game.ended) {
+      cardEl.title = "Clicca per giocare questa carta";
+      cardEl.addEventListener("click", () => {
+        handleHandCardClick(card.id);
       });
+    } else {
+      cardEl.title = "Non è il tuo turno";
     }
 
-    cardEl.appendChild(actions);
     playerHandEl.appendChild(cardEl);
   });
 }
