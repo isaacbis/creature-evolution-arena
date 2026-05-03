@@ -133,6 +133,7 @@ const profileNameText = $("profileNameText");
 const profileLevelText = $("profileLevelText");
 
 const enemyHudBox = $("enemyHudBox");
+const playerHudBox = document.querySelector(".my-bar");
 
 const STARTING_LIFE = 30;
 const STARTING_HAND = 5;
@@ -152,6 +153,7 @@ let unsubscribeRoom = null;
 let lastAttackCardId = null;
 let selectedAttackerIndex = null;
 let turnTimerInterval = null;
+let turnProcessing = false;
 
 let draftDeck = [];
 let draftPickCount = 0;
@@ -642,6 +644,7 @@ function startBotGame(bossKey = null, forcedDeck = null) {
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
+  turnProcessing = false;
 
   const p1 = makePlayer(name, forcedDeck ? "draft" : selectedDeck, forcedDeck);
   const p2 = makeBot(bossKey);
@@ -679,6 +682,7 @@ async function createOnlineGame() {
     mySlot = "p1";
     lastAttackCardId = null;
     selectedAttackerIndex = null;
+    turnProcessing = false;
 
     game = {
       mode: "online",
@@ -747,6 +751,7 @@ async function joinOnlineGame() {
     mySlot = "p2";
     lastAttackCardId = null;
     selectedAttackerIndex = null;
+    turnProcessing = false;
 
     match.players.p2 = makePlayer(name, selectedDeck);
     match.status = "playing";
@@ -840,7 +845,7 @@ function startTurnInGame(g, slot) {
   player.energy = player.maxEnergy;
 
   tickTerrain(g);
-  applyPoisonDamage(player);
+  applyPoisonDamage(player, g);
   prepareCreatures(player);
   drawCard(player);
 
@@ -874,12 +879,12 @@ function applyBossPower(bossKey) {
   }
 
   if (bossKey === "knight") {
-    healLife(bot, 2, document.querySelector(".hud-box.enemy"));
+    healLife(bot, 2, enemyHudBox);
     addLog("Potere Boss: cura 2 vita.");
   }
 
   if (bossKey === "dragon") {
-    dealLifeDamage(bot, player, 2, document.querySelector(".hud-box.player"));
+    dealLifeDamage(bot, player, 2, playerHudBox);
     addLog("Potere Boss: infligge 2 danni diretti.");
   }
 
@@ -892,7 +897,7 @@ function applyBossPower(bossKey) {
 
   if (bossKey === "final") {
     bot.energy += 1;
-    dealLifeDamage(bot, player, 1, document.querySelector(".hud-box.player"));
+    dealLifeDamage(bot, player, 1, playerHudBox);
     addLog("Potere Boss Finale: +1 energia e 1 danno.");
   }
 }
@@ -904,8 +909,8 @@ function prepareCreatures(player) {
   });
 }
 
-function applyPoisonDamage(player) {
-  const poisonDamage = game?.activeTerrain?.type === "swamp" ? 2 : 1;
+function applyPoisonDamage(player, targetGame = game) {
+  const poisonDamage = targetGame?.activeTerrain?.type === "swamp" ? 2 : 1;
 
   player.field.forEach(card => {
     if (card.poisoned) {
@@ -1147,7 +1152,7 @@ setTimeout(() => {
 function applyEntryEffect(card, owner, opponent) {
   switch (card.effect) {
     case "burnEnemy":
-      dealLifeDamage(owner, opponent, 1, enemyHudBox);
+      dealLifeDamage(owner, opponent, 1);
       addLog(`${card.name} infligge 1 danno diretto.`);
       break;
 
@@ -1196,7 +1201,7 @@ function applyEntryEffect(card, owner, opponent) {
       break;
 
     case "darkBlast":
-      dealLifeDamage(owner, opponent, 3, enemyHudBox);
+      dealLifeDamage(owner, opponent, 3);
       addLog(`${card.name} infligge 3 danni diretti.`);
       break;
 
@@ -1228,7 +1233,7 @@ function applySpellEffect(spell, owner, opponent) {
         addLog(`${spell.name} infligge 3 danni a ${target.name}.`);
         removeDead(opponent);
       } else {
-        dealLifeDamage(owner, opponent, 3, enemyHudBox);
+        dealLifeDamage(owner, opponent, 3);
         addLog(`${spell.name} infligge 3 danni diretti.`);
       }
       break;
@@ -1279,18 +1284,25 @@ function chooseSpellTarget(field) {
   return [...field].sort((a, b) => b.attack - a.attack)[0];
 }
 
+function getHudForPlayer(player) {
+  if (!game || !player) return document.body;
+
+  const me = getMyPlayer();
+  return player === me ? playerHudBox : enemyHudBox;
+}
+
 function dealLifeDamage(attackerOwner, defenderOwner, amount, targetEl = null) {
   defenderOwner.life -= amount;
 
   if (attackerOwner?.stats) attackerOwner.stats.damageDealt += amount;
   if (defenderOwner?.stats) defenderOwner.stats.damageTaken += amount;
 
-  showDamagePopup(targetEl || enemyHudBox, `-${amount}`);
+  showDamagePopup(targetEl || getHudForPlayer(defenderOwner), `-${amount}`);
 }
 
 function healLife(owner, amount, targetEl = null) {
   owner.life = Math.min(STARTING_LIFE + 15, owner.life + amount);
-  showDamagePopup(targetEl || document.body, `+${amount}`, true);
+  showDamagePopup(targetEl || getHudForPlayer(owner), `+${amount}`, true);
 }
 
 function recordBestCard(player, card) {
@@ -1551,8 +1563,9 @@ function hasAbility(card, ability) {
 }
 
 async function endTurn() {
-  if (!isMyTurn()) return;
+  if (!isMyTurn() || turnProcessing) return;
 
+  turnProcessing = true;
   selectedAttackerIndex = null;
 
   const me = getMyPlayer();
@@ -1565,24 +1578,34 @@ async function endTurn() {
     render();
 
     setTimeout(() => {
-      botTurn();
+      try {
+        botTurn();
 
-      if (!game.winner) {
-        game.turnNumber++;
-        game.players.p1.stats.turns = game.turnNumber;
-        game.players.p2.stats.turns = game.turnNumber;
-        startTurn("p1");
+        if (!game.winner) {
+          game.turnNumber++;
+          game.players.p1.stats.turns = game.turnNumber;
+          game.players.p2.stats.turns = game.turnNumber;
+          startTurn("p1");
+        }
+      } finally {
+        turnProcessing = false;
+        render();
       }
-
-      render();
     }, 600);
-  } else {
+
+    return;
+  }
+
+  try {
     game.turnNumber++;
     game.players.p1.stats.turns = game.turnNumber;
     game.players.p2.stats.turns = game.turnNumber;
     startTurn(next);
     render();
     await saveOnlineGame();
+  } finally {
+    turnProcessing = false;
+    render();
   }
 }
 
@@ -1678,7 +1701,7 @@ function botTurn() {
       const target = guards[0] || chooseBotTarget(player.field);
       fight(attacker, target, bot, player);
     } else if (canAttackLife(attacker, player.field)) {
-      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".hud-box.player"));
+      dealLifeDamage(bot, player, attacker.attack, playerHudBox);
       attacker.hasAttacked = true;
       addLog(`Bot infligge ${attacker.attack} danni diretti.`);
     }
@@ -1874,7 +1897,7 @@ function render() {
     ? "Tuo turno"
     : `Turno di ${game.players[game.currentTurn]?.name || "avversario"}`;
 
-  endTurnBtn.disabled = !isMyTurn() || Boolean(game.winner);
+  endTurnBtn.disabled = !isMyTurn() || turnProcessing || Boolean(game.winner);
 
   if (enemyHudBox) {
     enemyHudBox.classList.toggle("targetable", selectedAttackerIndex !== null && isMyTurn());
@@ -2634,6 +2657,7 @@ function showOnlyMenu(force = false) {
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
+  turnProcessing = false;
 
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
