@@ -2412,3 +2412,55 @@ body.screen-shake {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* =========================
+   FIX DEFINITIVO SPAZIO HOME
+   ========================= */
+#menuScreen.menu-screen {
+  min-height: auto !important;
+  height: auto !important;
+  display: block !important;
+  padding: max(4px, env(safe-area-inset-top)) 10px 10px !important;
+  overflow-y: auto !important;
+}
+
+#menuScreen .menu-shell {
+  width: min(780px, 100%) !important;
+  margin: 0 auto !important;
+}
+
+#menuScreen .hero-panel {
+  margin-top: 0 !important;
+  padding-top: 6px !important;
+}
+
+#menuScreen .hero-top {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  align-items: flex-start !important;
+}
+
+#menuScreen .game-logo h1 {
+  margin-top: -6px !important;
+}
+
+@media (max-width: 700px) {
+  #menuScreen.menu-screen {
+    min-height: auto !important;
+    height: auto !important;
+    display: block !important;
+    padding: max(2px, env(safe-area-inset-top)) 6px 8px !important;
+  }
+
+  #menuScreen .hero-panel {
+    padding-top: 5px !important;
+  }
+
+  #menuScreen .logo-mark {
+    margin-top: 0 !important;
+  }
+
+  #menuScreen .game-logo h1 {
+    margin-top: -7px !important;
+  }
+}
