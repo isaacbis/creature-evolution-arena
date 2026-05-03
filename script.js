@@ -154,6 +154,8 @@ let lastAttackCardId = null;
 let selectedAttackerIndex = null;
 let turnTimerInterval = null;
 let turnProcessing = false;
+let localResultSaved = false;
+let localLeaderboardSaved = false;
 
 let draftDeck = [];
 let draftPickCount = 0;
@@ -645,6 +647,8 @@ function startBotGame(bossKey = null, forcedDeck = null) {
   lastAttackCardId = null;
   selectedAttackerIndex = null;
   turnProcessing = false;
+  localResultSaved = false;
+  localLeaderboardSaved = false;
 
   const p1 = makePlayer(name, forcedDeck ? "draft" : selectedDeck, forcedDeck);
   const p2 = makeBot(bossKey);
@@ -683,6 +687,8 @@ async function createOnlineGame() {
     lastAttackCardId = null;
     selectedAttackerIndex = null;
     turnProcessing = false;
+    localResultSaved = false;
+    localLeaderboardSaved = false;
 
     game = {
       mode: "online",
@@ -752,6 +758,8 @@ async function joinOnlineGame() {
     lastAttackCardId = null;
     selectedAttackerIndex = null;
     turnProcessing = false;
+    localResultSaved = false;
+    localLeaderboardSaved = false;
 
     match.players.p2 = makePlayer(name, selectedDeck);
     match.status = "playing";
@@ -807,6 +815,8 @@ function subscribeToRoom(code) {
       render();
 
       if (game.winner && game.winner !== previousWinner) {
+        saveLocalResultIfNeeded();
+        saveLeaderboardIfNeeded();
         showResult(game.winner === mySlot);
       }
     },
@@ -1745,10 +1755,16 @@ function checkGameOver() {
 
   if (game.winner) {
     addLog(`${game.players[game.winner].name} ha vinto.`);
-    saveMatchResult();
+    saveLocalResultIfNeeded();
     saveLeaderboardIfNeeded();
     showResult(game.winner === mySlot);
   }
+}
+
+function saveLocalResultIfNeeded() {
+  if (!game?.winner || localResultSaved) return;
+  localResultSaved = true;
+  saveMatchResult();
 }
 
 function saveMatchResult() {
@@ -1796,9 +1812,9 @@ function getHistory() {
 }
 
 async function saveLeaderboardIfNeeded() {
-  if (!game || game.leaderboardSaved) return;
+  if (!game?.winner || localLeaderboardSaved) return;
 
-  game.leaderboardSaved = true;
+  localLeaderboardSaved = true;
 
   const me = getMyPlayer();
   if (!me) return;
@@ -2443,7 +2459,7 @@ function renderLog() {
   game.log.forEach(entry => {
     const div = document.createElement("div");
     div.className = "log-entry";
-    div.innerHTML = entry;
+    div.textContent = entry;
     battleLogEl.appendChild(div);
   });
 }
@@ -2457,6 +2473,15 @@ function shortRarity(rarity) {
   };
 
   return map[rarity] || rarity;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function createFxFlash(type = "summon") {
@@ -2658,6 +2683,8 @@ function showOnlyMenu(force = false) {
   lastAttackCardId = null;
   selectedAttackerIndex = null;
   turnProcessing = false;
+  localResultSaved = false;
+  localLeaderboardSaved = false;
 
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
@@ -2685,8 +2712,8 @@ async function openLeaderboard() {
 
     leaderboardList.innerHTML = rows.map((row, index) => `
       <div class="leaderboard-row">
-        <strong>${index + 1}. ${row.avatar || ""} ${row.name || "Giocatore"}</strong><br>
-        Vittorie: ${row.wins || 0} · Sconfitte: ${row.losses || 0} · XP: ${row.xp || 0} · Mazzo: ${deckLabels[row.lastDeck] || row.lastDeck || "-"}
+        <strong>${index + 1}. ${escapeHtml(row.avatar || "")} ${escapeHtml(row.name || "Giocatore")}</strong><br>
+        Vittorie: ${Number(row.wins || 0)} · Sconfitte: ${Number(row.losses || 0)} · XP: ${Number(row.xp || 0)} · Mazzo: ${escapeHtml(deckLabels[row.lastDeck] || row.lastDeck || "-")}
       </div>
     `).join("");
   } catch (error) {
@@ -2715,9 +2742,9 @@ function openPack() {
 
   packCards.innerHTML = found.map(card => `
     <div class="pack-card">
-      ${card.icon || families[card.family]?.icon || "🃏"}<br>
-      ${card.name}<br>
-      <small>${card.type || "creature"} · ${card.rarity || "common"}</small>
+      ${escapeHtml(card.icon || families[card.family]?.icon || "🃏")}<br>
+      ${escapeHtml(card.name)}<br>
+      <small>${escapeHtml(card.type || "creature")} · ${escapeHtml(card.rarity || "common")}</small>
     </div>
   `).join("");
 }
@@ -2732,8 +2759,8 @@ function renderHistory() {
 
   historyList.innerHTML = history.map(item => `
     <div class="history-row">
-      <strong>${item.result}</strong> · ${item.me} vs ${item.enemy}<br>
-      ${item.turns} turni · ${item.date}
+      <strong>${escapeHtml(item.result)}</strong> · ${escapeHtml(item.me)} vs ${escapeHtml(item.enemy)}<br>
+      ${Number(item.turns || 0)} turni · ${escapeHtml(item.date)}
     </div>
   `).join("");
 }
@@ -2745,7 +2772,7 @@ function renderReplay() {
   }
 
   replayList.innerHTML = game.replay.map(row => `
-    <div class="replay-row">${row}</div>
+    <div class="replay-row">${escapeHtml(row)}</div>
   `).join("");
 }
 
@@ -2772,9 +2799,9 @@ function renderDraftChoices() {
 
   draftChoices.innerHTML = draftCurrentChoices.map((card, index) => `
     <button class="draft-choice" data-index="${index}">
-      ${card.icon || families[card.family]?.icon || "🃏"}<br>
-      ${card.name}<br>
-      <small>${card.type || "creature"} · costo ${card.cost}</small>
+      ${escapeHtml(card.icon || families[card.family]?.icon || "🃏")}<br>
+      ${escapeHtml(card.name)}<br>
+      <small>${escapeHtml(card.type || "creature")} · costo ${Number(card.cost || 0)}</small>
     </button>
   `).join("");
 
