@@ -609,7 +609,12 @@ input::placeholder {
   flex-direction: column;
   justify-content: space-between;
   user-select: none;
-  touch-action: pan-x;
+  touch-action: none;
+  cursor: grab;
+}
+
+.card:active {
+  cursor: grabbing;
 }
 
 @keyframes cardEnter {
@@ -730,6 +735,7 @@ input::placeholder {
 .card.unplayable {
   opacity: 0.68;
   filter: grayscale(0.35);
+  cursor: not-allowed;
 }
 
 .enemy-card {
@@ -864,47 +870,7 @@ input::placeholder {
 }
 
 .card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 5px;
-}
-
-.card-actions button {
-  padding: 6px 5px;
-  font-size: 10px;
-  border-radius: 9px;
-}
-
-.card-actions small {
-  color: rgba(0,0,0,0.75);
-  font-weight: 950;
-  font-size: 9px;
-}
-
-.hand .card-actions {
   display: none;
-}
-
-.hand .card {
-  cursor: pointer;
-}
-
-.hand .card:active {
-  transform: scale(0.96);
-}
-
-#playerField .card-actions {
-  display: flex;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  flex-wrap: nowrap;
-}
-
-#playerField .card-actions button {
-  flex: 0 0 auto;
-  white-space: nowrap;
 }
 
 .sleeping {
@@ -965,6 +931,69 @@ input::placeholder {
   z-index: 10;
   flex-shrink: 0;
   background: linear-gradient(145deg, #ffd43b, #ff922b);
+}
+
+/* DRAG, DROP, ATTACK TARGET */
+
+.card.dragging-source {
+  opacity: 0.35;
+  transform: scale(0.94);
+}
+
+.drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(1.06);
+  opacity: 0.92;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.32),
+    0 18px 40px rgba(0,0,0,0.48);
+}
+
+.compact-field.drop-zone-active {
+  outline: 2px dashed rgba(255, 212, 59, 0.85);
+  outline-offset: -4px;
+  background:
+    radial-gradient(circle at center, rgba(255, 212, 59, 0.13), transparent 62%),
+    rgba(255,255,255,0.06);
+}
+
+.card.drop-target {
+  outline: 3px solid rgba(255, 212, 59, 0.95);
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 4px rgba(255, 212, 59, 0.18),
+    0 0 22px rgba(255, 212, 59, 0.5),
+    var(--shadow-card);
+}
+
+.card.selected-attacker {
+  outline: 3px solid rgba(81, 207, 102, 1);
+  outline-offset: 2px;
+  box-shadow:
+    0 0 0 5px rgba(81, 207, 102, 0.18),
+    0 0 24px rgba(81, 207, 102, 0.6),
+    var(--shadow-card);
+}
+
+.card.enemy-targetable {
+  cursor: crosshair;
+  outline: 2px solid rgba(255, 107, 107, 0.9);
+  outline-offset: 2px;
+}
+
+.hud-box.enemy.targetable {
+  cursor: crosshair;
+  box-shadow:
+    0 0 0 3px rgba(255, 107, 107, 0.2),
+    0 0 24px rgba(255, 107, 107, 0.35),
+    inset 0 0 0 1px rgba(255, 107, 107, 0.25);
+}
+
+.attack-hint {
+  color: var(--green) !important;
+  font-weight: 900;
 }
 
 /* MODAL */
@@ -1371,26 +1400,6 @@ input::placeholder {
     font-size: 5px;
   }
 
-  #playerField .card-actions {
-    display: flex;
-    flex-direction: row;
-    gap: 3px;
-    margin-top: 3px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-width: 100%;
-    padding-bottom: 2px;
-    flex-wrap: nowrap;
-  }
-
-  #playerField .card-actions button {
-    flex: 0 0 auto;
-    padding: 3px 4px;
-    font-size: 6.8px;
-    border-radius: 6px;
-    white-space: nowrap;
-  }
-
   .empty-field {
     height: 88px;
     min-width: 80px;
@@ -1475,10 +1484,5 @@ input::placeholder {
 
   .card-stat {
     font-size: 7.5px;
-  }
-
-  #playerField .card-actions button {
-    font-size: 6.4px;
-    padding: 3px;
   }
 }

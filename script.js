@@ -73,6 +73,8 @@ const resultText = $("resultText");
 const playAgainBtn = $("playAgainBtn");
 const resultMenuBtn = $("resultMenuBtn");
 
+const enemyHudBox = document.querySelector(".hud-box.enemy");
+
 const STARTING_LIFE = 30;
 const STARTING_HAND = 5;
 const MAX_FIELD_SIZE = 5;
@@ -84,6 +86,20 @@ let mySlot = "p1";
 let roomCode = null;
 let unsubscribeRoom = null;
 let lastAttackCardId = null;
+let selectedAttackerIndex = null;
+
+let dragState = {
+  active: false,
+  cardId: null,
+  card: null,
+  sourceEl: null,
+  ghostEl: null,
+  startX: 0,
+  startY: 0,
+  currentX: 0,
+  currentY: 0,
+  moved: false
+};
 
 const abilityLabels = {
   guard: "Guardia",
@@ -387,6 +403,7 @@ function startBotGame() {
   roomCode = null;
   mySlot = "p1";
   lastAttackCardId = null;
+  selectedAttackerIndex = null;
 
   game = {
     mode: "bot",
@@ -428,6 +445,7 @@ async function createOnlineGame() {
     roomCode = code;
     mySlot = "p1";
     lastAttackCardId = null;
+    selectedAttackerIndex = null;
 
     game = {
       mode: "online",
@@ -491,6 +509,7 @@ async function joinOnlineGame() {
     roomCode = code;
     mySlot = "p2";
     lastAttackCardId = null;
+    selectedAttackerIndex = null;
 
     match.players.p2 = makePlayer(name, selectedDeck);
     match.status = "playing";
@@ -646,40 +665,6 @@ function canPlayCard(card) {
     fieldCard.family === card.family &&
     fieldCard.stage === card.stage - 1
   );
-}
-
-async function handleHandCardClick(cardId) {
-  if (!isMyTurn()) return;
-
-  const me = getMyPlayer();
-  const enemy = getEnemyPlayer();
-
-  if (!me || !enemy) return;
-
-  const card = me.hand.find(c => c.id === cardId);
-
-  if (!card || !canPlayCard(card)) {
-    setMessage("Non puoi giocare questa carta ora.");
-    return;
-  }
-
-  if (card.type === "spell") {
-    playSpell(me, enemy, card.id);
-  } else if (card.stage === 1) {
-    playCreature(me, enemy, card.id);
-  } else {
-    const index = me.field.findIndex(fieldCard =>
-      fieldCard.family === card.family &&
-      fieldCard.stage === card.stage - 1
-    );
-
-    evolveCreature(me, enemy, card.id, index);
-  }
-
-  checkGameOver();
-  render();
-
-  await saveOnlineGame();
 }
 
 function playCreature(owner, opponent, cardId) {
@@ -883,6 +868,115 @@ function chooseSpellTarget(field) {
   return [...field].sort((a, b) => b.attack - a.attack)[0];
 }
 
+async function handleCardDropOnOwnField(cardId) {
+  if (!isMyTurn()) return;
+
+  const me = getMyPlayer();
+  const enemy = getEnemyPlayer();
+
+  if (!me || !enemy) return;
+
+  const card = me.hand.find(c => c.id === cardId);
+
+  if (!card) return;
+
+  if (!canPlayCard(card)) {
+    setMessage("Non puoi giocare questa carta ora.");
+    return;
+  }
+
+  if (card.type === "spell") {
+    setMessage("Le magie si trascinano sul campo avversario.");
+    return;
+  }
+
+  if (card.stage !== 1) {
+    setMessage("Per evolvere devi trascinare la carta sopra la creatura giusta.");
+    return;
+  }
+
+  playCreature(me, enemy, card.id);
+  selectedAttackerIndex = null;
+
+  checkGameOver();
+  render();
+
+  await saveOnlineGame();
+}
+
+async function handleCardDropOnEnemyField(cardId) {
+  if (!isMyTurn()) return;
+
+  const me = getMyPlayer();
+  const enemy = getEnemyPlayer();
+
+  if (!me || !enemy) return;
+
+  const card = me.hand.find(c => c.id === cardId);
+
+  if (!card) return;
+
+  if (!canPlayCard(card)) {
+    setMessage("Non puoi giocare questa carta ora.");
+    return;
+  }
+
+  if (card.type !== "spell") {
+    setMessage("Le creature si trascinano nel tuo campo.");
+    return;
+  }
+
+  playSpell(me, enemy, card.id);
+  selectedAttackerIndex = null;
+
+  checkGameOver();
+  render();
+
+  await saveOnlineGame();
+}
+
+async function handleCardDropOnOwnCreature(cardId, targetIndex) {
+  if (!isMyTurn()) return;
+
+  const me = getMyPlayer();
+  const enemy = getEnemyPlayer();
+
+  if (!me || !enemy) return;
+
+  const card = me.hand.find(c => c.id === cardId);
+  const target = me.field[targetIndex];
+
+  if (!card || !target) return;
+
+  if (!canPlayCard(card)) {
+    setMessage("Non puoi giocare questa carta ora.");
+    return;
+  }
+
+  if (card.type === "spell") {
+    setMessage("Le magie si trascinano sul campo avversario.");
+    return;
+  }
+
+  if (card.stage === 1) {
+    setMessage("Questa è una Evo 1: trascinala in uno spazio libero del tuo campo.");
+    return;
+  }
+
+  if (card.family !== target.family || card.stage !== target.stage + 1) {
+    setMessage("Evoluzione non valida: devi sovrapporla alla creatura corretta.");
+    return;
+  }
+
+  evolveCreature(me, enemy, card.id, targetIndex);
+  selectedAttackerIndex = null;
+
+  checkGameOver();
+  render();
+
+  await saveOnlineGame();
+}
+
 async function playerAttack(attackerIndex, targetIndex) {
   if (!isMyTurn()) return;
 
@@ -990,6 +1084,8 @@ function hasAbility(card, ability) {
 
 async function endTurn() {
   if (!isMyTurn()) return;
+
+  selectedAttackerIndex = null;
 
   const me = getMyPlayer();
   const next = getEnemySlot();
@@ -1199,12 +1295,25 @@ function render() {
 
   endTurnBtn.disabled = !isMyTurn() || Boolean(game.winner);
 
+  if (enemyHudBox) {
+    enemyHudBox.classList.toggle("targetable", selectedAttackerIndex !== null && isMyTurn());
+  }
+
+  if (selectedAttackerIndex !== null && isMyTurn()) {
+    roomInfoText.textContent = "Scegli bersaglio";
+    roomInfoText.classList.add("attack-hint");
+  } else if (gameMode === "online") {
+    roomInfoText.textContent = `Codice ${roomCode}`;
+    roomInfoText.classList.remove("attack-hint");
+  } else {
+    roomInfoText.textContent = "";
+    roomInfoText.classList.remove("attack-hint");
+  }
+
   if (gameMode === "online") {
     modeText.textContent = `Online · ${roomCode}`;
-    roomInfoText.textContent = `Codice ${roomCode}`;
   } else {
     modeText.textContent = `Bot · Mazzo ${deckLabels[selectedDeck]}`;
-    roomInfoText.textContent = "";
   }
 
   renderHand();
@@ -1233,52 +1342,215 @@ function renderHand() {
       el.classList.add("unplayable");
     }
 
+    el.dataset.cardId = card.id;
+
     addHandCardEvents(el, card);
     playerHandEl.appendChild(el);
   });
 }
 
 function addHandCardEvents(cardEl, card) {
-  let pressTimer = null;
-  let didLongPress = false;
-
-  const clear = () => {
-    if (pressTimer) clearTimeout(pressTimer);
-    pressTimer = null;
-  };
-
-  cardEl.addEventListener("pointerdown", () => {
-    didLongPress = false;
-
-    pressTimer = setTimeout(() => {
-      didLongPress = true;
-      showCardDetail(card);
-    }, 520);
+  cardEl.addEventListener("pointerdown", event => {
+    startPointerDrag(event, cardEl, card);
   });
 
-  cardEl.addEventListener("pointerup", clear);
-  cardEl.addEventListener("pointercancel", clear);
-  cardEl.addEventListener("pointerleave", clear);
-
   cardEl.addEventListener("click", event => {
-    if (didLongPress) {
+    if (dragState.moved) {
       event.preventDefault();
       event.stopPropagation();
-
-      setTimeout(() => {
-        didLongPress = false;
-      }, 150);
-
       return;
     }
 
-    handleHandCardClick(card.id);
+    showCardDetail(card);
   });
 
   cardEl.addEventListener("contextmenu", event => {
     event.preventDefault();
     showCardDetail(card);
   });
+}
+
+function startPointerDrag(event, cardEl, card) {
+  if (!isMyTurn() || !canPlayCard(card)) {
+    return;
+  }
+
+  if (event.button !== undefined && event.button !== 0) {
+    return;
+  }
+
+  dragState = {
+    active: false,
+    cardId: card.id,
+    card,
+    sourceEl: cardEl,
+    ghostEl: null,
+    startX: event.clientX,
+    startY: event.clientY,
+    currentX: event.clientX,
+    currentY: event.clientY,
+    moved: false
+  };
+
+  const pointerMove = moveEvent => {
+    const dx = moveEvent.clientX - dragState.startX;
+    const dy = moveEvent.clientY - dragState.startY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (!dragState.active && distance > 8) {
+      dragState.active = true;
+      dragState.moved = true;
+      cardEl.classList.add("dragging-source");
+      createDragGhost(cardEl);
+      setMessage(
+        card.type === "spell"
+          ? "Trascina la magia sul campo avversario."
+          : card.stage === 1
+            ? "Trascina la creatura nel tuo campo."
+            : "Sovrapponi l'evoluzione alla creatura corretta."
+      );
+    }
+
+    if (dragState.active) {
+      moveEvent.preventDefault();
+      dragState.currentX = moveEvent.clientX;
+      dragState.currentY = moveEvent.clientY;
+      moveDragGhost(moveEvent.clientX, moveEvent.clientY);
+      updateDropHighlights(moveEvent.clientX, moveEvent.clientY);
+    }
+  };
+
+  const pointerUp = async upEvent => {
+    document.removeEventListener("pointermove", pointerMove);
+    document.removeEventListener("pointerup", pointerUp);
+    document.removeEventListener("pointercancel", pointerUp);
+
+    if (dragState.active) {
+      upEvent.preventDefault();
+      await finishPointerDrop(upEvent.clientX, upEvent.clientY);
+    }
+
+    cleanupDragState();
+  };
+
+  document.addEventListener("pointermove", pointerMove, { passive: false });
+  document.addEventListener("pointerup", pointerUp, { passive: false });
+  document.addEventListener("pointercancel", pointerUp, { passive: false });
+}
+
+function createDragGhost(sourceEl) {
+  const clone = sourceEl.cloneNode(true);
+  clone.classList.add("drag-ghost");
+  clone.style.width = `${sourceEl.offsetWidth}px`;
+  clone.style.height = `${sourceEl.offsetHeight}px`;
+  document.body.appendChild(clone);
+
+  dragState.ghostEl = clone;
+  moveDragGhost(dragState.currentX, dragState.currentY);
+}
+
+function moveDragGhost(x, y) {
+  if (!dragState.ghostEl) return;
+
+  dragState.ghostEl.style.left = `${x}px`;
+  dragState.ghostEl.style.top = `${y}px`;
+}
+
+function updateDropHighlights(x, y) {
+  document.querySelectorAll(".drop-zone-active").forEach(el => {
+    el.classList.remove("drop-zone-active");
+  });
+
+  document.querySelectorAll(".drop-target").forEach(el => {
+    el.classList.remove("drop-target");
+  });
+
+  const target = document.elementFromPoint(x, y);
+
+  if (!target) return;
+
+  const ownCard = target.closest(".card[data-owner='player']");
+  const ownField = target.closest("#playerField");
+  const enemyField = target.closest("#enemyField");
+
+  if (ownCard) {
+    ownCard.classList.add("drop-target");
+    return;
+  }
+
+  if (ownField) {
+    playerFieldEl.classList.add("drop-zone-active");
+    return;
+  }
+
+  if (enemyField) {
+    enemyFieldEl.classList.add("drop-zone-active");
+  }
+}
+
+async function finishPointerDrop(x, y) {
+  const target = document.elementFromPoint(x, y);
+
+  if (!target) return;
+
+  const ownCard = target.closest(".card[data-owner='player']");
+  const ownField = target.closest("#playerField");
+  const enemyField = target.closest("#enemyField");
+
+  if (ownCard) {
+    const targetIndex = Number(ownCard.dataset.index);
+    await handleCardDropOnOwnCreature(dragState.cardId, targetIndex);
+    return;
+  }
+
+  if (ownField) {
+    await handleCardDropOnOwnField(dragState.cardId);
+    return;
+  }
+
+  if (enemyField) {
+    await handleCardDropOnEnemyField(dragState.cardId);
+    return;
+  }
+
+  setMessage("Carta non giocata.");
+}
+
+function cleanupDragState() {
+  if (dragState.sourceEl) {
+    dragState.sourceEl.classList.remove("dragging-source");
+  }
+
+  if (dragState.ghostEl) {
+    dragState.ghostEl.remove();
+  }
+
+  document.querySelectorAll(".drop-zone-active").forEach(el => {
+    el.classList.remove("drop-zone-active");
+  });
+
+  document.querySelectorAll(".drop-target").forEach(el => {
+    el.classList.remove("drop-target");
+  });
+
+  const moved = dragState.moved;
+
+  dragState = {
+    active: false,
+    cardId: null,
+    card: null,
+    sourceEl: null,
+    ghostEl: null,
+    startX: 0,
+    startY: 0,
+    currentX: 0,
+    currentY: 0,
+    moved
+  };
+
+  setTimeout(() => {
+    dragState.moved = false;
+  }, 120);
 }
 
 function renderField(container, field, owner) {
@@ -1295,59 +1567,84 @@ function renderField(container, field, owner) {
   field.forEach((card, index) => {
     const el = createCardEl(card, owner === "player" ? "player-card" : "enemy-card");
 
+    el.dataset.owner = owner;
+    el.dataset.index = index;
+
     if (!card.canAttack) el.classList.add("sleeping");
     if (card.hasAttacked) el.classList.add("attacked");
     if (card.poisoned) el.classList.add("poisoned");
     if (card.id === lastAttackCardId) el.classList.add("attacking");
 
-    el.addEventListener("contextmenu", event => {
-      event.preventDefault();
-      showCardDetail(card);
-    });
-
-    el.addEventListener("dblclick", () => {
-      showCardDetail(card);
-    });
-
-    const actions = document.createElement("div");
-    actions.className = "card-actions";
-
-    if (owner === "player") {
-      if (isMyTurn() && card.canAttack && !card.hasAttacked) {
-        const enemy = getEnemyPlayer();
-
-        if (canAttackLife(card, enemy.field)) {
-          const btn = document.createElement("button");
-          btn.textContent = "Vita";
-          btn.onclick = event => {
-            event.stopPropagation();
-            playerAttack(index, "life");
-          };
-          actions.appendChild(btn);
-        }
-
-        enemy.field.forEach((enemyCard, enemyIndex) => {
-          const guards = enemy.field.filter(enemyCreature => hasAbility(enemyCreature, "guard"));
-          const mustAttackGuard = guards.length > 0 && !hasAbility(enemyCard, "guard");
-
-          const btn = document.createElement("button");
-          btn.textContent = `Atk ${enemyCard.name.slice(0, 6)}`;
-          btn.disabled = mustAttackGuard;
-          btn.onclick = event => {
-            event.stopPropagation();
-            playerAttack(index, enemyIndex);
-          };
-          actions.appendChild(btn);
-        });
-      } else {
-        const info = document.createElement("small");
-        info.textContent = card.hasAttacked ? "Usata" : "Riposo";
-        actions.appendChild(info);
-      }
+    if (owner === "player" && selectedAttackerIndex === index) {
+      el.classList.add("selected-attacker");
     }
 
-    el.appendChild(actions);
+    if (owner === "enemy" && selectedAttackerIndex !== null && isMyTurn()) {
+      el.classList.add("enemy-targetable");
+    }
+
+    if (owner === "player") {
+      addPlayerFieldCardEvents(el, card, index);
+    } else {
+      addEnemyFieldCardEvents(el, card, index);
+    }
+
     container.appendChild(el);
+  });
+}
+
+function addPlayerFieldCardEvents(cardEl, card, index) {
+  cardEl.addEventListener("click", () => {
+    if (!isMyTurn()) {
+      showCardDetail(card);
+      return;
+    }
+
+    if (!card.canAttack || card.hasAttacked) {
+      showCardDetail(card);
+      return;
+    }
+
+    selectedAttackerIndex = selectedAttackerIndex === index ? null : index;
+
+    if (selectedAttackerIndex !== null) {
+      setMessage("Scegli una creatura nemica da attaccare oppure clicca il box nemico per attaccare la vita.");
+    } else {
+      setMessage("Attacco annullato.");
+    }
+
+    render();
+  });
+
+  cardEl.addEventListener("contextmenu", event => {
+    event.preventDefault();
+    showCardDetail(card);
+  });
+
+  cardEl.addEventListener("dblclick", () => {
+    showCardDetail(card);
+  });
+}
+
+function addEnemyFieldCardEvents(cardEl, card, index) {
+  cardEl.addEventListener("click", async () => {
+    if (selectedAttackerIndex !== null) {
+      await playerAttack(selectedAttackerIndex, index);
+      selectedAttackerIndex = null;
+      render();
+      return;
+    }
+
+    showCardDetail(card);
+  });
+
+  cardEl.addEventListener("contextmenu", event => {
+    event.preventDefault();
+    showCardDetail(card);
+  });
+
+  cardEl.addEventListener("dblclick", () => {
+    showCardDetail(card);
   });
 }
 
@@ -1433,10 +1730,6 @@ function createCardEl(card, extraClass) {
     `;
   }
 
-  el.addEventListener("dblclick", () => {
-    showCardDetail(card);
-  });
-
   return el;
 }
 
@@ -1513,6 +1806,7 @@ function showOnlyMenu() {
   gameMode = "bot";
   mySlot = "p1";
   lastAttackCardId = null;
+  selectedAttackerIndex = null;
 
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
@@ -1582,6 +1876,30 @@ cardDetailModal.onclick = event => {
     cardDetailModal.classList.add("hidden");
   }
 };
+
+enemyHudBox.addEventListener("click", async () => {
+  if (selectedAttackerIndex === null) return;
+  if (!isMyTurn()) return;
+
+  const me = getMyPlayer();
+  const enemy = getEnemyPlayer();
+  const attacker = me?.field[selectedAttackerIndex];
+
+  if (!attacker) {
+    selectedAttackerIndex = null;
+    render();
+    return;
+  }
+
+  if (!canAttackLife(attacker, enemy.field)) {
+    setMessage("Non puoi attaccare direttamente: prima devi eliminare le creature che bloccano.");
+    return;
+  }
+
+  await playerAttack(selectedAttackerIndex, "life");
+  selectedAttackerIndex = null;
+  render();
+});
 
 const savedName = localStorage.getItem("playerName");
 
