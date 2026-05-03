@@ -8,11 +8,11 @@ import {
   onSnapshot,
   serverTimestamp,
   collection,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  increment
+getDocs,
+query,
+orderBy,
+limit,
+increment
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {

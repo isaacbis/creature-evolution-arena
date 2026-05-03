@@ -2178,7 +2178,8 @@ function renderField(container, field, owner) {
     const el = createCardEl(card, owner === "player" ? "player-card" : "enemy-card");
 
     el.dataset.owner = owner;
-    el.dataset.index = index;
+el.dataset.index = index;
+el.dataset.cardId = card.id;
 
     if (!card.canAttack) el.classList.add("sleeping");
     if (card.hasAttacked) el.classList.add("attacked");

@@ -1,4 +1,4 @@
-const CACHE_NAME = "creature-evolution-arena-v1";
+const CACHE_NAME = "creature-evolution-arena-v2";
 
 const APP_SHELL = [
   "./",
@@ -39,29 +39,69 @@ self.addEventListener("fetch", event => {
   if (request.method !== "GET") return;
 
   /*
-    Non tocchiamo Firebase, Google APIs o CDN esterne.
-    Il multiplayer deve restare sempre online.
+    Firebase/CDN esterni non vanno messi in cache.
+    Così il multiplayer resta online e aggiornato.
   */
   if (url.origin !== self.location.origin) {
     return;
   }
 
   /*
-    Navigazione: prova rete, se offline apri index.html dalla cache.
+    HTML: prima rete, poi cache.
+    Così dopo un deploy vedi subito la versione nuova.
   */
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() => caches.match("./index.html"))
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put("./index.html", copy);
+          });
+
+          return response;
+        })
+        .catch(() => caches.match("./index.html"))
     );
+
     return;
   }
 
   /*
-    File statici: prima cache, poi rete.
+    CSS e JS: prima rete, poi cache.
+    Evita bug fastidiosi dopo gli aggiornamenti.
+  */
+  if (
+    request.url.includes("style.css") ||
+    request.url.includes("script.js") ||
+    request.url.includes("firebase.js")
+  ) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, copy);
+          });
+
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+
+    return;
+  }
+
+  /*
+    Altri file statici: prima cache, poi rete.
   */
   event.respondWith(
     caches.match(request).then(cached => {
-      return cached || fetch(request).then(response => {
+      if (cached) return cached;
+
+      return fetch(request).then(response => {
         const copy = response.clone();
 
         caches.open(CACHE_NAME).then(cache => {
