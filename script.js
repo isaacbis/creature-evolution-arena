@@ -112,6 +112,7 @@ const families = {
       c("fire_3", "Drago Solare", "fire", 3, 7, 8, 4, "legendary", "Quando entra, infligge 2 danni a tutte le creature nemiche.", "fireStorm", ["flying"])
     ]
   },
+
   water: {
     label: "Acqua",
     icon: "🌊",
@@ -121,6 +122,7 @@ const families = {
       c("water_3", "Titano Abissale", "water", 3, 6, 11, 4, "epic", "Quando entra, pesca una carta.", "drawOne", ["guard"])
     ]
   },
+
   forest: {
     label: "Foresta",
     icon: "🌿",
@@ -130,6 +132,7 @@ const families = {
       c("forest_3", "Antico Verde", "forest", 3, 8, 7, 4, "epic", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["rage"])
     ]
   },
+
   shadow: {
     label: "Ombra",
     icon: "🌑",
@@ -139,6 +142,7 @@ const families = {
       c("shadow_3", "Signore Eclissi", "shadow", 3, 9, 6, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "flying"])
     ]
   },
+
   light: {
     label: "Luce",
     icon: "☀️",
@@ -160,14 +164,41 @@ const spells = [
 ];
 
 function c(cardId, name, family, stage, attack, hp, cost, rarity, desc, effect, abilities) {
-  return { cardId, type: "creature", name, family, stage, attack, hp, cost, rarity, desc, effect, abilities };
+  return {
+    cardId,
+    type: "creature",
+    name,
+    family,
+    stage,
+    attack,
+    hp,
+    cost,
+    rarity,
+    desc,
+    effect,
+    abilities
+  };
 }
 
 function s(cardId, name, cost, rarity, icon, desc, effect, decks) {
-  return { cardId, type: "spell", name, cost, rarity, icon, desc, effect, decks };
+  return {
+    cardId,
+    type: "spell",
+    name,
+    cost,
+    rarity,
+    icon,
+    desc,
+    effect,
+    decks
+  };
 }
 
 function uid() {
+  if (window.crypto && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
   return String(Date.now()) + Math.random().toString(16).slice(2);
 }
 
@@ -175,19 +206,36 @@ function randomCode() {
   return Math.random().toString(36).slice(2, 6).toUpperCase();
 }
 
+async function generateUniqueRoomCode() {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const code = randomCode();
+    const existingMatch = await getMatchDoc(code);
+
+    if (!existingMatch) {
+      return code;
+    }
+  }
+
+  throw new Error("Non riesco a generare un codice stanza libero. Riprova.");
+}
+
 function getPlayerName() {
   const raw = playerNameInput.value.trim();
   const name = raw || localStorage.getItem("playerName") || "Giocatore";
+
   localStorage.setItem("playerName", name);
+
   return name;
 }
 
 function getPlayerId() {
   let id = localStorage.getItem("playerId");
+
   if (!id) {
     id = uid();
     localStorage.setItem("playerId", id);
   }
+
   return id;
 }
 
@@ -195,6 +243,7 @@ function showOnly(screen) {
   menuScreen.classList.add("hidden");
   lobbyScreen.classList.add("hidden");
   gameScreen.classList.add("hidden");
+
   screen.classList.remove("hidden");
 }
 
@@ -235,6 +284,7 @@ function createDeck(deckType) {
   familyKeys.forEach(key => {
     families[key].cards.forEach(template => {
       let copies = 2;
+
       if (template.stage === 1) copies = deckType === "balanced" ? 2 : 5;
       if (template.stage === 2) copies = deckType === "balanced" ? 2 : 4;
       if (template.stage === 3) copies = deckType === "balanced" ? 1 : 3;
@@ -247,6 +297,7 @@ function createDeck(deckType) {
 
   spells.forEach(spell => {
     if (!spell.decks.includes(deckType)) return;
+
     const copies = spell.rarity === "legendary" ? 1 : 2;
 
     for (let i = 0; i < copies; i++) {
@@ -311,6 +362,8 @@ function randomItem(array) {
 }
 
 function drawCard(player) {
+  if (!player) return;
+
   if (player.deck.length === 0) {
     player.life -= 1;
     addLog(`${player.name} ha il mazzo vuoto e perde 1 vita.`);
@@ -333,6 +386,7 @@ function startBotGame() {
   gameMode = "bot";
   roomCode = null;
   mySlot = "p1";
+  lastAttackCardId = null;
 
   game = {
     mode: "bot",
@@ -349,89 +403,113 @@ function startBotGame() {
 
   initialDraw(game);
   startTurn("p1");
+
   modeText.textContent = `Bot · Mazzo ${deckLabels[selectedDeck]}`;
   roomInfoText.textContent = "";
+
+  resultModal.classList.add("hidden");
+  cardDetailModal.classList.add("hidden");
+
   showOnly(gameScreen);
   render();
 }
 
 async function createOnlineGame() {
   if (!firebaseReady()) {
-    alert("Firebase non è configurato. Inserisci i dati nel file firebase.js.");
+    alert("Firebase non è configurato. Controlla il file firebase.js.");
     return;
   }
 
-  const name = getPlayerName();
-  const code = randomCode();
+  try {
+    const name = getPlayerName();
+    const code = await generateUniqueRoomCode();
 
-  gameMode = "online";
-  roomCode = code;
-  mySlot = "p1";
+    gameMode = "online";
+    roomCode = code;
+    mySlot = "p1";
+    lastAttackCardId = null;
 
-  game = {
-    mode: "online",
-    status: "waiting",
-    code,
-    currentTurn: "p1",
-    turnNumber: 1,
-    winner: null,
-    players: {
-      p1: makePlayer(name, selectedDeck),
-      p2: null
-    },
-    log: [`${name} ha creato la partita.`]
-  };
+    game = {
+      mode: "online",
+      status: "waiting",
+      code,
+      currentTurn: "p1",
+      turnNumber: 1,
+      winner: null,
+      players: {
+        p1: makePlayer(name, selectedDeck),
+        p2: null
+      },
+      log: [`${name} ha creato la partita.`]
+    };
 
-  await createMatchDoc(code, game);
+    await createMatchDoc(code, game);
 
-  roomCodeText.textContent = code;
-  lobbyStatusText.textContent = "In attesa del secondo giocatore...";
-  showOnly(lobbyScreen);
+    roomCodeText.textContent = code;
+    lobbyStatusText.textContent = "In attesa del secondo giocatore...";
 
-  subscribeToRoom(code);
+    resultModal.classList.add("hidden");
+    cardDetailModal.classList.add("hidden");
+
+    showOnly(lobbyScreen);
+    subscribeToRoom(code);
+  } catch (error) {
+    console.error(error);
+    alert("Errore durante la creazione della partita online. Controlla Firebase e le Rules.");
+  }
 }
 
 async function joinOnlineGame() {
   if (!firebaseReady()) {
-    alert("Firebase non è configurato. Inserisci i dati nel file firebase.js.");
+    alert("Firebase non è configurato. Controlla il file firebase.js.");
     return;
   }
 
-  const code = joinCodeInput.value.trim().toUpperCase();
+  try {
+    const code = joinCodeInput.value.trim().toUpperCase();
 
-  if (!code) {
-    alert("Inserisci il codice partita.");
-    return;
+    if (!code) {
+      alert("Inserisci il codice partita.");
+      return;
+    }
+
+    const match = await getMatchDoc(code);
+
+    if (!match) {
+      alert("Partita non trovata.");
+      return;
+    }
+
+    if (match.status !== "waiting" || match.players.p2) {
+      alert("Questa partita è già piena o iniziata.");
+      return;
+    }
+
+    const name = getPlayerName();
+
+    gameMode = "online";
+    roomCode = code;
+    mySlot = "p2";
+    lastAttackCardId = null;
+
+    match.players.p2 = makePlayer(name, selectedDeck);
+    match.status = "playing";
+    match.log.unshift(`${name} è entrato nella partita.`);
+
+    initialDraw(match);
+    startTurnInGame(match, "p1");
+
+    await updateMatchDoc(code, match);
+
+    resultModal.classList.add("hidden");
+    cardDetailModal.classList.add("hidden");
+
+    subscribeToRoom(code);
+    showOnly(gameScreen);
+  } catch (error) {
+    console.error(error);
+    alert("Errore durante l’ingresso nella partita. Controlla codice, Firebase e Rules.");
   }
-
-  const match = await getMatchDoc(code);
-
-  if (!match) {
-    alert("Partita non trovata.");
-    return;
-  }
-
-  if (match.status !== "waiting" || match.players.p2) {
-    alert("Questa partita è già piena o iniziata.");
-    return;
-  }
-
-  const name = getPlayerName();
-
-  gameMode = "online";
-  roomCode = code;
-  mySlot = "p2";
-
-  match.players.p2 = makePlayer(name, selectedDeck);
-  match.status = "playing";
-  match.log.unshift(`${name} è entrato nella partita.`);
-
-  initialDraw(match);
-  startTurnInGame(match, "p1");
-
-  await updateMatchDoc(code, match);
-  subscribeToRoom(code);
-  showOnly(gameScreen);
 }
 
 function subscribeToRoom(code) {
@@ -440,36 +518,53 @@ function subscribeToRoom(code) {
     unsubscribeRoom = null;
   }
 
-  unsubscribeRoom = listenMatchDoc(code, data => {
-    if (!data) {
-      alert("Partita non trovata.");
-      showOnly(menuScreen);
-      return;
+  unsubscribeRoom = listenMatchDoc(
+    code,
+    data => {
+      if (!data) {
+        alert("Partita non trovata.");
+        showOnlyMenu();
+        return;
+      }
+
+      const previousWinner = game?.winner || null;
+      game = data;
+
+      if (game.status === "waiting") {
+        roomCodeText.textContent = game.code;
+        lobbyStatusText.textContent = "In attesa del secondo giocatore...";
+        showOnly(lobbyScreen);
+        return;
+      }
+
+      showOnly(gameScreen);
+
+      modeText.textContent = `Online · Codice ${game.code}`;
+      roomInfoText.textContent = `Codice ${game.code}`;
+
+      render();
+
+      if (game.winner && game.winner !== previousWinner) {
+        showResult(game.winner === mySlot);
+      }
+    },
+    error => {
+      console.error(error);
+      alert("Errore di connessione alla partita. Controlla le Rules di Firestore.");
+      showOnlyMenu();
     }
-
-    game = data;
-
-    if (game.status === "waiting") {
-      roomCodeText.textContent = game.code;
-      lobbyStatusText.textContent = "In attesa del secondo giocatore...";
-      showOnly(lobbyScreen);
-      return;
-    }
-
-    showOnly(gameScreen);
-    modeText.textContent = `Online · Codice ${game.code}`;
-    roomInfoText.textContent = `Codice ${game.code}`;
-    render();
-
-    if (game.winner) {
-      showResult(game.winner === mySlot);
-    }
-  });
+  );
 }
 
 async function saveOnlineGame() {
   if (gameMode !== "online" || !roomCode) return;
-  await updateMatchDoc(roomCode, game);
+
+  try {
+    await updateMatchDoc(roomCode, game);
+  } catch (error) {
+    console.error(error);
+    alert("Errore nel salvataggio della mossa online.");
+  }
 }
 
 function startTurn(slot) {
@@ -482,6 +577,7 @@ function startTurnInGame(g, slot) {
   if (!player) return;
 
   g.currentTurn = slot;
+
   player.maxEnergy = Math.min(10, player.maxEnergy + 1);
   player.energy = player.maxEnergy;
 
@@ -511,6 +607,7 @@ function applyPoisonDamage(player) {
 }
 
 function getMyPlayer() {
+  if (!game) return null;
   return game.players[mySlot];
 }
 
@@ -519,16 +616,23 @@ function getEnemySlot() {
 }
 
 function getEnemyPlayer() {
+  if (!game) return null;
   return game.players[getEnemySlot()];
 }
 
 function isMyTurn() {
-  return game && game.status === "playing" && !game.winner && game.currentTurn === mySlot;
+  return Boolean(
+    game &&
+    game.status === "playing" &&
+    !game.winner &&
+    game.currentTurn === mySlot
+  );
 }
 
 function canPlayCard(card) {
   const me = getMyPlayer();
 
+  if (!me) return false;
   if (!isMyTurn()) return false;
   if (card.cost > me.energy) return false;
 
@@ -538,7 +642,10 @@ function canPlayCard(card) {
     return me.field.length < MAX_FIELD_SIZE;
   }
 
-  return me.field.some(c => c.family === card.family && c.stage === card.stage - 1);
+  return me.field.some(fieldCard =>
+    fieldCard.family === card.family &&
+    fieldCard.stage === card.stage - 1
+  );
 }
 
 async function handleHandCardClick(cardId) {
@@ -546,6 +653,9 @@ async function handleHandCardClick(cardId) {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
+
+  if (!me || !enemy) return;
+
   const card = me.hand.find(c => c.id === cardId);
 
   if (!card || !canPlayCard(card)) {
@@ -558,17 +668,22 @@ async function handleHandCardClick(cardId) {
   } else if (card.stage === 1) {
     playCreature(me, enemy, card.id);
   } else {
-    const index = me.field.findIndex(c => c.family === card.family && c.stage === card.stage - 1);
+    const index = me.field.findIndex(fieldCard =>
+      fieldCard.family === card.family &&
+      fieldCard.stage === card.stage - 1
+    );
+
     evolveCreature(me, enemy, card.id, index);
   }
 
   checkGameOver();
   render();
+
   await saveOnlineGame();
 }
 
 function playCreature(owner, opponent, cardId) {
-  const index = owner.hand.findIndex(c => c.id === cardId);
+  const index = owner.hand.findIndex(card => card.id === cardId);
   const card = owner.hand[index];
 
   if (!card || card.type !== "creature") return;
@@ -582,19 +697,21 @@ function playCreature(owner, opponent, cardId) {
   card.hasAttacked = !hasAbility(card, "haste");
 
   owner.field.push(card);
+
   addLog(`${owner.name} evoca ${card.name}.`);
 
   applyEntryEffect(card, owner, opponent);
 }
 
 function evolveCreature(owner, opponent, cardId, fieldIndex) {
-  const handIndex = owner.hand.findIndex(c => c.id === cardId);
+  const handIndex = owner.hand.findIndex(card => card.id === cardId);
   const evolution = owner.hand[handIndex];
   const base = owner.field[fieldIndex];
 
   if (!evolution || !base) return;
   if (owner.energy < evolution.cost) return;
-  if (evolution.family !== base.family || evolution.stage !== base.stage + 1) return;
+  if (evolution.family !== base.family) return;
+  if (evolution.stage !== base.stage + 1) return;
 
   owner.energy -= evolution.cost;
   owner.hand.splice(handIndex, 1);
@@ -606,17 +723,19 @@ function evolveCreature(owner, opponent, cardId, fieldIndex) {
     maxHp: evolution.hp,
     poisoned: false,
     canAttack: base.canAttack || hasAbility(evolution, "haste"),
-    hasAttacked: base.hasAttacked && !hasAbility(evolution, "haste")
+    hasAttacked: base.hasAttacked && !hasAbility(evolution, "haste"),
+    abilities: [...(evolution.abilities || [])]
   };
 
   owner.field[fieldIndex] = evolved;
+
   addLog(`${owner.name} evolve ${base.name} in ${evolution.name}.`);
 
   applyEntryEffect(evolved, owner, opponent);
 }
 
 function playSpell(owner, opponent, cardId) {
-  const index = owner.hand.findIndex(c => c.id === cardId);
+  const index = owner.hand.findIndex(card => card.id === cardId);
   const spell = owner.hand[index];
 
   if (!spell || spell.type !== "spell") return;
@@ -626,6 +745,7 @@ function playSpell(owner, opponent, cardId) {
   owner.hand.splice(index, 1);
 
   addLog(`${owner.name} gioca ${spell.name}.`);
+
   applySpellEffect(spell, owner, opponent);
 }
 
@@ -633,54 +753,70 @@ function applyEntryEffect(card, owner, opponent) {
   switch (card.effect) {
     case "burnEnemy":
       opponent.life -= 1;
+      addLog(`${card.name} infligge 1 danno diretto.`);
       break;
 
     case "fireStorm":
-      opponent.field.forEach(c => {
-        c.currentHp -= 2;
-        applyRageIfDamaged(c);
+      opponent.field.forEach(creature => {
+        creature.currentHp -= 2;
+        applyRageIfDamaged(creature);
       });
+      addLog(`${card.name} infligge 2 danni al campo avversario.`);
       removeDead(opponent);
       break;
 
     case "healOwner":
       owner.life = Math.min(STARTING_LIFE + 15, owner.life + 2);
+      addLog(`${card.name} cura 2 vita.`);
       break;
 
     case "drawOne":
       drawCard(owner);
+      addLog(`${card.name} fa pescare 1 carta.`);
       break;
 
     case "buffAllyAttack":
-      if (owner.field.length) randomItem(owner.field).attack += 1;
+      if (owner.field.length) {
+        const target = randomItem(owner.field);
+        target.attack += 1;
+        addLog(`${card.name} dà +1 ATK a ${target.name}.`);
+      }
       break;
 
     case "buffTeamHp":
-      owner.field.forEach(c => {
-        c.maxHp += 2;
-        c.currentHp += 2;
+      owner.field.forEach(creature => {
+        creature.maxHp += 2;
+        creature.currentHp += 2;
       });
+      addLog(`${card.name} dà +2 HP al campo.`);
       break;
 
     case "weakenEnemy":
       if (opponent.field.length) {
         const target = randomItem(opponent.field);
         target.attack = Math.max(0, target.attack - 1);
+        addLog(`${card.name} toglie 1 ATK a ${target.name}.`);
       }
       break;
 
     case "darkBlast":
       opponent.life -= 3;
+      addLog(`${card.name} infligge 3 danni diretti.`);
       break;
 
     case "healTeam":
-      owner.field.forEach(c => {
-        c.currentHp = Math.min(c.maxHp, c.currentHp + 1);
+      owner.field.forEach(creature => {
+        creature.currentHp = Math.min(creature.maxHp, creature.currentHp + 1);
       });
+      addLog(`${card.name} cura il campo di 1.`);
       break;
 
     case "bigHealOwner":
       owner.life = Math.min(STARTING_LIFE + 15, owner.life + 4);
+      addLog(`${card.name} cura 4 vita.`);
+      break;
+
+    default:
       break;
   }
 }
@@ -692,45 +828,56 @@ function applySpellEffect(spell, owner, opponent) {
         const target = chooseSpellTarget(opponent.field);
         target.currentHp -= 3;
         applyRageIfDamaged(target);
+        addLog(`${spell.name} infligge 3 danni a ${target.name}.`);
         removeDead(opponent);
       } else {
         opponent.life -= 3;
+        addLog(`${spell.name} infligge 3 danni diretti.`);
       }
       break;
 
     case "spellHeal":
       owner.life = Math.min(STARTING_LIFE + 15, owner.life + 4);
+      addLog(`${spell.name} cura 4 vita.`);
       break;
 
     case "spellDrawTwo":
       drawCard(owner);
       drawCard(owner);
+      addLog(`${spell.name} fa pescare 2 carte.`);
       break;
 
     case "spellBlessing":
-      owner.field.forEach(c => {
-        c.attack += 1;
-        c.maxHp += 1;
-        c.currentHp += 1;
+      owner.field.forEach(creature => {
+        creature.attack += 1;
+        creature.maxHp += 1;
+        creature.currentHp += 1;
       });
+      addLog(`${spell.name} dà +1 ATK e +1 HP al campo.`);
       break;
 
     case "spellStorm":
-      opponent.field.forEach(c => {
-        c.currentHp -= 2;
-        applyRageIfDamaged(c);
+      opponent.field.forEach(creature => {
+        creature.currentHp -= 2;
+        applyRageIfDamaged(creature);
       });
+      addLog(`${spell.name} infligge 2 danni al campo avversario.`);
       removeDead(opponent);
       break;
 
     case "spellGainEnergy":
       owner.energy += 2;
+      addLog(`${spell.name} dà +2 energia.`);
+      break;
+
+    default:
       break;
   }
 }
 
 function chooseSpellTarget(field) {
-  const guard = field.find(c => hasAbility(c, "guard"));
+  const guard = field.find(card => hasAbility(card, "guard"));
+
   if (guard) return guard;
 
   return [...field].sort((a, b) => b.attack - a.attack)[0];
@@ -741,6 +888,9 @@ async function playerAttack(attackerIndex, targetIndex) {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
+
+  if (!me || !enemy) return;
+
   const attacker = me.field[attackerIndex];
 
   if (!attacker || attacker.hasAttacked || !attacker.canAttack) return;
@@ -758,9 +908,11 @@ async function playerAttack(attackerIndex, targetIndex) {
     addLog(`${attacker.name} infligge ${attacker.attack} danni diretti.`);
   } else {
     const target = enemy.field[targetIndex];
+
     if (!target) return;
 
-    const guards = enemy.field.filter(c => hasAbility(c, "guard"));
+    const guards = enemy.field.filter(card => hasAbility(card, "guard"));
+
     if (guards.length && !hasAbility(target, "guard")) {
       setMessage("Devi attaccare prima Guardia.");
       return;
@@ -790,10 +942,12 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
 
   if (hasAbility(attacker, "poison") && defender.currentHp > 0) {
     defender.poisoned = true;
+    addLog(`${defender.name} è avvelenata.`);
   }
 
   if (hasAbility(defender, "poison") && attacker.currentHp > 0) {
     attacker.poisoned = true;
+    addLog(`${attacker.name} è avvelenata.`);
   }
 
   addLog(`${attacker.name} combatte contro ${defender.name}.`);
@@ -805,12 +959,13 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
 function applyRageIfDamaged(card) {
   if (card && card.currentHp > 0 && hasAbility(card, "rage")) {
     card.attack += 1;
+    addLog(`${card.name} attiva Rabbia: +1 ATK.`);
   }
 }
 
 function removeDead(player) {
   const before = player.field.length;
-  player.field = player.field.filter(c => c.currentHp > 0);
+  player.field = player.field.filter(card => card.currentHp > 0);
 
   if (player.field.length < before) {
     addLog("Una o più creature sono state eliminate.");
@@ -820,10 +975,10 @@ function removeDead(player) {
 function canAttackLife(attacker, defenderField) {
   if (!defenderField.length) return true;
 
-  if (defenderField.some(c => hasAbility(c, "guard"))) return false;
+  if (defenderField.some(card => hasAbility(card, "guard"))) return false;
 
   if (hasAbility(attacker, "flying")) {
-    return !defenderField.some(c => hasAbility(c, "flying"));
+    return !defenderField.some(card => hasAbility(card, "flying"));
   }
 
   return false;
@@ -836,27 +991,30 @@ function hasAbility(card, ability) {
 async function endTurn() {
   if (!isMyTurn()) return;
 
+  const me = getMyPlayer();
   const next = getEnemySlot();
 
-  addLog(`${getMyPlayer().name} termina il turno.`);
+  addLog(`${me.name} termina il turno.`);
 
   if (gameMode === "bot") {
     startTurn("p2");
     render();
 
-    setTimeout(async () => {
+    setTimeout(() => {
       botTurn();
+
       if (!game.winner) {
         game.turnNumber++;
         startTurn("p1");
       }
+
       render();
     }, 600);
   } else {
     game.turnNumber++;
     startTurn(next);
-    await saveOnlineGame();
     render();
+    await saveOnlineGame();
   }
 }
 
@@ -871,23 +1029,35 @@ function botTurn() {
     count++;
     action = false;
 
-    const evo = bot.hand.find(card =>
+    const evolution = bot.hand.find(card =>
       card.type === "creature" &&
       card.stage > 1 &&
       card.cost <= bot.energy &&
-      bot.field.some(f => f.family === card.family && f.stage === card.stage - 1)
+      bot.field.some(fieldCard =>
+        fieldCard.family === card.family &&
+        fieldCard.stage === card.stage - 1
+      )
     );
 
-    if (evo) {
-      const index = bot.field.findIndex(f => f.family === evo.family && f.stage === evo.stage - 1);
-      evolveCreature(bot, player, evo.id, index);
+    if (evolution) {
+      const index = bot.field.findIndex(fieldCard =>
+        fieldCard.family === evolution.family &&
+        fieldCard.stage === evolution.stage - 1
+      );
+
+      evolveCreature(bot, player, evolution.id, index);
       action = true;
       continue;
     }
 
-    const spell = bot.hand.find(card => card.type === "spell" && card.cost <= bot.energy);
-    if (spell) {
-      playSpell(bot, player, spell.id);
+    const usefulSpell = bot.hand.find(card =>
+      card.type === "spell" &&
+      card.cost <= bot.energy &&
+      shouldBotUseSpell(card, bot, player)
+    );
+
+    if (usefulSpell) {
+      playSpell(bot, player, usefulSpell.id);
       action = true;
       continue;
     }
@@ -905,12 +1075,16 @@ function botTurn() {
   }
 
   [...bot.field].forEach(attacker => {
+    if (game.winner) return;
     if (!bot.field.includes(attacker)) return;
     if (!attacker.canAttack || attacker.hasAttacked) return;
 
+    lastAttackCardId = attacker.id;
+
     if (player.field.length) {
-      const guards = player.field.filter(c => hasAbility(c, "guard"));
-      const target = guards[0] || player.field[0];
+      const guards = player.field.filter(card => hasAbility(card, "guard"));
+      const target = guards[0] || chooseBotTarget(player.field);
+
       fight(attacker, target, bot, player);
     } else {
       player.life -= attacker.attack;
@@ -920,10 +1094,43 @@ function botTurn() {
 
     checkGameOver();
   });
+
+  setTimeout(() => {
+    lastAttackCardId = null;
+    render();
+  }, 320);
+}
+
+function shouldBotUseSpell(spell, bot, player) {
+  if (spell.effect === "spellHeal") {
+    return bot.life <= STARTING_LIFE - 5;
+  }
+
+  if (spell.effect === "spellDrawTwo") {
+    return bot.hand.length <= 3;
+  }
+
+  if (spell.effect === "spellBlessing") {
+    return bot.field.length >= 2;
+  }
+
+  if (spell.effect === "spellStorm") {
+    return player.field.length >= 2;
+  }
+
+  if (spell.effect === "spellGainEnergy") {
+    return bot.hand.some(card => card.cost > bot.energy);
+  }
+
+  return true;
+}
+
+function chooseBotTarget(field) {
+  return [...field].sort((a, b) => a.currentHp - b.currentHp)[0];
 }
 
 function checkGameOver() {
-  if (game.winner) return;
+  if (!game || game.winner) return;
 
   if (game.players.p1.life <= 0) {
     game.players.p1.life = 0;
@@ -952,8 +1159,12 @@ function showResult(won) {
 
 function addLog(text) {
   if (!game) return;
+
   game.log.unshift(text);
-  if (game.log.length > 35) game.log.pop();
+
+  if (game.log.length > 35) {
+    game.log.pop();
+  }
 }
 
 function render() {
@@ -961,6 +1172,8 @@ function render() {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
+
+  if (!me || !enemy) return;
 
   playerNameText.textContent = me.name;
   enemyNameEl.textContent = enemy.name;
@@ -980,8 +1193,11 @@ function render() {
   playerHandCountEl.textContent = me.hand.length;
   enemyHandCountEl.textContent = enemy.hand.length;
 
-  turnTextEl.textContent = isMyTurn() ? "Tuo turno" : `Turno di ${game.players[game.currentTurn]?.name || "avversario"}`;
-  endTurnBtn.disabled = !isMyTurn();
+  turnTextEl.textContent = isMyTurn()
+    ? "Tuo turno"
+    : `Turno di ${game.players[game.currentTurn]?.name || "avversario"}`;
+
+  endTurnBtn.disabled = !isMyTurn() || Boolean(game.winner);
 
   if (gameMode === "online") {
     modeText.textContent = `Online · ${roomCode}`;
@@ -1003,6 +1219,9 @@ function render() {
 
 function renderHand() {
   const me = getMyPlayer();
+
+  if (!me) return;
+
   playerHandEl.innerHTML = "";
 
   me.hand.forEach(card => {
@@ -1030,6 +1249,7 @@ function addHandCardEvents(cardEl, card) {
 
   cardEl.addEventListener("pointerdown", () => {
     didLongPress = false;
+
     pressTimer = setTimeout(() => {
       didLongPress = true;
       showCardDetail(card);
@@ -1044,7 +1264,11 @@ function addHandCardEvents(cardEl, card) {
     if (didLongPress) {
       event.preventDefault();
       event.stopPropagation();
-      setTimeout(() => didLongPress = false, 150);
+
+      setTimeout(() => {
+        didLongPress = false;
+      }, 150);
+
       return;
     }
 
@@ -1081,6 +1305,10 @@ function renderField(container, field, owner) {
       showCardDetail(card);
     });
 
+    el.addEventListener("dblclick", () => {
+      showCardDetail(card);
+    });
+
     const actions = document.createElement("div");
     actions.className = "card-actions";
 
@@ -1099,7 +1327,7 @@ function renderField(container, field, owner) {
         }
 
         enemy.field.forEach((enemyCard, enemyIndex) => {
-          const guards = enemy.field.filter(c => hasAbility(c, "guard"));
+          const guards = enemy.field.filter(enemyCreature => hasAbility(enemyCreature, "guard"));
           const mustAttackGuard = guards.length > 0 && !hasAbility(enemyCard, "guard");
 
           const btn = document.createElement("button");
@@ -1128,9 +1356,10 @@ function createCardEl(card, extraClass) {
 
   if (card.type === "creature") {
     el.className = `card creature ${card.family} ${card.rarity} ${extraClass}`;
+
     const hpPercent = Math.max(0, Math.min(100, Math.round((card.currentHp / card.maxHp) * 100)));
     const abilities = (card.abilities || [])
-      .map(a => `<span class="ability">${abilityLabels[a]}</span>`)
+      .map(ability => `<span class="ability">${abilityLabels[ability]}</span>`)
       .join("");
 
     el.innerHTML = `
@@ -1158,13 +1387,20 @@ function createCardEl(card, extraClass) {
         </div>
 
         <div class="card-stats">
-          <div class="card-stat"><small>ATK</small>${card.attack}</div>
-          <div class="card-stat"><small>HP</small>${card.currentHp}/${card.maxHp}</div>
+          <div class="card-stat">
+            <small>ATK</small>
+            ${card.attack}
+          </div>
+          <div class="card-stat">
+            <small>HP</small>
+            ${card.currentHp}/${card.maxHp}
+          </div>
         </div>
       </div>
     `;
   } else {
     el.className = `card spell-card ${card.rarity} ${extraClass}`;
+
     el.innerHTML = `
       <div>
         <div class="card-top">
@@ -1184,14 +1420,22 @@ function createCardEl(card, extraClass) {
 
       <div>
         <div class="card-stats">
-          <div class="card-stat"><small>TIPO</small>Spell</div>
-          <div class="card-stat"><small>COSTO</small>${card.cost}</div>
+          <div class="card-stat">
+            <small>TIPO</small>
+            Spell
+          </div>
+          <div class="card-stat">
+            <small>COSTO</small>
+            ${card.cost}
+          </div>
         </div>
       </div>
     `;
   }
 
-  el.addEventListener("dblclick", () => showCardDetail(card));
+  el.addEventListener("dblclick", () => {
+    showCardDetail(card);
+  });
 
   return el;
 }
@@ -1204,17 +1448,19 @@ function showCardDetail(card) {
 
   if (card.type === "creature") {
     detailType.textContent = `${families[card.family].label} · Evoluzione ${card.stage}/3 · ${shortRarity(card.rarity)}`;
+
     detailAtkWrap.classList.remove("hidden");
     detailHpWrap.classList.remove("hidden");
+
     detailAtk.textContent = card.attack;
     detailHp.textContent = `${card.currentHp}/${card.maxHp}`;
 
     detailAbilities.innerHTML = "";
 
     if (card.abilities?.length) {
-      card.abilities.forEach(a => {
+      card.abilities.forEach(ability => {
         const span = document.createElement("span");
-        span.textContent = abilityLabels[a];
+        span.textContent = abilityLabels[ability];
         detailAbilities.appendChild(span);
       });
     } else {
@@ -1222,8 +1468,10 @@ function showCardDetail(card) {
     }
   } else {
     detailType.textContent = `Magia · ${shortRarity(card.rarity)}`;
+
     detailAtkWrap.classList.add("hidden");
     detailHpWrap.classList.add("hidden");
+
     detailAbilities.innerHTML = `<span>Effetto magia</span>`;
   }
 
@@ -1232,6 +1480,8 @@ function showCardDetail(card) {
 
 function renderLog() {
   battleLogEl.innerHTML = "";
+
+  if (!game) return;
 
   game.log.forEach(entry => {
     const div = document.createElement("div");
@@ -1252,9 +1502,30 @@ function shortRarity(rarity) {
   return map[rarity] || rarity;
 }
 
+function showOnlyMenu() {
+  if (unsubscribeRoom) {
+    unsubscribeRoom();
+    unsubscribeRoom = null;
+  }
+
+  roomCode = null;
+  game = null;
+  gameMode = "bot";
+  mySlot = "p1";
+  lastAttackCardId = null;
+
+  resultModal.classList.add("hidden");
+  cardDetailModal.classList.add("hidden");
+
+  showOnly(menuScreen);
+}
+
 document.querySelectorAll(".deck-btn").forEach(button => {
   button.onclick = () => {
-    document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
+    document.querySelectorAll(".deck-btn").forEach(btn => {
+      btn.classList.remove("selected");
+    });
+
     button.classList.add("selected");
     selectedDeck = button.dataset.deck;
   };
@@ -1312,18 +1583,8 @@ cardDetailModal.onclick = event => {
   }
 };
 
-function showOnlyMenu() {
-  if (unsubscribeRoom) {
-    unsubscribeRoom();
-    unsubscribeRoom = null;
-  }
-
-  resultModal.classList.add("hidden");
-  cardDetailModal.classList.add("hidden");
-  showOnly(menuScreen);
-}
-
 const savedName = localStorage.getItem("playerName");
+
 if (savedName) {
   playerNameInput.value = savedName;
 }

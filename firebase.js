@@ -1,10 +1,14 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  onSnapshot,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyBZkCXioFje39FqmUFkM2GqEAcPvVo7csg",
   authDomain: "ritiro-olio.firebaseapp.com",
@@ -15,25 +19,10 @@ const firebaseConfig = {
   measurementId: "G-Q0WCW8T0B1"
 };
 
-/*
-  SOSTITUISCI QUESTI DATI CON QUELLI DEL TUO FIREBASE.
-
-  Firebase Console:
-  Project settings → General → Your apps → Web app → Firebase SDK config
-*/
-
-const firebaseConfig = {
-  apiKey: "INSERISCI_API_KEY",
-  authDomain: "INSERISCI_AUTH_DOMAIN",
-  projectId: "INSERISCI_PROJECT_ID",
-  storageBucket: "INSERISCI_STORAGE_BUCKET",
-  messagingSenderId: "INSERISCI_MESSAGING_SENDER_ID",
-  appId: "INSERISCI_APP_ID"
-};
-
 const isConfigured =
-  firebaseConfig.apiKey &&
-  !firebaseConfig.apiKey.includes("INSERISCI");
+  Boolean(firebaseConfig.apiKey) &&
+  !firebaseConfig.apiKey.includes("INSERISCI") &&
+  Boolean(firebaseConfig.projectId);
 
 let app = null;
 let db = null;
@@ -47,9 +36,18 @@ export function firebaseReady() {
   return Boolean(db);
 }
 
+function requireDb() {
+  if (!db) {
+    throw new Error("Firebase non configurato correttamente.");
+  }
+
+  return db;
+}
+
 export function createMatchDoc(code, data) {
-  if (!db) throw new Error("Firebase non configurato.");
-  return setDoc(doc(db, "matches", code), {
+  const database = requireDb();
+
+  return setDoc(doc(database, "matches", code), {
     ...data,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp()
@@ -57,28 +55,38 @@ export function createMatchDoc(code, data) {
 }
 
 export async function getMatchDoc(code) {
-  if (!db) throw new Error("Firebase non configurato.");
-  const snap = await getDoc(doc(db, "matches", code));
+  const database = requireDb();
+  const snap = await getDoc(doc(database, "matches", code));
   return snap.exists() ? snap.data() : null;
 }
 
 export function updateMatchDoc(code, data) {
-  if (!db) throw new Error("Firebase non configurato.");
-  return updateDoc(doc(db, "matches", code), {
+  const database = requireDb();
+
+  return updateDoc(doc(database, "matches", code), {
     ...data,
     updatedAt: serverTimestamp()
   });
 }
 
-export function listenMatchDoc(code, callback) {
-  if (!db) throw new Error("Firebase non configurato.");
+export function listenMatchDoc(code, callback, onError) {
+  const database = requireDb();
 
-  return onSnapshot(doc(db, "matches", code), snap => {
-    if (!snap.exists()) {
-      callback(null);
-      return;
+  return onSnapshot(
+    doc(database, "matches", code),
+    snap => {
+      if (!snap.exists()) {
+        callback(null);
+        return;
+      }
+
+      callback(snap.data());
+    },
+    error => {
+      console.error("Errore ascolto partita:", error);
+      if (typeof onError === "function") {
+        onError(error);
+      }
     }
-
-    callback(snap.data());
-  });
+  );
 }

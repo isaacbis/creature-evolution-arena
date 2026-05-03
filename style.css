@@ -1168,3 +1168,58 @@ input::placeholder {
     padding: 3px;
   }
 }
+
+/* PATCH FINALE STABILITÀ MOBILE */
+
+html,
+body,
+.game-screen,
+.board,
+.zone,
+.field,
+.hand,
+.compact-field {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.field,
+.hand,
+.compact-field {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.card {
+  flex-shrink: 0;
+}
+
+#endTurnBtn {
+  position: sticky;
+  right: 0;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+#playerField .card-actions {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+}
+
+#playerField .card-actions button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .compact-field {
+    height: 108px;
+  }
+
+  .hand {
+    height: 114px;
+  }
+}
