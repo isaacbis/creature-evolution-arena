@@ -2434,3 +2434,20 @@ body.screen-shake {
 #menuScreen .game-logo h1 {
   margin-top: -6px !important;
 }
+
+
+/* =========================
+   FIX CAMBIO SCHERMATA v12
+   =========================
+   Il fix grafico della home usava #menuScreen display:block!important.
+   Questa regola fa vincere .hidden quando si clicca Gioca/Online.
+*/
+#menuScreen.menu-screen.hidden,
+#lobbyScreen.lobby-screen.hidden,
+#gameScreen.game-screen.hidden {
+  display: none !important;
+}
+
+#gameScreen.game-screen:not(.hidden) {
+  display: block !important;
+}

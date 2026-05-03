@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="stylesheet" href="style.css?v=12" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -96,6 +96,13 @@
       #menuScreen .game-logo h1 {
         margin-top: -6px !important;
       }
+    }
+  
+    /* IMPORTANTE: quando JS cambia schermata, la home deve sparire davvero */
+    #menuScreen.menu-screen.hidden,
+    #lobbyScreen.lobby-screen.hidden,
+    #gameScreen.game-screen.hidden {
+      display: none !important;
     }
   </style>
 
