@@ -259,18 +259,30 @@ button:disabled {
   align-items: center;
   gap: 10px;
   margin-bottom: 8px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.top-bar > div:first-child {
+  min-width: 0;
 }
 
 .top-bar h1 {
   margin: 0;
   font-size: 24px;
   letter-spacing: -0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .top-bar p {
   margin: 2px 0 0;
   color: var(--muted);
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .top-actions {
@@ -464,6 +476,8 @@ button:disabled {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  user-select: none;
+  touch-action: pan-x;
 }
 
 @keyframes cardEnter {
@@ -544,14 +558,14 @@ button:disabled {
 
 .card.playable {
   box-shadow:
-    0 0 0 2px rgba(81,207,102,0.8),
-    0 0 18px rgba(81,207,102,0.55),
+    0 0 0 2px rgba(81,207,102,0.75),
+    0 0 12px rgba(81,207,102,0.45),
     0 8px 18px rgba(0,0,0,0.28);
 }
 
 .card.unplayable {
-  opacity: 0.52;
-  filter: grayscale(0.55);
+  opacity: 0.68;
+  filter: grayscale(0.35);
 }
 
 .enemy-card {
@@ -718,6 +732,15 @@ button:disabled {
 /* Nel campo i tasti attacco restano visibili */
 #playerField .card-actions {
   display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+}
+
+#playerField .card-actions button {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .sleeping {
@@ -777,8 +800,9 @@ button:disabled {
 }
 
 #endTurnBtn {
-  position: relative;
-  z-index: 5;
+  position: sticky;
+  right: 0;
+  z-index: 10;
   flex-shrink: 0;
 }
 
@@ -792,12 +816,14 @@ button:disabled {
   place-items: center;
   background: rgba(0,0,0,0.72);
   padding: 18px;
+  overflow: hidden;
 }
 
 .modal-card {
   width: min(420px, 100%);
-  max-height: 92dvh;
-  overflow: auto;
+  max-width: 94vw;
+  max-height: 88dvh;
+  overflow-y: auto;
   background:
     radial-gradient(circle at top, rgba(255,212,59,0.14), transparent 40%),
     #171a25;
@@ -857,11 +883,14 @@ button:disabled {
   display: flex;
   gap: 8px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 8px 2px;
+  max-width: 100%;
 }
 
 .reward-choice {
   flex: 0 0 120px;
+  flex-shrink: 0;
   border-radius: 14px;
   padding: 10px;
   background: rgba(255,255,255,0.12);
@@ -938,6 +967,10 @@ button:disabled {
 
 .detail-desc {
   line-height: 1.45;
+  color: #e6e6ef;
+  background: rgba(255,255,255,0.08);
+  padding: 10px;
+  border-radius: 12px;
 }
 
 /* MOBILE */
@@ -1049,7 +1082,7 @@ button:disabled {
 
   .compact-field {
     min-height: 0;
-    height: 106px;
+    height: 108px;
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 2px;
@@ -1064,7 +1097,7 @@ button:disabled {
 
   .hand {
     min-height: 0;
-    height: 112px;
+    height: 114px;
     overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 3px;
@@ -1155,12 +1188,13 @@ button:disabled {
     overflow-y: hidden;
     max-width: 100%;
     padding-bottom: 2px;
+    flex-wrap: nowrap;
   }
 
   #playerField .card-actions button {
     flex: 0 0 auto;
     padding: 3px 4px;
-    font-size: 7px;
+    font-size: 6.8px;
     border-radius: 6px;
     white-space: nowrap;
   }
@@ -1199,6 +1233,23 @@ button:disabled {
 
   .reward-choice {
     flex-basis: 105px;
+  }
+
+  .modal-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .modal-card h2 {
+    font-size: 24px;
+  }
+
+  .result-icon {
+    font-size: 42px;
+  }
+
+  .detail-stats {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1247,11 +1298,11 @@ button:disabled {
   }
 
   .compact-field {
-    height: 100px;
+    height: 102px;
   }
 
   .hand {
-    height: 106px;
+    height: 108px;
   }
 
   .card {
@@ -1284,7 +1335,7 @@ button:disabled {
   }
 
   #playerField .card-actions button {
-    font-size: 6.8px;
+    font-size: 6.4px;
     padding: 3px;
   }
 

@@ -74,7 +74,6 @@ let selectedDeck = "balanced";
 let currentLevel = 1;
 let game;
 let lastAttackCardId = null;
-let longPressTriggered = false;
 
 const deckLabels = {
   fire: "🔥 Mazzo Fuoco",
@@ -1208,6 +1207,7 @@ function playerAttack(attackerIndex, targetIndex) {
 
   checkGameOver();
   render();
+
   setTimeout(() => {
     lastAttackCardId = null;
     render();
@@ -1410,10 +1410,12 @@ function showResult(won) {
 
       if (game.rewardOptions.length > 0) {
         rewardChoiceBox.classList.remove("hidden");
+        rewardBox.classList.add("hidden");
         nextLevelBtn.disabled = true;
         renderRewardChoices();
       } else {
         rewardChoiceBox.classList.add("hidden");
+        rewardBox.classList.add("hidden");
         nextLevelBtn.disabled = false;
       }
     } else {
@@ -1572,30 +1574,38 @@ function renderHand() {
 }
 
 function addHandCardEvents(cardEl, card) {
-  let pressTimer;
+  let pressTimer = null;
+  let didLongPress = false;
+
+  const clearPressTimer = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  };
 
   cardEl.addEventListener("pointerdown", () => {
-    longPressTriggered = false;
+    didLongPress = false;
 
     pressTimer = setTimeout(() => {
-      longPressTriggered = true;
+      didLongPress = true;
       showCardDetail(card);
-    }, 550);
+    }, 520);
   });
 
-  cardEl.addEventListener("pointerup", () => {
-    clearTimeout(pressTimer);
-  });
+  cardEl.addEventListener("pointerup", clearPressTimer);
+  cardEl.addEventListener("pointercancel", clearPressTimer);
+  cardEl.addEventListener("pointerleave", clearPressTimer);
 
-  cardEl.addEventListener("pointerleave", () => {
-    clearTimeout(pressTimer);
-  });
+  cardEl.addEventListener("click", event => {
+    if (didLongPress) {
+      event.preventDefault();
+      event.stopPropagation();
 
-  cardEl.addEventListener("click", () => {
-    if (longPressTriggered) {
       setTimeout(() => {
-        longPressTriggered = false;
-      }, 120);
+        didLongPress = false;
+      }, 150);
+
       return;
     }
 
@@ -1627,7 +1637,7 @@ function renderField(container, field, owner) {
     if (card.poisoned) cardEl.classList.add("poisoned");
     if (card.id === lastAttackCardId) cardEl.classList.add("attacking");
 
-    cardEl.addEventListener("click", () => showCardDetail(card));
+    addFieldCardEvents(cardEl, card);
 
     const actions = document.createElement("div");
     actions.className = "card-actions";
@@ -1670,6 +1680,47 @@ function renderField(container, field, owner) {
 
     cardEl.appendChild(actions);
     container.appendChild(cardEl);
+  });
+}
+
+function addFieldCardEvents(cardEl, card) {
+  let pressTimer = null;
+  let didLongPress = false;
+
+  const clearPressTimer = () => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  };
+
+  cardEl.addEventListener("pointerdown", () => {
+    didLongPress = false;
+
+    pressTimer = setTimeout(() => {
+      didLongPress = true;
+      showCardDetail(card);
+    }, 520);
+  });
+
+  cardEl.addEventListener("pointerup", clearPressTimer);
+  cardEl.addEventListener("pointercancel", clearPressTimer);
+  cardEl.addEventListener("pointerleave", clearPressTimer);
+
+  cardEl.addEventListener("click", event => {
+    if (didLongPress) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      setTimeout(() => {
+        didLongPress = false;
+      }, 150);
+    }
+  });
+
+  cardEl.addEventListener("contextmenu", event => {
+    event.preventDefault();
+    showCardDetail(card);
   });
 }
 
