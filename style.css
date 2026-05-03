@@ -1943,3 +1943,434 @@ body.dragging-card * {
     font-size: 7.5px;
   }
 }
+
+
+/* =========================================================
+   STEP 2 - ANIMAZIONI DA APP / GAME FEEL
+   ========================================================= */
+
+/* Flash generale arena */
+.fx-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 9996;
+  pointer-events: none;
+  opacity: 0;
+  animation: fxFlash 0.55s ease forwards;
+}
+
+.fx-flash.summon {
+  background:
+    radial-gradient(circle at center, rgba(81,207,102,0.30), transparent 38%),
+    rgba(81,207,102,0.08);
+}
+
+.fx-flash.evolve {
+  background:
+    radial-gradient(circle at center, rgba(255,212,59,0.42), transparent 42%),
+    rgba(255,212,59,0.10);
+}
+
+.fx-flash.attack {
+  background:
+    radial-gradient(circle at center, rgba(255,107,107,0.28), transparent 38%),
+    rgba(255,107,107,0.08);
+}
+
+.fx-flash.terrain {
+  background:
+    radial-gradient(circle at center, rgba(89,209,255,0.32), transparent 42%),
+    rgba(89,209,255,0.08);
+}
+
+.fx-flash.equipment {
+  background:
+    radial-gradient(circle at center, rgba(177,151,252,0.32), transparent 42%),
+    rgba(177,151,252,0.08);
+}
+
+.fx-flash.win {
+  background:
+    radial-gradient(circle at center, rgba(255,212,59,0.48), transparent 44%),
+    rgba(255,212,59,0.12);
+}
+
+.fx-flash.lose {
+  background:
+    radial-gradient(circle at center, rgba(255,107,107,0.38), transparent 44%),
+    rgba(255,107,107,0.10);
+}
+
+@keyframes fxFlash {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+/* Shake quando si prende danno */
+body.screen-shake {
+  animation: screenShake 0.34s ease both;
+}
+
+@keyframes screenShake {
+  0% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-5px);
+  }
+
+  40% {
+    transform: translateX(5px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+  }
+
+  80% {
+    transform: translateX(3px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Particelle */
+.fx-particle {
+  position: fixed;
+  z-index: 9997;
+  pointer-events: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--gold);
+  box-shadow: 0 0 18px currentColor;
+  animation: particleFly 0.78s ease-out forwards;
+}
+
+.fx-particle.fire {
+  background: #ff922b;
+  color: #ff922b;
+}
+
+.fx-particle.water {
+  background: #4dabf7;
+  color: #4dabf7;
+}
+
+.fx-particle.forest {
+  background: #51cf66;
+  color: #51cf66;
+}
+
+.fx-particle.shadow {
+  background: #b197fc;
+  color: #b197fc;
+}
+
+.fx-particle.light {
+  background: #ffd43b;
+  color: #ffd43b;
+}
+
+.fx-particle.red {
+  background: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.fx-particle.blue {
+  background: #59d1ff;
+  color: #59d1ff;
+}
+
+.fx-particle.purple {
+  background: #b197fc;
+  color: #b197fc;
+}
+
+@keyframes particleFly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(var(--fx-x), var(--fx-y)) scale(0.2);
+  }
+}
+
+/* Testo grande evento */
+.fx-event-text {
+  position: fixed;
+  left: 50%;
+  top: 45%;
+  z-index: 9998;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  font-size: clamp(28px, 8vw, 56px);
+  font-weight: 1000;
+  letter-spacing: -0.06em;
+  text-align: center;
+  color: white;
+  text-shadow:
+    0 0 18px rgba(255,212,59,0.52),
+    0 10px 30px rgba(0,0,0,0.72);
+  animation: eventTextPop 0.85s ease forwards;
+}
+
+.fx-event-text.small {
+  font-size: clamp(20px, 6vw, 36px);
+}
+
+.fx-event-text.evolve {
+  color: #ffd43b;
+}
+
+.fx-event-text.summon {
+  color: #51cf66;
+}
+
+.fx-event-text.attack {
+  color: #ff6b6b;
+}
+
+.fx-event-text.terrain {
+  color: #59d1ff;
+}
+
+.fx-event-text.equipment {
+  color: #b197fc;
+}
+
+@keyframes eventTextPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+    filter: blur(8px);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+    filter: blur(0);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -64%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -86%) scale(0.94);
+  }
+}
+
+/* Evocazione / evoluzione su carta */
+.card.fx-card-summon {
+  animation:
+    cardEnter 0.22s ease both,
+    cardSummonPulse 0.75s ease both !important;
+}
+
+.card.fx-card-evolve {
+  animation:
+    cardEvolvePulse 0.9s ease both !important;
+}
+
+.card.fx-card-equip {
+  animation:
+    cardEquipPulse 0.75s ease both !important;
+}
+
+.card.fx-card-terrain {
+  animation:
+    cardTerrainPulse 0.75s ease both !important;
+}
+
+@keyframes cardSummonPulse {
+  0% {
+    transform: scale(0.76) translateY(10px);
+    filter: brightness(1.45);
+  }
+
+  45% {
+    transform: scale(1.08) translateY(-4px);
+    filter: brightness(1.25);
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes cardEvolvePulse {
+  0% {
+    transform: scale(0.84) rotate(-2deg);
+    filter: brightness(2);
+    box-shadow:
+      0 0 0 5px rgba(255,212,59,0.40),
+      0 0 34px rgba(255,212,59,0.80),
+      var(--shadow-card);
+  }
+
+  45% {
+    transform: scale(1.13) rotate(2deg);
+    filter: brightness(1.55);
+    box-shadow:
+      0 0 0 6px rgba(255,212,59,0.32),
+      0 0 42px rgba(255,212,59,0.85),
+      var(--shadow-card);
+  }
+
+  100% {
+    transform: scale(1) rotate(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes cardEquipPulse {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 4px rgba(177,151,252,0.40),
+      0 0 30px rgba(177,151,252,0.72),
+      var(--shadow-card);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes cardTerrainPulse {
+  0% {
+    filter: brightness(1.7);
+    box-shadow:
+      0 0 0 4px rgba(89,209,255,0.35),
+      0 0 30px rgba(89,209,255,0.72),
+      var(--shadow-card);
+  }
+
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* Vittoria / sconfitta più scenica */
+.modal-card.victory-pop {
+  animation: victoryPop 0.72s ease both;
+}
+
+.modal-card.defeat-pop {
+  animation: defeatPop 0.72s ease both;
+}
+
+@keyframes victoryPop {
+  0% {
+    transform: scale(0.84) translateY(18px);
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(255,212,59,0);
+  }
+
+  55% {
+    transform: scale(1.04) translateY(-4px);
+    opacity: 1;
+    box-shadow:
+      0 0 0 4px rgba(255,212,59,0.22),
+      0 0 48px rgba(255,212,59,0.36),
+      0 26px 80px rgba(0,0,0,0.58);
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes defeatPop {
+  0% {
+    transform: scale(0.88) translateY(18px);
+    opacity: 0;
+  }
+
+  55% {
+    transform: scale(1.03) translateY(-4px);
+    opacity: 1;
+    box-shadow:
+      0 0 0 4px rgba(255,107,107,0.18),
+      0 0 44px rgba(255,107,107,0.28),
+      0 26px 80px rgba(0,0,0,0.58);
+  }
+
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Danno più leggibile */
+.damage-popup {
+  font-size: 24px;
+  padding: 6px 11px;
+  border: 2px solid rgba(255,255,255,0.32);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  animation: damageFloatStrong 0.95s cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes damageFloatStrong {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -35%) scale(0.55) rotate(-8deg);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -65%) scale(1.25) rotate(3deg);
+  }
+
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1) rotate(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -145%) scale(0.82) rotate(0);
+  }
+}
+
+/* Riduce animazioni se il dispositivo lo richiede */
+@media (prefers-reduced-motion: reduce) {
+  .fx-flash,
+  .fx-particle,
+  .fx-event-text,
+  .damage-popup,
+  .card.fx-card-summon,
+  .card.fx-card-evolve,
+  .card.fx-card-equip,
+  .card.fx-card-terrain,
+  body.screen-shake,
+  .modal-card.victory-pop,
+  .modal-card.defeat-pop {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

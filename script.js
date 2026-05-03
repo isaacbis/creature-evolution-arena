@@ -988,6 +988,10 @@ function playCreature(owner, opponent, cardId) {
 
   owner.field.push(card);
 
+setTimeout(() => {
+  playSummonFx(card);
+}, 80);
+
   owner.stats.creaturesPlayed++;
   recordBestCard(owner, card);
 
@@ -1037,6 +1041,10 @@ function evolveCreature(owner, opponent, cardId, fieldIndex) {
   applyTerrainOnSummon(evolved);
 
   owner.field[fieldIndex] = evolved;
+
+setTimeout(() => {
+  playEvolveFx(evolved);
+}, 80);
 
   owner.stats.evolutions++;
   recordBestCard(owner, evolved);
@@ -1096,6 +1104,11 @@ function playEquipment(owner, cardId, targetIndex) {
     if (!target.abilities.includes("poison")) target.abilities.push("poison");
   }
 
+setTimeout(() => {
+  playEquipmentFx(target);
+}, 80);
+
+
   owner.stats.equipmentsPlayed++;
   recordBestCard(owner, eq);
 
@@ -1119,6 +1132,11 @@ function playTerrain(owner, cardId) {
     type: terrain.terrainType,
     turnsLeft: turns
   };
+
+setTimeout(() => {
+  playTerrainFx();
+}, 80);
+
 
   owner.stats.terrainsPlayed++;
   recordBestCard(owner, terrain);
@@ -1439,6 +1457,8 @@ async function playerAttack(attackerIndex, targetIndex) {
     }
 
     dealLifeDamage(me, enemy, attacker.attack, enemyHudBox);
+playAttackFx(enemyHudBox);
+
     attacker.hasAttacked = true;
     addLog(`${attacker.name} infligge ${attacker.attack} danni diretti.`);
   } else {
@@ -1490,6 +1510,9 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
   }
 
   addLog(`${attacker.name} combatte contro ${defender.name}.`);
+
+const targetCardEl = document.querySelector(".card.enemy-targetable") || document.querySelector(".card.selected-attacker");
+playAttackFx(targetCardEl);
 
   removeDead(attackerOwner);
   removeDead(defenderOwner);
@@ -1777,6 +1800,16 @@ function showResult(won) {
   const stats = me?.stats || makeStats();
 
   resultModal.classList.remove("hidden");
+
+const modalCard = resultModal.querySelector(".modal-card");
+
+if (modalCard) {
+  modalCard.classList.remove("victory-pop", "defeat-pop");
+  void modalCard.offsetWidth;
+  modalCard.classList.add(won ? "victory-pop" : "defeat-pop");
+}
+
+playResultFx(won);
   resultIcon.textContent = won ? "🏆" : "💀";
   resultTitle.textContent = won ? "Vittoria!" : "Sconfitta";
   resultText.textContent = won ? "Hai vinto la partita. +35 XP" : "Hai perso la partita. +15 XP";
@@ -2402,10 +2435,162 @@ function shortRarity(rarity) {
   return map[rarity] || rarity;
 }
 
-function showDamagePopup(targetEl, text, heal = false) {
-  if (!targetEl || !document.body.contains(targetEl)) return;
+function createFxFlash(type = "summon") {
+  const flash = document.createElement("div");
+  flash.className = `fx-flash ${type}`;
+  document.body.appendChild(flash);
 
-  const rect = targetEl.getBoundingClientRect();
+  setTimeout(() => {
+    flash.remove();
+  }, 700);
+}
+
+function createFxText(text, type = "summon", small = false) {
+  const el = document.createElement("div");
+  el.className = `fx-event-text ${type} ${small ? "small" : ""}`;
+  el.textContent = text;
+  document.body.appendChild(el);
+
+  setTimeout(() => {
+    el.remove();
+  }, 950);
+}
+
+function createParticlesFromElement(targetEl, type = "light", count = 14) {
+  if (!targetEl || !document.body.contains(targetEl)) {
+    targetEl = document.body;
+  }
+
+  const rect = targetEl === document.body
+    ? {
+        left: window.innerWidth / 2,
+        top: window.innerHeight / 2,
+        width: 0,
+        height: 0
+      }
+    : targetEl.getBoundingClientRect();
+
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  for (let i = 0; i < count; i++) {
+    const particle = document.createElement("div");
+    particle.className = `fx-particle ${type}`;
+
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 36 + Math.random() * 74;
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+
+    particle.style.left = `${centerX}px`;
+    particle.style.top = `${centerY}px`;
+    particle.style.setProperty("--fx-x", `${x}px`);
+    particle.style.setProperty("--fx-y", `${y}px`);
+
+    document.body.appendChild(particle);
+
+    setTimeout(() => {
+      particle.remove();
+    }, 850);
+  }
+}
+
+function shakeScreen() {
+  document.body.classList.remove("screen-shake");
+  void document.body.offsetWidth;
+  document.body.classList.add("screen-shake");
+
+  setTimeout(() => {
+    document.body.classList.remove("screen-shake");
+  }, 380);
+}
+
+function findCardElementById(cardId) {
+  if (!cardId) return null;
+
+  const allCards = document.querySelectorAll(".card");
+
+  for (const cardEl of allCards) {
+    if (cardEl.dataset.cardId === cardId) return cardEl;
+  }
+
+  return null;
+}
+
+function animateCardById(cardId, animationClass, particleType = "light", text = "") {
+  requestAnimationFrame(() => {
+    const cardEl = findCardElementById(cardId);
+
+    if (!cardEl) {
+      if (text) createFxText(text, particleType, true);
+      createParticlesFromElement(document.body, particleType, 10);
+      return;
+    }
+
+    cardEl.classList.remove(animationClass);
+    void cardEl.offsetWidth;
+    cardEl.classList.add(animationClass);
+
+    createParticlesFromElement(cardEl, particleType, 16);
+
+    if (text) {
+      createFxText(text, particleType, true);
+    }
+
+    setTimeout(() => {
+      cardEl.classList.remove(animationClass);
+    }, 950);
+  });
+}
+
+function playSummonFx(card) {
+  createFxFlash("summon");
+  createFxText("Evocazione", "summon", true);
+  animateCardById(card?.id, "fx-card-summon", card?.family || "light");
+}
+
+function playEvolveFx(card) {
+  createFxFlash("evolve");
+  createFxText("Evoluzione!", "evolve");
+  animateCardById(card?.id, "fx-card-evolve", "light");
+}
+
+function playEquipmentFx(card) {
+  createFxFlash("equipment");
+  createFxText("Equip!", "equipment", true);
+  animateCardById(card?.id, "fx-card-equip", "purple");
+}
+
+function playTerrainFx() {
+  createFxFlash("terrain");
+  createFxText("Terreno attivo", "terrain", true);
+  createParticlesFromElement(document.querySelector(".terrain-zone"), "blue", 18);
+}
+
+function playAttackFx(targetEl = null) {
+  createFxFlash("attack");
+  createParticlesFromElement(targetEl || enemyHudBox || document.body, "red", 12);
+}
+
+function playResultFx(won) {
+  createFxFlash(won ? "win" : "lose");
+  createFxText(won ? "Vittoria!" : "Sconfitta", won ? "evolve" : "attack");
+}
+
+function showDamagePopup(targetEl, text, heal = false) {
+  if (!targetEl || !document.body.contains(targetEl)) {
+    targetEl = document.body;
+  }
+
+  const rect = targetEl === document.body
+    ? {
+        left: window.innerWidth / 2,
+        top: window.innerHeight / 2,
+        width: 0,
+        height: 0
+      }
+    : targetEl.getBoundingClientRect();
+
   const popup = document.createElement("div");
 
   popup.className = `damage-popup ${heal ? "heal" : ""}`;
@@ -2415,26 +2600,14 @@ function showDamagePopup(targetEl, text, heal = false) {
 
   document.body.appendChild(popup);
 
-  setTimeout(() => popup.remove(), 900);
-}
+  createParticlesFromElement(targetEl, heal ? "forest" : "red", heal ? 9 : 12);
 
-function startTimerLoop() {
-  if (turnTimerInterval) clearInterval(turnTimerInterval);
+  if (!heal) {
+    shakeScreen();
+  }
 
-  turnTimerInterval = setInterval(async () => {
-    if (!game || game.status !== "playing" || game.winner) {
-      turnTimerText.textContent = "⏱️ --";
-      return;
-    }
-
-    const elapsed = Math.floor((Date.now() - (game.turnStartedAt || Date.now())) / 1000);
-    const left = Math.max(0, TURN_SECONDS - elapsed);
-    turnTimerText.textContent = `⏱️ ${left}s`;
-
-    if (left <= 0 && isMyTurn()) {
-      setMessage("Tempo scaduto: turno passato.");
-      await endTurn();
-    }
+  setTimeout(() => {
+    popup.remove();
   }, 1000);
 }
 
