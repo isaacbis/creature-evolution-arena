@@ -5,7 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=10" />
+
+<style>
+  /* FIX FORZATO HOME MOBILE - rimuove spazio/cerchi bianchi sopra */
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100% !important;
+    background: linear-gradient(160deg, #1a2134, #05060b) !important;
+    overflow-x: hidden !important;
+  }
+
+  #menuScreen.menu-screen {
+    min-height: auto !important;
+    height: auto !important;
+    display: block !important;
+    padding: 6px !important;
+    margin: 0 !important;
+    background: linear-gradient(160deg, #1a2134, #05060b) !important;
+  }
+
+  #menuScreen .menu-shell {
+    width: 100% !important;
+    max-width: 780px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+
+  #menuScreen .hero-panel {
+    margin: 0 !important;
+    padding: 8px 14px 15px !important;
+    border-radius: 26px !important;
+    background: rgba(7, 9, 18, 0.92) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: hidden !important;
+  }
+
+  #menuScreen .hero-glow,
+  #menuScreen .hero-glow-one,
+  #menuScreen .hero-glow-two {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  #menuScreen .hero-top {
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: flex-start !important;
+  }
+
+  #menuScreen .game-logo {
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: flex-start !important;
+  }
+
+  #menuScreen .game-logo h1 {
+    margin: -4px 0 0 !important;
+    padding: 0 !important;
+    line-height: 0.78 !important;
+  }
+
+  #menuScreen .logo-mark {
+    margin-top: 0 !important;
+  }
+
+  @media (max-width: 700px) {
+    #menuScreen.menu-screen {
+      padding: 4px !important;
+    }
+
+    #menuScreen .hero-panel {
+      padding-top: 6px !important;
+    }
+
+    #menuScreen .game-logo h1 {
+      margin-top: -5px !important;
+    }
+  }
+</style>
+
   <link rel="manifest" href="manifest.json" />
 
   <meta name="theme-color" content="#ff9f43" />
@@ -456,7 +539,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=9")
+        .register("./service-worker.js")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -464,6 +547,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=9"></script>
+<script type="module" src="script.js?v=10"></script>
 </body>
 </html>

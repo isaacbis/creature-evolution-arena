@@ -1970,38 +1970,6 @@ function render() {
   }
 }
 
-function startTimerLoop() {
-  if (turnTimerInterval) {
-    clearInterval(turnTimerInterval);
-    turnTimerInterval = null;
-  }
-
-  if (!turnTimerText || !game || !game.turnStartedAt || game.status !== "playing" || game.winner) {
-    if (turnTimerText) turnTimerText.textContent = "⏱️ --";
-    return;
-  }
-
-  const updateTimer = () => {
-    if (!game || game.status !== "playing" || game.winner) {
-      turnTimerText.textContent = "⏱️ --";
-      clearInterval(turnTimerInterval);
-      turnTimerInterval = null;
-      return;
-    }
-
-    const elapsed = Math.floor((Date.now() - Number(game.turnStartedAt || Date.now())) / 1000);
-    const remaining = Math.max(0, TURN_SECONDS - elapsed);
-    turnTimerText.textContent = `⏱️ ${remaining}s`;
-
-    if (remaining <= 0) {
-      turnTimerText.textContent = "⏱️ 0s";
-    }
-  };
-
-  updateTimer();
-  turnTimerInterval = setInterval(updateTimer, 1000);
-}
-
 function renderEnergyDots(current, max) {
   const safeMax = Math.max(0, Math.min(10, max || 0));
   let text = "";
@@ -2140,17 +2108,12 @@ function startPointerDrag(event, cardEl, card) {
     document.removeEventListener("pointerup", pointerUp);
     document.removeEventListener("pointercancel", pointerUp);
 
-    try {
-      if (dragState.active) {
-        upEvent.preventDefault();
-        await finishPointerDrop(upEvent.clientX, upEvent.clientY);
-      }
-    } catch (error) {
-      console.error("Errore durante il rilascio della carta:", error);
-      setMessage("Errore nel posizionamento della carta. Riprova.");
-    } finally {
-      cleanupDragState();
+    if (dragState.active) {
+      upEvent.preventDefault();
+      await finishPointerDrop(upEvent.clientX, upEvent.clientY);
     }
+
+    cleanupDragState();
   };
 
   document.addEventListener("pointermove", pointerMove, { passive: false });
