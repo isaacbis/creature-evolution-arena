@@ -710,6 +710,15 @@ input::placeholder {
   -webkit-touch-callout: none;
 }
 
+/* Permette lo scroll orizzontale della mano senza far partire subito il drag */
+.hand .card {
+  touch-action: pan-x;
+}
+
+body.dragging-card .hand .card {
+  touch-action: none;
+}
+
 .card:active {
   cursor: grabbing;
 }

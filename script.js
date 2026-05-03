@@ -1931,8 +1931,6 @@ function addHandCardEvents(cardEl, card) {
 }
 
 function startPointerDrag(event, cardEl, card) {
-  event.preventDefault();
-
   if (!isMyTurn() || !canPlayCard(card)) return;
   if (event.button !== undefined && event.button !== 0) return;
 
@@ -1946,32 +1944,69 @@ function startPointerDrag(event, cardEl, card) {
     startY: event.clientY,
     currentX: event.clientX,
     currentY: event.clientY,
-    moved: false
+    moved: false,
+    scrollIntent: false
   };
 
   const pointerMove = moveEvent => {
     const dx = moveEvent.clientX - dragState.startX;
     const dy = moveEvent.clientY - dragState.startY;
+
+    const absX = Math.abs(dx);
+    const absY = Math.abs(dy);
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (!dragState.active && distance > 8) {
+    /*
+      Se il movimento è soprattutto orizzontale,
+      NON parte il drag: lasciamo scorrere la mano.
+    */
+    if (!dragState.active && !dragState.scrollIntent && absX > 8 && absX > absY * 1.25) {
+      dragState.scrollIntent = true;
+      dragState.moved = true;
+      return;
+    }
+
+    /*
+      Se ormai è stato riconosciuto come scroll,
+      non facciamo partire il trascinamento.
+    */
+    if (dragState.scrollIntent) {
+      return;
+    }
+
+    /*
+      Il drag parte solo se il movimento è abbastanza verticale.
+      Così puoi scorrere la mano lateralmente senza trascinare carte.
+    */
+    if (!dragState.active && distance > 10 && absY >= absX) {
       dragState.active = true;
       dragState.moved = true;
+
+      moveEvent.preventDefault();
+
       document.body.classList.add("dragging-card");
       cardEl.classList.add("dragging-source");
       createDragGhost(cardEl);
 
-      if (card.type === "spell") setMessage("Trascina la magia sul campo avversario.");
-      else if (card.type === "equipment") setMessage("Trascina l'equipaggiamento sopra una tua creatura.");
-      else if (card.type === "terrain") setMessage("Trascina il terreno sul campo.");
-      else if (card.stage === 1) setMessage("Trascina la creatura nel tuo campo.");
-      else setMessage("Sovrapponi l'evoluzione alla creatura corretta.");
+      if (card.type === "spell") {
+        setMessage("Trascina la magia sul campo avversario.");
+      } else if (card.type === "equipment") {
+        setMessage("Trascina l'equipaggiamento sopra una tua creatura.");
+      } else if (card.type === "terrain") {
+        setMessage("Trascina il terreno sul campo.");
+      } else if (card.stage === 1) {
+        setMessage("Trascina la creatura nel tuo campo.");
+      } else {
+        setMessage("Sovrapponi l'evoluzione alla creatura corretta.");
+      }
     }
 
     if (dragState.active) {
       moveEvent.preventDefault();
+
       dragState.currentX = moveEvent.clientX;
       dragState.currentY = moveEvent.clientY;
+
       moveDragGhost(moveEvent.clientX, moveEvent.clientY);
       updateDropHighlights(moveEvent.clientX, moveEvent.clientY);
     }
