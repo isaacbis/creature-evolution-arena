@@ -2382,3 +2382,55 @@ body.screen-shake {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* =========================
+   FIX HOME MOBILE v11
+   ========================= */
+#menuScreen.menu-screen {
+  min-height: auto !important;
+  height: auto !important;
+  display: block !important;
+  place-items: unset !important;
+  align-items: unset !important;
+  padding: 2px 6px 8px !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+
+#menuScreen .menu-shell {
+  width: 100% !important;
+  max-width: 780px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+}
+
+#menuScreen .hero-panel {
+  margin: 0 !important;
+  padding: 5px 14px 15px !important;
+  border-radius: 26px !important;
+  background: linear-gradient(180deg, rgba(18, 22, 36, 0.96), rgba(7, 9, 18, 0.94)) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+#menuScreen .hero-glow,
+#menuScreen .hero-glow-one,
+#menuScreen .hero-glow-two {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: none !important;
+}
+
+#menuScreen .hero-top,
+#menuScreen .game-logo {
+  margin: 0 !important;
+  padding: 0 !important;
+  align-items: flex-start !important;
+}
+
+#menuScreen .game-logo h1 {
+  margin-top: -6px !important;
+}

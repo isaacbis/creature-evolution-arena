@@ -133,7 +133,6 @@ const profileNameText = $("profileNameText");
 const profileLevelText = $("profileLevelText");
 
 const enemyHudBox = $("enemyHudBox");
-const playerHudBox = document.querySelector(".my-bar");
 
 const STARTING_LIFE = 30;
 const STARTING_HAND = 5;
@@ -153,9 +152,6 @@ let unsubscribeRoom = null;
 let lastAttackCardId = null;
 let selectedAttackerIndex = null;
 let turnTimerInterval = null;
-let turnProcessing = false;
-let localResultSaved = false;
-let localLeaderboardSaved = false;
 
 let draftDeck = [];
 let draftPickCount = 0;
@@ -646,9 +642,6 @@ function startBotGame(bossKey = null, forcedDeck = null) {
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
-  turnProcessing = false;
-  localResultSaved = false;
-  localLeaderboardSaved = false;
 
   const p1 = makePlayer(name, forcedDeck ? "draft" : selectedDeck, forcedDeck);
   const p2 = makeBot(bossKey);
@@ -686,9 +679,6 @@ async function createOnlineGame() {
     mySlot = "p1";
     lastAttackCardId = null;
     selectedAttackerIndex = null;
-    turnProcessing = false;
-    localResultSaved = false;
-    localLeaderboardSaved = false;
 
     game = {
       mode: "online",
@@ -757,9 +747,6 @@ async function joinOnlineGame() {
     mySlot = "p2";
     lastAttackCardId = null;
     selectedAttackerIndex = null;
-    turnProcessing = false;
-    localResultSaved = false;
-    localLeaderboardSaved = false;
 
     match.players.p2 = makePlayer(name, selectedDeck);
     match.status = "playing";
@@ -815,8 +802,6 @@ function subscribeToRoom(code) {
       render();
 
       if (game.winner && game.winner !== previousWinner) {
-        saveLocalResultIfNeeded();
-        saveLeaderboardIfNeeded();
         showResult(game.winner === mySlot);
       }
     },
@@ -855,7 +840,7 @@ function startTurnInGame(g, slot) {
   player.energy = player.maxEnergy;
 
   tickTerrain(g);
-  applyPoisonDamage(player, g);
+  applyPoisonDamage(player);
   prepareCreatures(player);
   drawCard(player);
 
@@ -889,12 +874,12 @@ function applyBossPower(bossKey) {
   }
 
   if (bossKey === "knight") {
-    healLife(bot, 2, enemyHudBox);
+    healLife(bot, 2, document.querySelector(".hud-box.enemy"));
     addLog("Potere Boss: cura 2 vita.");
   }
 
   if (bossKey === "dragon") {
-    dealLifeDamage(bot, player, 2, playerHudBox);
+    dealLifeDamage(bot, player, 2, document.querySelector(".hud-box.player"));
     addLog("Potere Boss: infligge 2 danni diretti.");
   }
 
@@ -907,7 +892,7 @@ function applyBossPower(bossKey) {
 
   if (bossKey === "final") {
     bot.energy += 1;
-    dealLifeDamage(bot, player, 1, playerHudBox);
+    dealLifeDamage(bot, player, 1, document.querySelector(".hud-box.player"));
     addLog("Potere Boss Finale: +1 energia e 1 danno.");
   }
 }
@@ -919,8 +904,8 @@ function prepareCreatures(player) {
   });
 }
 
-function applyPoisonDamage(player, targetGame = game) {
-  const poisonDamage = targetGame?.activeTerrain?.type === "swamp" ? 2 : 1;
+function applyPoisonDamage(player) {
+  const poisonDamage = game?.activeTerrain?.type === "swamp" ? 2 : 1;
 
   player.field.forEach(card => {
     if (card.poisoned) {
@@ -1004,11 +989,7 @@ function playCreature(owner, opponent, cardId) {
   owner.field.push(card);
 
 setTimeout(() => {
-  try {
-    playSummonFx(card);
-  } catch (error) {
-    console.warn("Animazione evocazione non riuscita:", error);
-  }
+  playSummonFx(card);
 }, 80);
 
   owner.stats.creaturesPlayed++;
@@ -1166,7 +1147,7 @@ setTimeout(() => {
 function applyEntryEffect(card, owner, opponent) {
   switch (card.effect) {
     case "burnEnemy":
-      dealLifeDamage(owner, opponent, 1);
+      dealLifeDamage(owner, opponent, 1, enemyHudBox);
       addLog(`${card.name} infligge 1 danno diretto.`);
       break;
 
@@ -1215,7 +1196,7 @@ function applyEntryEffect(card, owner, opponent) {
       break;
 
     case "darkBlast":
-      dealLifeDamage(owner, opponent, 3);
+      dealLifeDamage(owner, opponent, 3, enemyHudBox);
       addLog(`${card.name} infligge 3 danni diretti.`);
       break;
 
@@ -1247,7 +1228,7 @@ function applySpellEffect(spell, owner, opponent) {
         addLog(`${spell.name} infligge 3 danni a ${target.name}.`);
         removeDead(opponent);
       } else {
-        dealLifeDamage(owner, opponent, 3);
+        dealLifeDamage(owner, opponent, 3, enemyHudBox);
         addLog(`${spell.name} infligge 3 danni diretti.`);
       }
       break;
@@ -1298,25 +1279,18 @@ function chooseSpellTarget(field) {
   return [...field].sort((a, b) => b.attack - a.attack)[0];
 }
 
-function getHudForPlayer(player) {
-  if (!game || !player) return document.body;
-
-  const me = getMyPlayer();
-  return player === me ? playerHudBox : enemyHudBox;
-}
-
 function dealLifeDamage(attackerOwner, defenderOwner, amount, targetEl = null) {
   defenderOwner.life -= amount;
 
   if (attackerOwner?.stats) attackerOwner.stats.damageDealt += amount;
   if (defenderOwner?.stats) defenderOwner.stats.damageTaken += amount;
 
-  showDamagePopup(targetEl || getHudForPlayer(defenderOwner), `-${amount}`);
+  showDamagePopup(targetEl || enemyHudBox, `-${amount}`);
 }
 
 function healLife(owner, amount, targetEl = null) {
   owner.life = Math.min(STARTING_LIFE + 15, owner.life + amount);
-  showDamagePopup(targetEl || getHudForPlayer(owner), `+${amount}`, true);
+  showDamagePopup(targetEl || document.body, `+${amount}`, true);
 }
 
 function recordBestCard(player, card) {
@@ -1446,23 +1420,8 @@ async function handleCardDropOnOwnCreature(cardId, targetIndex) {
     return;
   }
 
-  /*
-    Fix mobile/drag: dopo la prima evocazione è facile lasciare una Evo 1
-    sopra una creatura già in campo. Prima il gioco la rifiutava come
-    "evoluzione non valida"; ora la interpreta come normale evocazione
-    nel campo, se c'è spazio.
-  */
   if (card.stage === 1) {
-    if (me.field.length >= MAX_FIELD_SIZE) {
-      setMessage("Il tuo campo è pieno.");
-      return;
-    }
-
-    playCreature(me, enemy, card.id);
-    selectedAttackerIndex = null;
-    checkGameOver();
-    render();
-    await saveOnlineGame();
+    setMessage("Questa è una Evo 1: trascinala in uno spazio libero del tuo campo.");
     return;
   }
 
@@ -1592,9 +1551,8 @@ function hasAbility(card, ability) {
 }
 
 async function endTurn() {
-  if (!isMyTurn() || turnProcessing) return;
+  if (!isMyTurn()) return;
 
-  turnProcessing = true;
   selectedAttackerIndex = null;
 
   const me = getMyPlayer();
@@ -1607,34 +1565,24 @@ async function endTurn() {
     render();
 
     setTimeout(() => {
-      try {
-        botTurn();
+      botTurn();
 
-        if (!game.winner) {
-          game.turnNumber++;
-          game.players.p1.stats.turns = game.turnNumber;
-          game.players.p2.stats.turns = game.turnNumber;
-          startTurn("p1");
-        }
-      } finally {
-        turnProcessing = false;
-        render();
+      if (!game.winner) {
+        game.turnNumber++;
+        game.players.p1.stats.turns = game.turnNumber;
+        game.players.p2.stats.turns = game.turnNumber;
+        startTurn("p1");
       }
+
+      render();
     }, 600);
-
-    return;
-  }
-
-  try {
+  } else {
     game.turnNumber++;
     game.players.p1.stats.turns = game.turnNumber;
     game.players.p2.stats.turns = game.turnNumber;
     startTurn(next);
     render();
     await saveOnlineGame();
-  } finally {
-    turnProcessing = false;
-    render();
   }
 }
 
@@ -1730,7 +1678,7 @@ function botTurn() {
       const target = guards[0] || chooseBotTarget(player.field);
       fight(attacker, target, bot, player);
     } else if (canAttackLife(attacker, player.field)) {
-      dealLifeDamage(bot, player, attacker.attack, playerHudBox);
+      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".hud-box.player"));
       attacker.hasAttacked = true;
       addLog(`Bot infligge ${attacker.attack} danni diretti.`);
     }
@@ -1774,16 +1722,10 @@ function checkGameOver() {
 
   if (game.winner) {
     addLog(`${game.players[game.winner].name} ha vinto.`);
-    saveLocalResultIfNeeded();
+    saveMatchResult();
     saveLeaderboardIfNeeded();
     showResult(game.winner === mySlot);
   }
-}
-
-function saveLocalResultIfNeeded() {
-  if (!game?.winner || localResultSaved) return;
-  localResultSaved = true;
-  saveMatchResult();
 }
 
 function saveMatchResult() {
@@ -1831,9 +1773,9 @@ function getHistory() {
 }
 
 async function saveLeaderboardIfNeeded() {
-  if (!game?.winner || localLeaderboardSaved) return;
+  if (!game || game.leaderboardSaved) return;
 
-  localLeaderboardSaved = true;
+  game.leaderboardSaved = true;
 
   const me = getMyPlayer();
   if (!me) return;
@@ -1932,7 +1874,7 @@ function render() {
     ? "Tuo turno"
     : `Turno di ${game.players[game.currentTurn]?.name || "avversario"}`;
 
-  endTurnBtn.disabled = !isMyTurn() || turnProcessing || Boolean(game.winner);
+  endTurnBtn.disabled = !isMyTurn() || Boolean(game.winner);
 
   if (enemyHudBox) {
     enemyHudBox.classList.toggle("targetable", selectedAttackerIndex !== null && isMyTurn());
@@ -2478,7 +2420,7 @@ function renderLog() {
   game.log.forEach(entry => {
     const div = document.createElement("div");
     div.className = "log-entry";
-    div.textContent = entry;
+    div.innerHTML = entry;
     battleLogEl.appendChild(div);
   });
 }
@@ -2492,15 +2434,6 @@ function shortRarity(rarity) {
   };
 
   return map[rarity] || rarity;
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 function createFxFlash(type = "summon") {
@@ -2701,9 +2634,6 @@ function showOnlyMenu(force = false) {
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
-  turnProcessing = false;
-  localResultSaved = false;
-  localLeaderboardSaved = false;
 
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
@@ -2731,8 +2661,8 @@ async function openLeaderboard() {
 
     leaderboardList.innerHTML = rows.map((row, index) => `
       <div class="leaderboard-row">
-        <strong>${index + 1}. ${escapeHtml(row.avatar || "")} ${escapeHtml(row.name || "Giocatore")}</strong><br>
-        Vittorie: ${Number(row.wins || 0)} · Sconfitte: ${Number(row.losses || 0)} · XP: ${Number(row.xp || 0)} · Mazzo: ${escapeHtml(deckLabels[row.lastDeck] || row.lastDeck || "-")}
+        <strong>${index + 1}. ${row.avatar || ""} ${row.name || "Giocatore"}</strong><br>
+        Vittorie: ${row.wins || 0} · Sconfitte: ${row.losses || 0} · XP: ${row.xp || 0} · Mazzo: ${deckLabels[row.lastDeck] || row.lastDeck || "-"}
       </div>
     `).join("");
   } catch (error) {
@@ -2761,9 +2691,9 @@ function openPack() {
 
   packCards.innerHTML = found.map(card => `
     <div class="pack-card">
-      ${escapeHtml(card.icon || families[card.family]?.icon || "🃏")}<br>
-      ${escapeHtml(card.name)}<br>
-      <small>${escapeHtml(card.type || "creature")} · ${escapeHtml(card.rarity || "common")}</small>
+      ${card.icon || families[card.family]?.icon || "🃏"}<br>
+      ${card.name}<br>
+      <small>${card.type || "creature"} · ${card.rarity || "common"}</small>
     </div>
   `).join("");
 }
@@ -2778,8 +2708,8 @@ function renderHistory() {
 
   historyList.innerHTML = history.map(item => `
     <div class="history-row">
-      <strong>${escapeHtml(item.result)}</strong> · ${escapeHtml(item.me)} vs ${escapeHtml(item.enemy)}<br>
-      ${Number(item.turns || 0)} turni · ${escapeHtml(item.date)}
+      <strong>${item.result}</strong> · ${item.me} vs ${item.enemy}<br>
+      ${item.turns} turni · ${item.date}
     </div>
   `).join("");
 }
@@ -2791,7 +2721,7 @@ function renderReplay() {
   }
 
   replayList.innerHTML = game.replay.map(row => `
-    <div class="replay-row">${escapeHtml(row)}</div>
+    <div class="replay-row">${row}</div>
   `).join("");
 }
 
@@ -2818,9 +2748,9 @@ function renderDraftChoices() {
 
   draftChoices.innerHTML = draftCurrentChoices.map((card, index) => `
     <button class="draft-choice" data-index="${index}">
-      ${escapeHtml(card.icon || families[card.family]?.icon || "🃏")}<br>
-      ${escapeHtml(card.name)}<br>
-      <small>${escapeHtml(card.type || "creature")} · costo ${Number(card.cost || 0)}</small>
+      ${card.icon || families[card.family]?.icon || "🃏"}<br>
+      ${card.name}<br>
+      <small>${card.type || "creature"} · costo ${card.cost}</small>
     </button>
   `).join("");
 
