@@ -76,6 +76,7 @@
       <div class="hud-box center">
         <strong id="turnText">Tuo turno</strong>
         <span id="levelText">Livello 1</span>
+        <span id="campaignText">Costa di Fuoco</span>
         <span id="message">Gioca una carta.</span>
       </div>
 
@@ -131,8 +132,14 @@
       <h2 id="resultTitle">Vittoria</h2>
       <p id="resultText">Hai vinto.</p>
 
+      <div id="rewardChoiceBox" class="reward-choice-box hidden">
+        <strong>Scegli 1 carta premio</strong>
+        <p>Puoi sbloccare una sola carta tra queste.</p>
+        <div id="rewardChoices" class="reward-choices"></div>
+      </div>
+
       <div id="rewardBox" class="reward-box hidden">
-        <strong>Nuova carta sbloccata</strong>
+        <strong>Carta sbloccata</strong>
         <span id="rewardText"></span>
       </div>
 
@@ -141,6 +148,25 @@
         <button id="playAgainBtn" class="secondary-btn">Rigioca</button>
         <button id="modalMenuBtn" class="secondary-btn">Menu</button>
       </div>
+    </div>
+  </div>
+
+  <div id="cardDetailModal" class="modal hidden">
+    <div class="modal-card detail-card">
+      <div id="detailIcon" class="result-icon">🔥</div>
+      <h2 id="detailName">Nome carta</h2>
+      <p id="detailType">Tipo carta</p>
+
+      <div class="detail-stats">
+        <span>Costo: <strong id="detailCost">0</strong></span>
+        <span id="detailAtkWrap">ATK: <strong id="detailAtk">0</strong></span>
+        <span id="detailHpWrap">HP: <strong id="detailHp">0</strong></span>
+      </div>
+
+      <div id="detailAbilities" class="detail-abilities"></div>
+      <p id="detailDesc" class="detail-desc">Descrizione carta.</p>
+
+      <button id="closeDetailBtn">Chiudi</button>
     </div>
   </div>
 

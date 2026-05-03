@@ -21,6 +21,7 @@ const turnTextEl = document.getElementById("turnText");
 const messageEl = document.getElementById("message");
 const deckNameEl = document.getElementById("deckName");
 const levelTextEl = document.getElementById("levelText");
+const campaignTextEl = document.getElementById("campaignText");
 const enemyTitleEl = document.getElementById("enemyTitle");
 
 const menuWinsEl = document.getElementById("menuWins");
@@ -40,9 +41,24 @@ const resultTitle = document.getElementById("resultTitle");
 const resultText = document.getElementById("resultText");
 const rewardBox = document.getElementById("rewardBox");
 const rewardText = document.getElementById("rewardText");
+const rewardChoiceBox = document.getElementById("rewardChoiceBox");
+const rewardChoices = document.getElementById("rewardChoices");
 const nextLevelBtn = document.getElementById("nextLevelBtn");
 const playAgainBtn = document.getElementById("playAgainBtn");
 const modalMenuBtn = document.getElementById("modalMenuBtn");
+
+const cardDetailModal = document.getElementById("cardDetailModal");
+const detailIcon = document.getElementById("detailIcon");
+const detailName = document.getElementById("detailName");
+const detailType = document.getElementById("detailType");
+const detailCost = document.getElementById("detailCost");
+const detailAtk = document.getElementById("detailAtk");
+const detailHp = document.getElementById("detailHp");
+const detailAtkWrap = document.getElementById("detailAtkWrap");
+const detailHpWrap = document.getElementById("detailHpWrap");
+const detailAbilities = document.getElementById("detailAbilities");
+const detailDesc = document.getElementById("detailDesc");
+const closeDetailBtn = document.getElementById("closeDetailBtn");
 
 const collectionBtn = document.getElementById("collectionBtn");
 const collectionPanel = document.getElementById("collectionPanel");
@@ -57,6 +73,8 @@ const STARTING_HAND = 5;
 let selectedDeck = "balanced";
 let currentLevel = 1;
 let game;
+let lastAttackCardId = null;
+let longPressTriggered = false;
 
 const deckLabels = {
   fire: "🔥 Mazzo Fuoco",
@@ -74,6 +92,15 @@ const abilityLabels = {
   rage: "Rabbia",
   poison: "Veleno"
 };
+
+const campaignZones = [
+  "Costa di Fuoco",
+  "Rovine Sommerse",
+  "Bosco Antico",
+  "Torre delle Ombre",
+  "Santuario della Luce",
+  "Arena dei Cinque Sigilli"
+];
 
 const allUnlockableIds = [
   "fire_stage3",
@@ -111,7 +138,7 @@ const families = {
         hp: 5,
         cost: 2,
         rarity: "rare",
-        desc: "Infligge 1 danno diretto.",
+        desc: "Quando entra, infligge 1 danno diretto.",
         effect: "burnEnemy",
         abilities: ["haste"]
       },
@@ -123,7 +150,7 @@ const families = {
         hp: 8,
         cost: 4,
         rarity: "legendary",
-        desc: "Infligge 2 danni al campo nemico.",
+        desc: "Quando entra, infligge 2 danni a tutte le creature nemiche.",
         effect: "fireStorm",
         abilities: ["flying"],
         locked: true
@@ -143,7 +170,7 @@ const families = {
         hp: 4,
         cost: 1,
         rarity: "common",
-        desc: "Creatura resistente.",
+        desc: "Creatura resistente con Guardia.",
         effect: null,
         abilities: ["guard"]
       },
@@ -155,7 +182,7 @@ const families = {
         hp: 7,
         cost: 2,
         rarity: "rare",
-        desc: "Cura 2 vita.",
+        desc: "Quando entra, cura 2 vita.",
         effect: "healOwner",
         abilities: ["guard"]
       },
@@ -167,7 +194,7 @@ const families = {
         hp: 11,
         cost: 4,
         rarity: "epic",
-        desc: "Pesca una carta.",
+        desc: "Quando entra, pesca una carta.",
         effect: "drawOne",
         abilities: ["guard"],
         locked: true
@@ -199,7 +226,7 @@ const families = {
         hp: 4,
         cost: 2,
         rarity: "rare",
-        desc: "Dà +1 ATK a un alleato.",
+        desc: "Quando entra, dà +1 ATK a un alleato.",
         effect: "buffAllyAttack",
         abilities: ["rage"]
       },
@@ -211,7 +238,7 @@ const families = {
         hp: 7,
         cost: 4,
         rarity: "epic",
-        desc: "Dà +2 HP al campo.",
+        desc: "Quando entra, dà +2 HP a tutte le creature alleate.",
         effect: "buffTeamHp",
         abilities: ["rage"],
         locked: true
@@ -231,7 +258,7 @@ const families = {
         hp: 2,
         cost: 1,
         rarity: "common",
-        desc: "Aggressiva ma fragile.",
+        desc: "Aggressiva ma fragile. Avvelena in combattimento.",
         effect: null,
         abilities: ["poison"]
       },
@@ -243,7 +270,7 @@ const families = {
         hp: 5,
         cost: 3,
         rarity: "rare",
-        desc: "Toglie 1 ATK a un nemico.",
+        desc: "Quando entra, toglie 1 ATK a un nemico.",
         effect: "weakenEnemy",
         abilities: ["poison"]
       },
@@ -255,7 +282,7 @@ const families = {
         hp: 6,
         cost: 5,
         rarity: "legendary",
-        desc: "Infligge 3 danni diretti.",
+        desc: "Quando entra, infligge 3 danni diretti.",
         effect: "darkBlast",
         abilities: ["poison", "flying"],
         locked: true
@@ -275,7 +302,7 @@ const families = {
         hp: 5,
         cost: 1,
         rarity: "common",
-        desc: "Base difensiva.",
+        desc: "Base difensiva con Guardia.",
         effect: null,
         abilities: ["guard"]
       },
@@ -287,7 +314,7 @@ const families = {
         hp: 6,
         cost: 3,
         rarity: "rare",
-        desc: "Cura il campo di 1.",
+        desc: "Quando entra, cura il campo alleato di 1.",
         effect: "healTeam",
         abilities: []
       },
@@ -299,7 +326,7 @@ const families = {
         hp: 9,
         cost: 5,
         rarity: "legendary",
-        desc: "Cura 4 vita.",
+        desc: "Quando entra, cura 4 vita.",
         effect: "bigHealOwner",
         abilities: ["flying", "guard"],
         locked: true
@@ -316,7 +343,7 @@ const spellTemplates = [
     cost: 2,
     rarity: "common",
     icon: "☄️",
-    desc: "3 danni a un nemico.",
+    desc: "Infligge 3 danni a una creatura nemica. Se non ci sono creature, colpisce la vita.",
     effect: "spellFireball",
     decks: ["fire", "balanced"]
   },
@@ -349,7 +376,7 @@ const spellTemplates = [
     cost: 3,
     rarity: "rare",
     icon: "✨",
-    desc: "+1 ATK e +1 HP al campo.",
+    desc: "Dà +1 ATK e +1 HP a tutte le creature alleate.",
     effect: "spellBlessing",
     decks: ["light", "forest", "balanced"],
     locked: true
@@ -361,7 +388,7 @@ const spellTemplates = [
     cost: 4,
     rarity: "epic",
     icon: "🌀",
-    desc: "2 danni a tutti i nemici.",
+    desc: "Infligge 2 danni a tutte le creature nemiche.",
     effect: "spellStorm",
     decks: ["shadow", "fire", "balanced"],
     locked: true
@@ -373,7 +400,7 @@ const spellTemplates = [
     cost: 0,
     rarity: "legendary",
     icon: "🔮",
-    desc: "+2 energia nel turno.",
+    desc: "Ottieni 2 energia extra per questo turno.",
     effect: "spellGainEnergy",
     decks: ["balanced", "shadow", "light"],
     locked: true
@@ -431,6 +458,7 @@ function isCardAvailable(template, ignoreLocks = false) {
 
 function showMenu() {
   resultModal.classList.add("hidden");
+  cardDetailModal.classList.add("hidden");
   gameScreen.classList.add("hidden");
   startScreen.classList.remove("hidden");
   renderMenuStats();
@@ -449,14 +477,15 @@ function startGame(deckType = selectedDeck, level = currentLevel) {
   const enemyInfo = getEnemyInfo(level);
 
   game = {
-    player: createPlayer(selectedDeck, false, level),
+    player: createPlayer(selectedDeck, false),
     enemy: createEnemy(enemyInfo),
     enemyInfo,
     turn: "player",
     turnNumber: 1,
     ended: false,
     resultSaved: false,
-    reward: null,
+    rewardChosen: false,
+    rewardOptions: [],
     log: []
   };
 
@@ -467,12 +496,14 @@ function startGame(deckType = selectedDeck, level = currentLevel) {
 
   deckNameEl.textContent = deckLabels[selectedDeck];
   levelTextEl.textContent = enemyInfo.isBoss ? `BOSS - Livello ${level}` : `Livello ${level}`;
+  campaignTextEl.textContent = enemyInfo.zone;
   enemyTitleEl.textContent = enemyInfo.name;
 
   showGame();
   resultModal.classList.add("hidden");
+  cardDetailModal.classList.add("hidden");
 
-  addLog(enemyInfo.isBoss ? `Boss in arrivo: <strong>${enemyInfo.name}</strong>.` : "La partita comincia.");
+  addLog(enemyInfo.isBoss ? `Boss in arrivo: <strong>${enemyInfo.name}</strong>.` : `Zona: <strong>${enemyInfo.zone}</strong>.`);
   startPlayerTurn();
 }
 
@@ -487,10 +518,12 @@ function getEnemyInfo(level) {
 
   const normalDecks = ["fire", "water", "forest", "shadow", "light", "balanced"];
   const enemyDeck = isBoss ? "balanced" : normalDecks[(level - 1) % normalDecks.length];
+  const zone = campaignZones[(level - 1) % campaignZones.length];
 
   return {
     level,
     isBoss,
+    zone,
     deck: enemyDeck,
     name: isBoss ? bossNames[Math.floor((level / 3 - 1) % bossNames.length)] : `Nemico ${deckLabels[enemyDeck].replace(/^[^ ]+ /, "")}`,
     bonusLife: isBoss ? 8 + level : Math.floor(level / 2),
@@ -629,7 +662,7 @@ function startPlayerTurn() {
   prepareCreatures(game.player);
   drawCard(game.player);
 
-  setMessage("Tuo turno: clicca una carta per giocarla.");
+  setMessage("Tuo turno: clicca una carta per giocarla. Pressione lunga per dettagli.");
   addLog(`<strong>Turno ${game.turnNumber}</strong>: inizi tu.`);
   checkGameOver();
   render();
@@ -730,7 +763,6 @@ function findLethalSpell(owner, opponent) {
     if (card.type !== "spell") return false;
     if (card.cost > owner.energy) return false;
     if (card.effect === "spellFireball" && opponent.field.length === 0 && opponent.life <= 3) return true;
-    if (card.effect === "spellStorm" && opponent.field.length === 0 && opponent.life <= 2) return true;
     return false;
   });
 }
@@ -774,11 +806,12 @@ function enemyAttack() {
     if (!game.enemy.field.includes(attacker)) return;
     if (!attacker.canAttack || attacker.hasAttacked) return;
 
+    lastAttackCardId = attacker.id;
+
     const guards = game.player.field.filter(card => hasAbility(card, "guard"));
 
     if (guards.length > 0) {
-      const target = guards[0];
-      fight(attacker, target, game.enemy, game.player);
+      fight(attacker, guards[0], game.enemy, game.player);
     } else if (game.player.field.length > 0) {
       if (canAttackLife(attacker, game.player.field) && game.player.life <= attacker.attack) {
         attackLife(attacker, game.player);
@@ -804,6 +837,7 @@ function enemyAttack() {
   if (!game.ended) {
     setTimeout(() => {
       game.turnNumber++;
+      lastAttackCardId = null;
       startPlayerTurn();
     }, 700);
   }
@@ -945,11 +979,37 @@ function playSpell(owner, opponent, cardId, isPlayer = true) {
   return true;
 }
 
+function canPlayHandCard(card) {
+  if (!game || game.turn !== "player" || game.ended) return false;
+
+  if (card.cost > game.player.energy) return false;
+
+  if (card.type === "spell") return true;
+
+  if (card.type === "creature" && card.stage === 1) {
+    return game.player.field.length < MAX_FIELD_SIZE;
+  }
+
+  if (card.type === "creature" && card.stage > 1) {
+    return game.player.field.some(fieldCard =>
+      fieldCard.family === card.family &&
+      fieldCard.stage === card.stage - 1
+    );
+  }
+
+  return false;
+}
+
 function handleHandCardClick(cardId) {
   if (game.turn !== "player" || game.ended) return;
 
   const card = game.player.hand.find(c => c.id === cardId);
   if (!card) return;
+
+  if (!canPlayHandCard(card)) {
+    setMessage("Non puoi giocare questa carta ora.");
+    return;
+  }
 
   if (card.type === "spell") {
     playSpell(game.player, game.enemy, card.id, true);
@@ -1122,6 +1182,8 @@ function playerAttack(attackerIndex, targetIndex) {
     return;
   }
 
+  lastAttackCardId = attacker.id;
+
   if (targetIndex === "life") {
     if (!canAttackLife(attacker, game.enemy.field)) {
       setMessage("Prima elimina Guardia o creature che bloccano.");
@@ -1146,6 +1208,10 @@ function playerAttack(attackerIndex, targetIndex) {
 
   checkGameOver();
   render();
+  setTimeout(() => {
+    lastAttackCardId = null;
+    render();
+  }, 320);
 }
 
 function canAttackLife(attacker, defenderField) {
@@ -1256,9 +1322,6 @@ function saveResult(result) {
   if (result === "win") {
     progress.wins += 1;
     progress.maxLevel = Math.max(progress.maxLevel, currentLevel + 1);
-
-    const unlockedCard = unlockReward(progress);
-    game.reward = unlockedCard;
   }
 
   if (result === "loss") {
@@ -1269,34 +1332,64 @@ function saveResult(result) {
   renderMenuStats();
 }
 
-function unlockReward(progress) {
+function getRewardOptions() {
+  const progress = getProgress();
   const available = allUnlockableIds.filter(id => !progress.unlocked.includes(id));
 
-  if (available.length === 0) return null;
+  if (available.length === 0) return [];
 
-  let rewardId;
+  const shuffled = shuffle([...available]);
 
   if (game.enemyInfo.isBoss) {
-    rewardId = available.find(id => id.includes("stage3")) || available[0];
-  } else {
-    rewardId = available[0];
+    const stage3 = shuffled.filter(id => id.includes("stage3"));
+    const others = shuffled.filter(id => !id.includes("stage3"));
+    return [...stage3, ...others].slice(0, 3);
   }
 
-  progress.unlocked.push(rewardId);
+  return shuffled.slice(0, 3);
+}
 
-  return getCardNameById(rewardId);
+function chooseReward(cardId) {
+  const progress = getProgress();
+
+  if (!progress.unlocked.includes(cardId)) {
+    progress.unlocked.push(cardId);
+  }
+
+  saveProgress(progress);
+
+  game.rewardChosen = true;
+
+  rewardChoiceBox.classList.add("hidden");
+  rewardBox.classList.remove("hidden");
+  rewardText.textContent = getCardNameById(cardId);
+  nextLevelBtn.disabled = false;
+
+  renderMenuStats();
 }
 
 function getCardNameById(cardId) {
+  const data = getTemplateByCardId(cardId);
+
+  if (!data) return cardId;
+
+  if (data.template.type === "spell") {
+    return `${data.template.name} (Magia)`;
+  }
+
+  return `${data.template.name} (${families[data.familyKey].label})`;
+}
+
+function getTemplateByCardId(cardId) {
   for (const familyKey of Object.keys(families)) {
-    const card = families[familyKey].cards.find(c => c.cardId === cardId);
-    if (card) return `${card.name} (${families[familyKey].label})`;
+    const template = families[familyKey].cards.find(c => c.cardId === cardId);
+    if (template) return { template, familyKey };
   }
 
   const spell = spellTemplates.find(s => s.cardId === cardId);
-  if (spell) return `${spell.name} (Magia)`;
+  if (spell) return { template: spell, familyKey: null };
 
-  return cardId;
+  return null;
 }
 
 function showResult(won) {
@@ -1308,24 +1401,52 @@ function showResult(won) {
     if (won) {
       resultIcon.textContent = game.enemyInfo.isBoss ? "👑" : "🏆";
       resultTitle.textContent = game.enemyInfo.isBoss ? "Boss sconfitto!" : "Vittoria!";
-      resultText.textContent = `Hai superato il livello ${currentLevel} in ${game.turnNumber} turni.`;
+      resultText.textContent = `Hai superato ${game.enemyInfo.zone}, livello ${currentLevel}, in ${game.turnNumber} turni.`;
 
       nextLevelBtn.classList.remove("hidden");
+      rewardBox.classList.add("hidden");
 
-      if (game.reward) {
-        rewardBox.classList.remove("hidden");
-        rewardText.textContent = game.reward;
+      game.rewardOptions = getRewardOptions();
+
+      if (game.rewardOptions.length > 0) {
+        rewardChoiceBox.classList.remove("hidden");
+        nextLevelBtn.disabled = true;
+        renderRewardChoices();
       } else {
-        rewardBox.classList.add("hidden");
+        rewardChoiceBox.classList.add("hidden");
+        nextLevelBtn.disabled = false;
       }
     } else {
       resultIcon.textContent = "💀";
       resultTitle.textContent = "Sconfitta";
       resultText.textContent = `Sei stato sconfitto al livello ${currentLevel}. Riprova con un altro mazzo.`;
       nextLevelBtn.classList.add("hidden");
+      nextLevelBtn.disabled = false;
+      rewardChoiceBox.classList.add("hidden");
       rewardBox.classList.add("hidden");
     }
   }, 450);
+}
+
+function renderRewardChoices() {
+  rewardChoices.innerHTML = "";
+
+  game.rewardOptions.forEach(cardId => {
+    const data = getTemplateByCardId(cardId);
+    if (!data) return;
+
+    const template = data.template;
+    const div = document.createElement("div");
+    div.className = "reward-choice";
+    div.innerHTML = `
+      <strong>${template.icon || families[data.familyKey].icon} ${template.name}</strong>
+      <span>${template.type === "spell" ? "Magia" : families[data.familyKey].label}</span>
+      <span>${shortRarity(template.rarity)} · costo ${template.cost}</span>
+    `;
+
+    div.addEventListener("click", () => chooseReward(cardId));
+    rewardChoices.appendChild(div);
+  });
 }
 
 function renderMenuStats() {
@@ -1439,16 +1560,51 @@ function renderHand() {
   game.player.hand.forEach(card => {
     const cardEl = createCardEl(card, "hand-card");
 
-    if (game.turn === "player" && !game.ended) {
-      cardEl.title = "Clicca per giocare questa carta";
-      cardEl.addEventListener("click", () => {
-        handleHandCardClick(card.id);
-      });
+    if (canPlayHandCard(card)) {
+      cardEl.classList.add("playable");
     } else {
-      cardEl.title = "Non è il tuo turno";
+      cardEl.classList.add("unplayable");
     }
 
+    addHandCardEvents(cardEl, card);
     playerHandEl.appendChild(cardEl);
+  });
+}
+
+function addHandCardEvents(cardEl, card) {
+  let pressTimer;
+
+  cardEl.addEventListener("pointerdown", () => {
+    longPressTriggered = false;
+
+    pressTimer = setTimeout(() => {
+      longPressTriggered = true;
+      showCardDetail(card);
+    }, 550);
+  });
+
+  cardEl.addEventListener("pointerup", () => {
+    clearTimeout(pressTimer);
+  });
+
+  cardEl.addEventListener("pointerleave", () => {
+    clearTimeout(pressTimer);
+  });
+
+  cardEl.addEventListener("click", () => {
+    if (longPressTriggered) {
+      setTimeout(() => {
+        longPressTriggered = false;
+      }, 120);
+      return;
+    }
+
+    handleHandCardClick(card.id);
+  });
+
+  cardEl.addEventListener("contextmenu", event => {
+    event.preventDefault();
+    showCardDetail(card);
   });
 }
 
@@ -1469,6 +1625,9 @@ function renderField(container, field, owner) {
     if (!card.canAttack) cardEl.classList.add("sleeping");
     if (card.hasAttacked) cardEl.classList.add("attacked");
     if (card.poisoned) cardEl.classList.add("poisoned");
+    if (card.id === lastAttackCardId) cardEl.classList.add("attacking");
+
+    cardEl.addEventListener("click", () => showCardDetail(card));
 
     const actions = document.createElement("div");
     actions.className = "card-actions";
@@ -1478,7 +1637,10 @@ function renderField(container, field, owner) {
         if (canAttackLife(card, game.enemy.field)) {
           const btn = document.createElement("button");
           btn.textContent = "Vita";
-          btn.onclick = () => playerAttack(index, "life");
+          btn.addEventListener("click", event => {
+            event.stopPropagation();
+            playerAttack(index, "life");
+          });
           actions.appendChild(btn);
         }
 
@@ -1487,9 +1649,12 @@ function renderField(container, field, owner) {
           const mustAttackGuard = guards.length > 0 && !hasAbility(enemyCard, "guard");
 
           const btn = document.createElement("button");
-          btn.textContent = `Atk ${enemyCard.name.slice(0, 7)}`;
+          btn.textContent = `Atk ${enemyCard.name.slice(0, 6)}`;
           btn.disabled = mustAttackGuard;
-          btn.onclick = () => playerAttack(index, enemyIndex);
+          btn.addEventListener("click", event => {
+            event.stopPropagation();
+            playerAttack(index, enemyIndex);
+          });
           actions.appendChild(btn);
         });
       } else {
@@ -1595,6 +1760,42 @@ function createCardEl(card, extraClass) {
   return cardEl;
 }
 
+function showCardDetail(card) {
+  detailIcon.textContent = card.icon || "🃏";
+  detailName.textContent = card.name;
+  detailCost.textContent = card.cost;
+  detailDesc.textContent = card.desc || "Nessuna descrizione.";
+
+  if (card.type === "creature") {
+    detailType.textContent = `${families[card.family].label} · Evoluzione ${card.stage}/3 · ${shortRarity(card.rarity)}`;
+    detailAtkWrap.classList.remove("hidden");
+    detailHpWrap.classList.remove("hidden");
+    detailAtk.textContent = card.attack;
+    detailHp.textContent = `${card.currentHp}/${card.maxHp}`;
+
+    detailAbilities.innerHTML = "";
+
+    if (card.abilities && card.abilities.length > 0) {
+      card.abilities.forEach(ability => {
+        const span = document.createElement("span");
+        span.textContent = abilityLabels[ability];
+        detailAbilities.appendChild(span);
+      });
+    } else {
+      const span = document.createElement("span");
+      span.textContent = "Nessuna abilità";
+      detailAbilities.appendChild(span);
+    }
+  } else {
+    detailType.textContent = `Magia · ${shortRarity(card.rarity)}`;
+    detailAtkWrap.classList.add("hidden");
+    detailHpWrap.classList.add("hidden");
+    detailAbilities.innerHTML = `<span>Effetto magia</span>`;
+  }
+
+  cardDetailModal.classList.remove("hidden");
+}
+
 function shortRarity(rarity) {
   const map = {
     common: "Com",
@@ -1637,6 +1838,7 @@ toggleLogBtn.addEventListener("click", () => {
 });
 
 nextLevelBtn.addEventListener("click", () => {
+  if (nextLevelBtn.disabled) return;
   startGame(selectedDeck, currentLevel + 1);
 });
 
@@ -1655,6 +1857,16 @@ collectionBtn.addEventListener("click", () => {
 
 closeCollectionBtn.addEventListener("click", () => {
   collectionPanel.classList.add("hidden");
+});
+
+closeDetailBtn.addEventListener("click", () => {
+  cardDetailModal.classList.add("hidden");
+});
+
+cardDetailModal.addEventListener("click", event => {
+  if (event.target === cardDetailModal) {
+    cardDetailModal.classList.add("hidden");
+  }
 });
 
 resetProgressBtn.addEventListener("click", () => {
