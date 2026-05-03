@@ -1371,6 +1371,8 @@ function addHandCardEvents(cardEl, card) {
 }
 
 function startPointerDrag(event, cardEl, card) {
+  event.preventDefault();
+
   if (!isMyTurn() || !canPlayCard(card)) {
     return;
   }
@@ -1400,6 +1402,7 @@ function startPointerDrag(event, cardEl, card) {
     if (!dragState.active && distance > 8) {
       dragState.active = true;
       dragState.moved = true;
+      document.body.classList.add("dragging-card");
       cardEl.classList.add("dragging-source");
       createDragGhost(cardEl);
       setMessage(
@@ -1517,6 +1520,8 @@ async function finishPointerDrop(x, y) {
 }
 
 function cleanupDragState() {
+  document.body.classList.remove("dragging-card");
+
   if (dragState.sourceEl) {
     dragState.sourceEl.classList.remove("dragging-source");
   }
