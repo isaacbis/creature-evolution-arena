@@ -8,21 +8,15 @@
 </head>
 <body>
 
-  <div id="startScreen" class="start-screen">
-    <div class="start-card">
-      <div class="title-row">
-        <div>
-          <h1>Creature Evolution Arena</h1>
-          <p>Combatti, evolvi, sblocca carte e supera i boss.</p>
-        </div>
-      </div>
+  <div id="menuScreen" class="screen menu-screen">
+    <div class="menu-card">
+      <h1>Creature Evolution Arena</h1>
+      <p>Gioca contro il bot oppure sfida un amico online.</p>
 
-      <div class="menu-stats">
-        <span>🏆 Vittorie: <strong id="menuWins">0</strong></span>
-        <span>💀 Sconfitte: <strong id="menuLosses">0</strong></span>
-        <span>⭐ Livello max: <strong id="menuMaxLevel">1</strong></span>
-        <span>🃏 Carte sbloccate: <strong id="menuUnlocked">0</strong></span>
-      </div>
+      <label class="input-label">
+        Il tuo nome
+        <input id="playerNameInput" type="text" placeholder="Es. Isaac" maxlength="18" />
+      </label>
 
       <h2>Scegli mazzo</h2>
 
@@ -32,21 +26,37 @@
         <button class="deck-btn forest" data-deck="forest">🌿 Foresta</button>
         <button class="deck-btn shadow" data-deck="shadow">🌑 Ombra</button>
         <button class="deck-btn light" data-deck="light">☀️ Luce</button>
-        <button class="deck-btn balanced" data-deck="balanced">⚔️ Bilanciato</button>
+        <button class="deck-btn balanced selected" data-deck="balanced">⚔️ Bilanciato</button>
       </div>
 
       <div class="menu-actions">
-        <button id="collectionBtn" class="secondary-btn">Collezione</button>
-        <button id="resetProgressBtn" class="danger-btn">Reset progressi</button>
+        <button id="playBotBtn">Gioca contro Bot</button>
+        <button id="createOnlineBtn" class="secondary-btn">Crea partita online</button>
       </div>
 
-      <div id="collectionPanel" class="collection-panel hidden">
-        <div class="panel-header">
-          <h2>Collezione</h2>
-          <button id="closeCollectionBtn" class="small-btn secondary-btn">Chiudi</button>
-        </div>
-        <p class="small-note">Le carte bloccate si sbloccano vincendo partite e battendo i boss.</p>
-        <div id="collectionList" class="collection-list"></div>
+      <div class="join-box">
+        <input id="joinCodeInput" type="text" placeholder="Codice partita" maxlength="6" />
+        <button id="joinOnlineBtn" class="secondary-btn">Entra</button>
+      </div>
+
+      <div class="small-note">
+        Per il multiplayer online serve Firebase configurato nel file <strong>firebase.js</strong>.
+      </div>
+    </div>
+  </div>
+
+  <div id="lobbyScreen" class="screen lobby-screen hidden">
+    <div class="menu-card lobby-card">
+      <h1>Lobby online</h1>
+      <p>Condividi questo codice con l’altro giocatore.</p>
+
+      <div class="code-box" id="roomCodeText">----</div>
+
+      <p id="lobbyStatusText">In attesa del secondo giocatore...</p>
+
+      <div class="menu-actions">
+        <button id="copyCodeBtn">Copia codice</button>
+        <button id="leaveLobbyBtn" class="secondary-btn">Torna al menu</button>
       </div>
     </div>
   </div>
@@ -56,7 +66,7 @@
     <header class="top-bar">
       <div>
         <h1>Evolution Arena</h1>
-        <p id="deckName">Mazzo</p>
+        <p id="modeText">Bot</p>
       </div>
 
       <div class="top-actions">
@@ -67,7 +77,7 @@
 
     <section class="hud">
       <div class="hud-box enemy">
-        <strong id="enemyTitle">Nemico</strong>
+        <strong id="enemyName">Nemico</strong>
         <span>❤️ <b id="enemyLife">30</b></span>
         <span>⚡ <b id="enemyEnergy">0</b>/<b id="enemyMaxEnergy">0</b></span>
         <span>🃏 <b id="enemyHandCount">0</b></span>
@@ -75,13 +85,12 @@
 
       <div class="hud-box center">
         <strong id="turnText">Tuo turno</strong>
-        <span id="levelText">Livello 1</span>
-        <span id="campaignText">Costa di Fuoco</span>
         <span id="message">Gioca una carta.</span>
+        <span id="roomInfoText"></span>
       </div>
 
       <div class="hud-box player">
-        <strong>Tu</strong>
+        <strong id="playerNameText">Tu</strong>
         <span>❤️ <b id="playerLife">30</b></span>
         <span>⚡ <b id="playerEnergy">0</b>/<b id="playerMaxEnergy">0</b></span>
         <span>📦 <b id="playerDeckCount">0</b></span>
@@ -92,7 +101,7 @@
 
       <section class="zone mini-zone">
         <div class="zone-title">
-          <h3>Campo nemico</h3>
+          <h3>Campo avversario</h3>
           <span>Mazzo: <b id="enemyDeckCount">0</b></span>
         </div>
         <div id="enemyField" class="field compact-field"></div>
@@ -123,32 +132,6 @@
       </section>
 
     </main>
-
-  </div>
-
-  <div id="resultModal" class="modal hidden">
-    <div class="modal-card">
-      <div id="resultIcon" class="result-icon">🏆</div>
-      <h2 id="resultTitle">Vittoria</h2>
-      <p id="resultText">Hai vinto.</p>
-
-      <div id="rewardChoiceBox" class="reward-choice-box hidden">
-        <strong>Scegli 1 carta premio</strong>
-        <p>Puoi sbloccare una sola carta tra queste.</p>
-        <div id="rewardChoices" class="reward-choices"></div>
-      </div>
-
-      <div id="rewardBox" class="reward-box hidden">
-        <strong>Carta sbloccata</strong>
-        <span id="rewardText"></span>
-      </div>
-
-      <div class="modal-actions">
-        <button id="nextLevelBtn">Prossimo livello</button>
-        <button id="playAgainBtn" class="secondary-btn">Rigioca</button>
-        <button id="modalMenuBtn" class="secondary-btn">Menu</button>
-      </div>
-    </div>
   </div>
 
   <div id="cardDetailModal" class="modal hidden">
@@ -170,6 +153,19 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <div id="resultModal" class="modal hidden">
+    <div class="modal-card">
+      <div id="resultIcon" class="result-icon">🏆</div>
+      <h2 id="resultTitle">Vittoria</h2>
+      <p id="resultText">Hai vinto.</p>
+
+      <div class="modal-actions">
+        <button id="playAgainBtn">Rigioca</button>
+        <button id="resultMenuBtn" class="secondary-btn">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
