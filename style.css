@@ -27,6 +27,7 @@ body {
   color: var(--text);
   font-family: system-ui, Arial, sans-serif;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 button,
@@ -80,10 +81,11 @@ input::placeholder {
 /* MENU */
 
 .screen {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   padding: 16px;
+  overflow-y: auto;
 }
 
 .menu-card {
@@ -454,9 +456,17 @@ input::placeholder {
 }
 
 @keyframes attackMove {
-  0% { transform: translateX(0) scale(1); }
-  40% { transform: translateX(12px) scale(1.04); }
-  100% { transform: translateX(0) scale(1); }
+  0% {
+    transform: translateX(0) scale(1);
+  }
+
+  40% {
+    transform: translateX(12px) scale(1.04);
+  }
+
+  100% {
+    transform: translateX(0) scale(1);
+  }
 }
 
 .card.attacking {
@@ -855,22 +865,120 @@ input::placeholder {
   border-radius: 12px;
 }
 
-/* MOBILE */
+/* MOBILE MENU + LOBBY */
 
 @media (max-width: 700px) {
   html,
   body {
-    height: 100%;
-    overflow: hidden;
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
-  .game-screen {
+  .screen {
+    min-height: 100dvh;
+    height: auto;
+    align-items: start;
+    place-items: start center;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .menu-card {
+    width: 100%;
+    max-height: none;
+    margin: 0 auto;
+    padding: 16px;
+    border-radius: 22px;
+  }
+
+  .menu-card h1 {
+    font-size: 32px;
+  }
+
+  .menu-card h2 {
+    font-size: 16px;
+    margin: 12px 0 8px;
+  }
+
+  .menu-card p {
+    font-size: 13px;
+    margin: 8px 0;
+  }
+
+  .input-label {
+    margin: 12px 0 10px;
+  }
+
+  .deck-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .deck-btn {
+    min-height: 46px;
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .menu-actions {
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 7px;
+  }
+
+  .menu-actions button {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .join-box {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    margin-top: 8px;
+  }
+
+  .join-box input,
+  .join-box button {
+    width: 100%;
+  }
+
+  .small-note {
+    font-size: 11px;
+    margin-top: 8px;
+  }
+
+  .code-box {
+    font-size: 34px;
+    padding: 14px;
+  }
+}
+
+/* MOBILE GAME */
+
+@media (max-width: 700px) {
+  .game-screen:not(.hidden) {
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     padding: 6px;
+  }
+
+  .game-screen:not(.hidden) ~ * {
+    overflow: hidden;
+  }
+
+  body:has(.game-screen:not(.hidden)) {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body:has(.screen:not(.hidden)) {
+    height: auto;
+    overflow-y: auto;
   }
 
   .top-bar {
@@ -1076,18 +1184,6 @@ input::placeholder {
     border-radius: 10px;
   }
 
-  .deck-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .menu-actions {
-    flex-direction: column;
-  }
-
-  .join-box {
-    grid-template-columns: 1fr;
-  }
-
   .modal-card {
     padding: 16px;
     border-radius: 20px;
@@ -1109,6 +1205,10 @@ input::placeholder {
 @media (max-width: 380px) {
   .game-screen {
     padding: 5px;
+  }
+
+  .menu-card h1 {
+    font-size: 28px;
   }
 
   .top-bar h1 {
@@ -1166,60 +1266,5 @@ input::placeholder {
   #playerField .card-actions button {
     font-size: 6.4px;
     padding: 3px;
-  }
-}
-
-/* PATCH FINALE STABILITÀ MOBILE */
-
-html,
-body,
-.game-screen,
-.board,
-.zone,
-.field,
-.hand,
-.compact-field {
-  max-width: 100%;
-  min-width: 0;
-}
-
-.field,
-.hand,
-.compact-field {
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
-.card {
-  flex-shrink: 0;
-}
-
-#endTurnBtn {
-  position: sticky;
-  right: 0;
-  z-index: 20;
-  flex-shrink: 0;
-}
-
-#playerField .card-actions {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  flex-wrap: nowrap;
-}
-
-#playerField .card-actions button {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
-
-@media (max-width: 700px) {
-  .compact-field {
-    height: 108px;
-  }
-
-  .hand {
-    height: 114px;
   }
 }
