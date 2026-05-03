@@ -989,7 +989,11 @@ function playCreature(owner, opponent, cardId) {
   owner.field.push(card);
 
 setTimeout(() => {
-  playSummonFx(card);
+  try {
+    playSummonFx(card);
+  } catch (error) {
+    console.warn("Animazione evocazione non riuscita:", error);
+  }
 }, 80);
 
   owner.stats.creaturesPlayed++;
@@ -1043,7 +1047,11 @@ function evolveCreature(owner, opponent, cardId, fieldIndex) {
   owner.field[fieldIndex] = evolved;
 
 setTimeout(() => {
-  playEvolveFx(evolved);
+  try {
+    playEvolveFx(evolved);
+  } catch (error) {
+    console.warn("Animazione evoluzione non riuscita:", error);
+  }
 }, 80);
 
   owner.stats.evolutions++;
@@ -1105,7 +1113,11 @@ function playEquipment(owner, cardId, targetIndex) {
   }
 
 setTimeout(() => {
-  playEquipmentFx(target);
+  try {
+    playEquipmentFx(target);
+  } catch (error) {
+    console.warn("Animazione equipaggiamento non riuscita:", error);
+  }
 }, 80);
 
 
@@ -1134,7 +1146,11 @@ function playTerrain(owner, cardId) {
   };
 
 setTimeout(() => {
-  playTerrainFx();
+  try {
+    playTerrainFx();
+  } catch (error) {
+    console.warn("Animazione terreno non riuscita:", error);
+  }
 }, 80);
 
 
@@ -1910,6 +1926,41 @@ function render() {
   if (game.winner) {
     endTurnBtn.disabled = true;
   }
+}
+
+function startTimerLoop() {
+  if (turnTimerInterval) {
+    clearInterval(turnTimerInterval);
+    turnTimerInterval = null;
+  }
+
+  if (!turnTimerText || !game || !game.turnStartedAt || game.status !== "playing" || game.winner) {
+    if (turnTimerText) turnTimerText.textContent = "⏱️ --";
+    return;
+  }
+
+  const updateTimer = () => {
+    if (!turnTimerText) return;
+
+    if (!game || game.status !== "playing" || game.winner) {
+      turnTimerText.textContent = "⏱️ --";
+
+      if (turnTimerInterval) {
+        clearInterval(turnTimerInterval);
+        turnTimerInterval = null;
+      }
+
+      return;
+    }
+
+    const startedAt = Number(game.turnStartedAt || Date.now());
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const remaining = Math.max(0, TURN_SECONDS - elapsed);
+    turnTimerText.textContent = `⏱️ ${remaining}s`;
+  };
+
+  updateTimer();
+  turnTimerInterval = setInterval(updateTimer, 1000);
 }
 
 function renderEnergyDots(current, max) {
