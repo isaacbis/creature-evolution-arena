@@ -6,7 +6,13 @@ import {
   setDoc,
   updateDoc,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  increment
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -84,9 +90,53 @@ export function listenMatchDoc(code, callback, onError) {
     },
     error => {
       console.error("Errore ascolto partita:", error);
+
       if (typeof onError === "function") {
         onError(error);
       }
     }
   );
+}
+
+export async function updateLeaderboardPlayer(playerId, data) {
+  const database = requireDb();
+  const ref = doc(database, "leaderboard", playerId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      playerId,
+      name: data.name,
+      avatar: data.avatar,
+      wins: data.won ? 1 : 0,
+      losses: data.won ? 0 : 1,
+      lastDeck: data.deck,
+      xp: data.xp || 0,
+      updatedAt: serverTimestamp()
+    });
+
+    return;
+  }
+
+  await updateDoc(ref, {
+    name: data.name,
+    avatar: data.avatar,
+    wins: data.won ? increment(1) : increment(0),
+    losses: data.won ? increment(0) : increment(1),
+    xp: increment(data.xp || 0),
+    lastDeck: data.deck,
+    updatedAt: serverTimestamp()
+  });
+}
+
+export async function getLeaderboardTop(max = 10) {
+  const database = requireDb();
+  const q = query(
+    collection(database, "leaderboard"),
+    orderBy("wins", "desc"),
+    limit(max)
+  );
+
+  const snap = await getDocs(q);
+  return snap.docs.map(docSnap => docSnap.data());
 }

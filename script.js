@@ -3,7 +3,9 @@ import {
   createMatchDoc,
   getMatchDoc,
   updateMatchDoc,
-  listenMatchDoc
+  listenMatchDoc,
+  updateLeaderboardPlayer,
+  getLeaderboardTop
 } from "./firebase.js";
 
 const $ = id => document.getElementById(id);
@@ -17,14 +19,19 @@ const joinCodeInput = $("joinCodeInput");
 const playBotBtn = $("playBotBtn");
 const createOnlineBtn = $("createOnlineBtn");
 const joinOnlineBtn = $("joinOnlineBtn");
+const campaignBtn = $("campaignBtn");
+const draftBtn = $("draftBtn");
 
 const roomCodeText = $("roomCodeText");
 const lobbyStatusText = $("lobbyStatusText");
 const copyCodeBtn = $("copyCodeBtn");
+const copyInviteLinkBtn = $("copyInviteLinkBtn");
 const leaveLobbyBtn = $("leaveLobbyBtn");
 
 const modeText = $("modeText");
 const roomInfoText = $("roomInfoText");
+const turnTimerText = $("turnTimerText");
+const activeTerrainText = $("activeTerrainText");
 
 const playerHandEl = $("playerHand");
 const playerFieldEl = $("playerField");
@@ -37,6 +44,8 @@ const playerEnergyEl = $("playerEnergy");
 const enemyEnergyEl = $("enemyEnergy");
 const playerMaxEnergyEl = $("playerMaxEnergy");
 const enemyMaxEnergyEl = $("enemyMaxEnergy");
+const playerEnergyDotsEl = $("playerEnergyDots");
+const enemyEnergyDotsEl = $("enemyEnergyDots");
 const playerDeckCountEl = $("playerDeckCount");
 const enemyDeckCountEl = $("enemyDeckCount");
 const playerHandCountEl = $("playerHandCount");
@@ -46,6 +55,7 @@ const enemyNameEl = $("enemyName");
 const playerNameText = $("playerNameText");
 const turnTextEl = $("turnText");
 const messageEl = $("message");
+const cancelAttackBtn = $("cancelAttackBtn");
 
 const endTurnBtn = $("endTurnBtn");
 const restartBtn = $("restartBtn");
@@ -63,6 +73,7 @@ const detailHp = $("detailHp");
 const detailAtkWrap = $("detailAtkWrap");
 const detailHpWrap = $("detailHpWrap");
 const detailAbilities = $("detailAbilities");
+const detailAbilityDescriptions = $("detailAbilityDescriptions");
 const detailDesc = $("detailDesc");
 const closeDetailBtn = $("closeDetailBtn");
 
@@ -70,16 +81,69 @@ const resultModal = $("resultModal");
 const resultIcon = $("resultIcon");
 const resultTitle = $("resultTitle");
 const resultText = $("resultText");
+const matchStatsBox = $("matchStatsBox");
 const playAgainBtn = $("playAgainBtn");
 const resultMenuBtn = $("resultMenuBtn");
+const openPackBtn = $("openPackBtn");
+const replayBtn = $("replayBtn");
 
-const enemyHudBox = document.querySelector(".hud-box.enemy");
+const tutorialModal = $("tutorialModal");
+const tutorialBtn = $("tutorialBtn");
+const closeTutorialBtn = $("closeTutorialBtn");
+
+const leaderboardModal = $("leaderboardModal");
+const leaderboardBtn = $("leaderboardBtn");
+const leaderboardList = $("leaderboardList");
+const closeLeaderboardBtn = $("closeLeaderboardBtn");
+
+const missionsModal = $("missionsModal");
+const openMissionsBtn = $("openMissionsBtn");
+const closeMissionsBtn = $("closeMissionsBtn");
+const missionsList = $("missionsList");
+
+const campaignModal = $("campaignModal");
+const closeCampaignBtn = $("closeCampaignBtn");
+
+const draftModal = $("draftModal");
+const draftChoices = $("draftChoices");
+const draftProgressText = $("draftProgressText");
+const startDraftGameBtn = $("startDraftGameBtn");
+const closeDraftBtn = $("closeDraftBtn");
+
+const packModal = $("packModal");
+const packCards = $("packCards");
+const closePackBtn = $("closePackBtn");
+
+const quickChatModal = $("quickChatModal");
+const quickChatBtn = $("quickChatBtn");
+const closeQuickChatBtn = $("closeQuickChatBtn");
+
+const historyModal = $("historyModal");
+const historyBtn = $("historyBtn");
+const historyList = $("historyList");
+const closeHistoryBtn = $("closeHistoryBtn");
+
+const replayModal = $("replayModal");
+const replayList = $("replayList");
+const closeReplayBtn = $("closeReplayBtn");
+
+const cardBackSelect = $("cardBackSelect");
+const arenaSkinSelect = $("arenaSkinSelect");
+const profileNameText = $("profileNameText");
+const profileLevelText = $("profileLevelText");
+
+const enemyHudBox = $("enemyHudBox");
 
 const STARTING_LIFE = 30;
 const STARTING_HAND = 5;
 const MAX_FIELD_SIZE = 5;
+const TURN_SECONDS = 60;
 
 let selectedDeck = "balanced";
+let selectedAvatar = "🧙";
+let selectedCardBack = "classic";
+let selectedArena = "default";
+
 let game = null;
 let gameMode = "bot";
 let mySlot = "p1";
@@ -87,6 +151,11 @@ let roomCode = null;
 let unsubscribeRoom = null;
 let lastAttackCardId = null;
 let selectedAttackerIndex = null;
+let turnTimerInterval = null;
+
+let draftDeck = [];
+let draftPickCount = 0;
+let draftCurrentChoices = [];
 
 let dragState = {
   active: false,
@@ -109,13 +178,60 @@ const abilityLabels = {
   poison: "Veleno"
 };
 
+const abilityDescriptions = {
+  guard: "Guardia: deve essere attaccata prima delle altre creature.",
+  haste: "Rapidità: può attaccare subito quando entra.",
+  flying: "Volare: può attaccare direttamente se il nemico non ha creature volanti.",
+  rage: "Rabbia: quando subisce danno e sopravvive, guadagna +1 ATK.",
+  poison: "Veleno: avvelena la creatura con cui combatte. Il veleno fa danno a inizio turno."
+};
+
 const deckLabels = {
   fire: "Fuoco",
   water: "Acqua",
   forest: "Foresta",
   shadow: "Ombra",
   light: "Luce",
-  balanced: "Bilanciato"
+  balanced: "Bilanciato",
+  draft: "Draft"
+};
+
+const bossData = {
+  apprentice: {
+    name: "Apprendista",
+    avatar: "🧙",
+    life: 24,
+    deck: "balanced",
+    power: "Ogni 3 turni pesca 1 carta."
+  },
+  knight: {
+    name: "Cavaliere",
+    avatar: "⚔️",
+    life: 32,
+    deck: "light",
+    power: "Ogni 3 turni cura 2 vita."
+  },
+  dragon: {
+    name: "Drago Solare",
+    avatar: "🐉",
+    life: 36,
+    deck: "fire",
+    power: "Ogni 3 turni infligge 2 danni diretti."
+  },
+  eclipse: {
+    name: "Signore Eclissi",
+    avatar: "🌑",
+    life: 38,
+    deck: "shadow",
+    power: "Ogni 3 turni avvelena una tua creatura."
+  },
+  final: {
+    name: "Boss Finale",
+    avatar: "👑",
+    life: 45,
+    deck: "balanced",
+    power: "Ogni 3 turni guadagna +1 energia e infligge 1 danno."
+  }
 };
 
 const families = {
@@ -179,35 +295,34 @@ const spells = [
   s("spell_energy", "Energia Antica", 0, "legendary", "🔮", "+2 energia nel turno.", "spellGainEnergy", ["balanced", "shadow", "light"])
 ];
 
+const equipments = [
+  e("eq_sword", "Spada di Fuoco", 2, "rare", "🗡️", "+2 ATK alla creatura.", "equipSword", ["fire", "forest", "balanced"]),
+  e("eq_shield", "Scudo Antico", 2, "rare", "🛡️", "+3 HP e Guardia.", "equipShield", ["water", "light", "balanced"]),
+  e("eq_wings", "Ali Mistiche", 3, "epic", "🪽", "Dà Volare.", "equipWings", ["light", "water", "balanced"]),
+  e("eq_poison", "Lama Tossica", 2, "rare", "☠️", "Dà Veleno.", "equipPoison", ["shadow", "forest", "balanced"])
+];
+
+const terrains = [
+  t("terrain_sun", "Sole Rovente", 2, "rare", "☀️", "Per 3 turni le creature Fuoco hanno +1 ATK.", "sun", ["fire", "light", "balanced"]),
+  t("terrain_fog", "Nebbia Oscura", 2, "rare", "🌫️", "Per 2 turni blocca gli attacchi diretti.", "fog", ["shadow", "water", "balanced"]),
+  t("terrain_tide", "Marea Alta", 2, "rare", "🌊", "Per 3 turni le creature Acqua hanno +2 HP.", "tide", ["water", "balanced"]),
+  t("terrain_swamp", "Palude Velenosa", 3, "epic", "☠️", "Per 3 turni il veleno fa 2 danni.", "swamp", ["shadow", "forest", "balanced"])
+];
+
 function c(cardId, name, family, stage, attack, hp, cost, rarity, desc, effect, abilities) {
-  return {
-    cardId,
-    type: "creature",
-    name,
-    family,
-    stage,
-    attack,
-    hp,
-    cost,
-    rarity,
-    desc,
-    effect,
-    abilities
-  };
+  return { cardId, type: "creature", name, family, stage, attack, hp, cost, rarity, desc, effect, abilities };
 }
 
 function s(cardId, name, cost, rarity, icon, desc, effect, decks) {
-  return {
-    cardId,
-    type: "spell",
-    name,
-    cost,
-    rarity,
-    icon,
-    desc,
-    effect,
-    decks
-  };
+  return { cardId, type: "spell", name, cost, rarity, icon, desc, effect, decks };
+}
+
+function e(cardId, name, cost, rarity, icon, desc, effect, decks) {
+  return { cardId, type: "equipment", name, cost, rarity, icon, desc, effect, decks };
+}
+
+function t(cardId, name, cost, rarity, icon, desc, terrainType, decks) {
+  return { cardId, type: "terrain", name, cost, rarity, icon, desc, terrainType, decks };
 }
 
 function uid() {
@@ -227,9 +342,7 @@ async function generateUniqueRoomCode() {
     const code = randomCode();
     const existingMatch = await getMatchDoc(code);
 
-    if (!existingMatch) {
-      return code;
-    }
+    if (!existingMatch) return code;
   }
 
   throw new Error("Non riesco a generare un codice stanza libero. Riprova.");
@@ -238,9 +351,7 @@ async function generateUniqueRoomCode() {
 function getPlayerName() {
   const raw = playerNameInput.value.trim();
   const name = raw || localStorage.getItem("playerName") || "Giocatore";
-
   localStorage.setItem("playerName", name);
-
   return name;
 }
 
@@ -255,11 +366,61 @@ function getPlayerId() {
   return id;
 }
 
+function getPlayerAvatar() {
+  return localStorage.getItem("playerAvatar") || selectedAvatar || "🧙";
+}
+
+function getProfile() {
+  const saved = localStorage.getItem("ceaProfile");
+
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+  }
+
+  return {
+    xp: 0,
+    wins: 0,
+    losses: 0,
+    missions: {}
+  };
+}
+
+function saveProfile(profile) {
+  localStorage.setItem("ceaProfile", JSON.stringify(profile));
+  renderProfile();
+}
+
+function addXp(amount) {
+  const profile = getProfile();
+  profile.xp += amount;
+  saveProfile(profile);
+}
+
+function getLevelFromXp(xp) {
+  return Math.floor(xp / 100) + 1;
+}
+
+function renderProfile() {
+  const profile = getProfile();
+  const name = playerNameInput.value.trim() || localStorage.getItem("playerName") || "Giocatore";
+  const level = getLevelFromXp(profile.xp);
+  const next = level * 100;
+  const currentBase = (level - 1) * 100;
+
+  if (profileNameText) profileNameText.textContent = `${selectedAvatar} ${name}`;
+  if (profileLevelText) {
+    profileLevelText.textContent = `Livello ${level} · XP ${profile.xp - currentBase}/${next - currentBase} · V ${profile.wins || 0} / S ${profile.losses || 0}`;
+  }
+}
+
 function showOnly(screen) {
   menuScreen.classList.add("hidden");
   lobbyScreen.classList.add("hidden");
   gameScreen.classList.add("hidden");
-
   screen.classList.remove("hidden");
 }
 
@@ -267,29 +428,54 @@ function setMessage(text) {
   messageEl.textContent = text;
 }
 
-function makePlayer(name, deckType) {
+function makeStats() {
   return {
-    id: getPlayerId(),
-    name,
-    life: STARTING_LIFE,
-    energy: 0,
-    maxEnergy: 0,
-    deck: createDeck(deckType),
-    hand: [],
-    field: []
+    turns: 1,
+    damageDealt: 0,
+    damageTaken: 0,
+    creaturesPlayed: 0,
+    evolutions: 0,
+    spellsPlayed: 0,
+    equipmentsPlayed: 0,
+    terrainsPlayed: 0,
+    bestCard: "-"
   };
 }
 
-function makeBot() {
+function makePlayer(name, deckType, forcedDeck = null) {
   return {
-    id: "bot",
-    name: "Bot",
+    id: getPlayerId(),
+    name,
+    avatar: getPlayerAvatar(),
     life: STARTING_LIFE,
     energy: 0,
     maxEnergy: 0,
-    deck: createDeck("balanced"),
+    deckType,
+    deck: forcedDeck || createDeck(deckType),
     hand: [],
-    field: []
+    field: [],
+    stats: makeStats()
+  };
+}
+
+function makeBot(bossKey = null) {
+  const boss = bossData[bossKey] || null;
+  const deckType = boss?.deck || "balanced";
+
+  return {
+    id: "bot",
+    name: boss?.name || "Bot",
+    avatar: boss?.avatar || "🤖",
+    bossKey,
+    bossPower: boss?.power || null,
+    life: boss?.life || STARTING_LIFE,
+    energy: 0,
+    maxEnergy: 0,
+    deckType,
+    deck: createDeck(deckType),
+    hand: [],
+    field: [],
+    stats: makeStats()
   };
 }
 
@@ -300,7 +486,6 @@ function createDeck(deckType) {
   familyKeys.forEach(key => {
     families[key].cards.forEach(template => {
       let copies = 2;
-
       if (template.stage === 1) copies = deckType === "balanced" ? 2 : 5;
       if (template.stage === 2) copies = deckType === "balanced" ? 2 : 4;
       if (template.stage === 3) copies = deckType === "balanced" ? 1 : 3;
@@ -313,15 +498,21 @@ function createDeck(deckType) {
 
   spells.forEach(spell => {
     if (!spell.decks.includes(deckType)) return;
-
     const copies = spell.rarity === "legendary" ? 1 : 2;
-
-    for (let i = 0; i < copies; i++) {
-      deck.push(createSpellCard(spell));
-    }
+    for (let i = 0; i < copies; i++) deck.push(createSpellCard(spell));
   });
 
-  while (deck.length < 34) {
+  equipments.forEach(eq => {
+    if (!eq.decks.includes(deckType)) return;
+    for (let i = 0; i < 2; i++) deck.push(createEquipmentCard(eq));
+  });
+
+  terrains.forEach(terrain => {
+    if (!terrain.decks.includes(deckType)) return;
+    deck.push(createTerrainCard(terrain));
+  });
+
+  while (deck.length < 38) {
     const family = families[randomItem(familyKeys)];
     deck.push(createCreatureCard(family.cards[0]));
   }
@@ -330,7 +521,7 @@ function createDeck(deckType) {
 }
 
 function getFamiliesForDeck(deckType) {
-  if (deckType === "balanced") {
+  if (deckType === "balanced" || deckType === "draft") {
     return ["fire", "water", "forest", "shadow", "light"];
   }
 
@@ -355,15 +546,43 @@ function createCreatureCard(template) {
     poisoned: false,
     canAttack: false,
     hasAttacked: false,
+    equipped: [],
     abilities: [...template.abilities]
   };
 }
 
 function createSpellCard(template) {
-  return {
-    ...template,
-    id: uid()
-  };
+  return { ...template, id: uid() };
+}
+
+function createEquipmentCard(template) {
+  return { ...template, id: uid() };
+}
+
+function createTerrainCard(template) {
+  return { ...template, id: uid() };
+}
+
+function cloneCardForDeck(card) {
+  if (card.type === "creature") return createCreatureCard(card);
+  if (card.type === "spell") return createSpellCard(card);
+  if (card.type === "equipment") return createEquipmentCard(card);
+  if (card.type === "terrain") return createTerrainCard(card);
+  return { ...card, id: uid() };
+}
+
+function allDraftTemplates() {
+  const templates = [];
+
+  Object.values(families).forEach(family => {
+    family.cards.forEach(card => templates.push(card));
+  });
+
+  spells.forEach(card => templates.push(card));
+  equipments.forEach(card => templates.push(card));
+  terrains.forEach(card => templates.push(card));
+
+  return templates;
 }
 
 function shuffle(array) {
@@ -396,32 +615,46 @@ function initialDraw(g) {
   }
 }
 
-function startBotGame() {
+function createBaseGame(mode, p1, p2) {
+  return {
+    mode,
+    status: "playing",
+    currentTurn: "p1",
+    turnNumber: 1,
+    turnStartedAt: Date.now(),
+    winner: null,
+    leaderboardSaved: false,
+    activeTerrain: null,
+    players: {
+      p1,
+      p2
+    },
+    log: [],
+    replay: []
+  };
+}
+
+function startBotGame(bossKey = null, forcedDeck = null) {
   const name = getPlayerName();
 
-  gameMode = "bot";
+  gameMode = bossKey ? "campaign" : "bot";
   roomCode = null;
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
 
-  game = {
-    mode: "bot",
-    status: "playing",
-    currentTurn: "p1",
-    turnNumber: 1,
-    winner: null,
-    players: {
-      p1: makePlayer(name, selectedDeck),
-      p2: makeBot()
-    },
-    log: []
-  };
+  const p1 = makePlayer(name, forcedDeck ? "draft" : selectedDeck, forcedDeck);
+  const p2 = makeBot(bossKey);
+
+  game = createBaseGame(gameMode, p1, p2);
 
   initialDraw(game);
   startTurn("p1");
 
-  modeText.textContent = `Bot · Mazzo ${deckLabels[selectedDeck]}`;
+  modeText.textContent = bossKey
+    ? `Campagna · ${p2.name}`
+    : `Bot · Mazzo ${deckLabels[selectedDeck]}`;
+
   roomInfoText.textContent = "";
 
   resultModal.classList.add("hidden");
@@ -453,12 +686,16 @@ async function createOnlineGame() {
       code,
       currentTurn: "p1",
       turnNumber: 1,
+      turnStartedAt: Date.now(),
       winner: null,
+      leaderboardSaved: false,
+      activeTerrain: null,
       players: {
         p1: makePlayer(name, selectedDeck),
         p2: null
       },
-      log: [`${name} ha creato la partita.`]
+      log: [`${name} ha creato la partita.`],
+      replay: [`${name} ha creato la partita.`]
     };
 
     await createMatchDoc(code, game);
@@ -514,6 +751,8 @@ async function joinOnlineGame() {
     match.players.p2 = makePlayer(name, selectedDeck);
     match.status = "playing";
     match.log.unshift(`${name} è entrato nella partita.`);
+    match.replay = match.replay || [];
+    match.replay.unshift(`${name} è entrato nella partita.`);
 
     initialDraw(match);
     startTurnInGame(match, "p1");
@@ -542,7 +781,7 @@ function subscribeToRoom(code) {
     data => {
       if (!data) {
         alert("Partita non trovata.");
-        showOnlyMenu();
+        showOnlyMenu(true);
         return;
       }
 
@@ -557,7 +796,6 @@ function subscribeToRoom(code) {
       }
 
       showOnly(gameScreen);
-
       modeText.textContent = `Online · Codice ${game.code}`;
       roomInfoText.textContent = `Codice ${game.code}`;
 
@@ -570,7 +808,7 @@ function subscribeToRoom(code) {
     error => {
       console.error(error);
       alert("Errore di connessione alla partita. Controlla le Rules di Firestore.");
-      showOnlyMenu();
+      showOnlyMenu(true);
     }
   );
 }
@@ -596,15 +834,67 @@ function startTurnInGame(g, slot) {
   if (!player) return;
 
   g.currentTurn = slot;
+  g.turnStartedAt = Date.now();
 
   player.maxEnergy = Math.min(10, player.maxEnergy + 1);
   player.energy = player.maxEnergy;
 
+  tickTerrain(g);
   applyPoisonDamage(player);
   prepareCreatures(player);
   drawCard(player);
 
-  g.log.unshift(`Turno di ${player.name}.`);
+  if (slot === "p2" && player.bossKey) {
+    applyBossPower(player.bossKey);
+  }
+
+  addLog(`Turno di ${player.name}.`, g);
+}
+
+function tickTerrain(g) {
+  if (!g.activeTerrain) return;
+
+  g.activeTerrain.turnsLeft -= 1;
+
+  if (g.activeTerrain.turnsLeft <= 0) {
+    addLog(`Il terreno ${g.activeTerrain.name} svanisce.`, g);
+    g.activeTerrain = null;
+  }
+}
+
+function applyBossPower(bossKey) {
+  const bot = game.players.p2;
+  const player = game.players.p1;
+
+  if (game.turnNumber % 3 !== 0) return;
+
+  if (bossKey === "apprentice") {
+    drawCard(bot);
+    addLog("Potere Boss: pesca 1 carta.");
+  }
+
+  if (bossKey === "knight") {
+    healLife(bot, 2, document.querySelector(".hud-box.enemy"));
+    addLog("Potere Boss: cura 2 vita.");
+  }
+
+  if (bossKey === "dragon") {
+    dealLifeDamage(bot, player, 2, document.querySelector(".hud-box.player"));
+    addLog("Potere Boss: infligge 2 danni diretti.");
+  }
+
+  if (bossKey === "eclipse") {
+    if (player.field.length) {
+      randomItem(player.field).poisoned = true;
+      addLog("Potere Boss: avvelena una tua creatura.");
+    }
+  }
+
+  if (bossKey === "final") {
+    bot.energy += 1;
+    dealLifeDamage(bot, player, 1, document.querySelector(".hud-box.player"));
+    addLog("Potere Boss Finale: +1 energia e 1 danno.");
+  }
 }
 
 function prepareCreatures(player) {
@@ -615,10 +905,12 @@ function prepareCreatures(player) {
 }
 
 function applyPoisonDamage(player) {
+  const poisonDamage = game?.activeTerrain?.type === "swamp" ? 2 : 1;
+
   player.field.forEach(card => {
     if (card.poisoned) {
-      card.currentHp -= 1;
-      addLog(`${card.name} subisce 1 danno da veleno.`);
+      card.currentHp -= poisonDamage;
+      addLog(`${card.name} subisce ${poisonDamage} danno da veleno.`);
     }
   });
 
@@ -656,6 +948,8 @@ function canPlayCard(card) {
   if (card.cost > me.energy) return false;
 
   if (card.type === "spell") return true;
+  if (card.type === "equipment") return me.field.length > 0;
+  if (card.type === "terrain") return true;
 
   if (card.stage === 1) {
     return me.field.length < MAX_FIELD_SIZE;
@@ -665,6 +959,15 @@ function canPlayCard(card) {
     fieldCard.family === card.family &&
     fieldCard.stage === card.stage - 1
   );
+}
+
+function canEvolveWithCard(handCard, fieldCard) {
+  if (!handCard || !fieldCard) return false;
+  if (handCard.type !== "creature") return false;
+  if (handCard.stage <= 1) return false;
+
+  return handCard.family === fieldCard.family &&
+    handCard.stage === fieldCard.stage + 1;
 }
 
 function playCreature(owner, opponent, cardId) {
@@ -678,14 +981,32 @@ function playCreature(owner, opponent, cardId) {
   owner.energy -= card.cost;
   owner.hand.splice(index, 1);
 
+  applyTerrainOnSummon(card);
+
   card.canAttack = hasAbility(card, "haste");
   card.hasAttacked = !hasAbility(card, "haste");
 
   owner.field.push(card);
 
+  owner.stats.creaturesPlayed++;
+  recordBestCard(owner, card);
+
   addLog(`${owner.name} evoca ${card.name}.`);
 
   applyEntryEffect(card, owner, opponent);
+}
+
+function applyTerrainOnSummon(card) {
+  if (!game?.activeTerrain || card.type !== "creature") return;
+
+  if (game.activeTerrain.type === "sun" && card.family === "fire") {
+    card.attack += 1;
+  }
+
+  if (game.activeTerrain.type === "tide" && card.family === "water") {
+    card.maxHp += 2;
+    card.currentHp += 2;
+  }
 }
 
 function evolveCreature(owner, opponent, cardId, fieldIndex) {
@@ -709,10 +1030,16 @@ function evolveCreature(owner, opponent, cardId, fieldIndex) {
     poisoned: false,
     canAttack: base.canAttack || hasAbility(evolution, "haste"),
     hasAttacked: base.hasAttacked && !hasAbility(evolution, "haste"),
-    abilities: [...(evolution.abilities || [])]
+    equipped: [...(base.equipped || [])],
+    abilities: [...new Set([...(evolution.abilities || []), ...(base.abilities || []).filter(a => a === "guard" || a === "flying" || a === "poison")])]
   };
 
+  applyTerrainOnSummon(evolved);
+
   owner.field[fieldIndex] = evolved;
+
+  owner.stats.evolutions++;
+  recordBestCard(owner, evolved);
 
   addLog(`${owner.name} evolve ${base.name} in ${evolution.name}.`);
 
@@ -729,15 +1056,80 @@ function playSpell(owner, opponent, cardId) {
   owner.energy -= spell.cost;
   owner.hand.splice(index, 1);
 
+  owner.stats.spellsPlayed++;
+  recordBestCard(owner, spell);
+
   addLog(`${owner.name} gioca ${spell.name}.`);
 
   applySpellEffect(spell, owner, opponent);
 }
 
+function playEquipment(owner, cardId, targetIndex) {
+  const index = owner.hand.findIndex(card => card.id === cardId);
+  const eq = owner.hand[index];
+  const target = owner.field[targetIndex];
+
+  if (!eq || !target || eq.type !== "equipment") return;
+  if (owner.energy < eq.cost) return;
+
+  owner.energy -= eq.cost;
+  owner.hand.splice(index, 1);
+
+  target.equipped = target.equipped || [];
+  target.equipped.push(eq.name);
+
+  if (eq.effect === "equipSword") {
+    target.attack += 2;
+  }
+
+  if (eq.effect === "equipShield") {
+    target.maxHp += 3;
+    target.currentHp += 3;
+    if (!target.abilities.includes("guard")) target.abilities.push("guard");
+  }
+
+  if (eq.effect === "equipWings") {
+    if (!target.abilities.includes("flying")) target.abilities.push("flying");
+  }
+
+  if (eq.effect === "equipPoison") {
+    if (!target.abilities.includes("poison")) target.abilities.push("poison");
+  }
+
+  owner.stats.equipmentsPlayed++;
+  recordBestCard(owner, eq);
+
+  addLog(`${owner.name} equipaggia ${target.name} con ${eq.name}.`);
+}
+
+function playTerrain(owner, cardId) {
+  const index = owner.hand.findIndex(card => card.id === cardId);
+  const terrain = owner.hand[index];
+
+  if (!terrain || terrain.type !== "terrain") return;
+  if (owner.energy < terrain.cost) return;
+
+  owner.energy -= terrain.cost;
+  owner.hand.splice(index, 1);
+
+  const turns = terrain.terrainType === "fog" ? 2 : 3;
+
+  game.activeTerrain = {
+    name: terrain.name,
+    type: terrain.terrainType,
+    turnsLeft: turns
+  };
+
+  owner.stats.terrainsPlayed++;
+  recordBestCard(owner, terrain);
+
+  addLog(`${owner.name} attiva il terreno ${terrain.name} per ${turns} turni.`);
+}
+
 function applyEntryEffect(card, owner, opponent) {
   switch (card.effect) {
     case "burnEnemy":
-      opponent.life -= 1;
+      dealLifeDamage(owner, opponent, 1, enemyHudBox);
       addLog(`${card.name} infligge 1 danno diretto.`);
       break;
 
@@ -746,12 +1138,13 @@ function applyEntryEffect(card, owner, opponent) {
         creature.currentHp -= 2;
         applyRageIfDamaged(creature);
       });
+      owner.stats.damageDealt += 2 * opponent.field.length;
       addLog(`${card.name} infligge 2 danni al campo avversario.`);
       removeDead(opponent);
       break;
 
     case "healOwner":
-      owner.life = Math.min(STARTING_LIFE + 15, owner.life + 2);
+      healLife(owner, 2);
       addLog(`${card.name} cura 2 vita.`);
       break;
 
@@ -785,7 +1178,7 @@ function applyEntryEffect(card, owner, opponent) {
       break;
 
     case "darkBlast":
-      opponent.life -= 3;
+      dealLifeDamage(owner, opponent, 3, enemyHudBox);
       addLog(`${card.name} infligge 3 danni diretti.`);
       break;
 
@@ -797,7 +1190,7 @@ function applyEntryEffect(card, owner, opponent) {
       break;
 
     case "bigHealOwner":
-      owner.life = Math.min(STARTING_LIFE + 15, owner.life + 4);
+      healLife(owner, 4);
       addLog(`${card.name} cura 4 vita.`);
       break;
 
@@ -812,17 +1205,18 @@ function applySpellEffect(spell, owner, opponent) {
       if (opponent.field.length) {
         const target = chooseSpellTarget(opponent.field);
         target.currentHp -= 3;
+        owner.stats.damageDealt += 3;
         applyRageIfDamaged(target);
         addLog(`${spell.name} infligge 3 danni a ${target.name}.`);
         removeDead(opponent);
       } else {
-        opponent.life -= 3;
+        dealLifeDamage(owner, opponent, 3, enemyHudBox);
         addLog(`${spell.name} infligge 3 danni diretti.`);
       }
       break;
 
     case "spellHeal":
-      owner.life = Math.min(STARTING_LIFE + 15, owner.life + 4);
+      healLife(owner, 4);
       addLog(`${spell.name} cura 4 vita.`);
       break;
 
@@ -846,6 +1240,7 @@ function applySpellEffect(spell, owner, opponent) {
         creature.currentHp -= 2;
         applyRageIfDamaged(creature);
       });
+      owner.stats.damageDealt += 2 * opponent.field.length;
       addLog(`${spell.name} infligge 2 danni al campo avversario.`);
       removeDead(opponent);
       break;
@@ -862,10 +1257,34 @@ function applySpellEffect(spell, owner, opponent) {
 
 function chooseSpellTarget(field) {
   const guard = field.find(card => hasAbility(card, "guard"));
-
   if (guard) return guard;
-
   return [...field].sort((a, b) => b.attack - a.attack)[0];
+}
+
+function dealLifeDamage(attackerOwner, defenderOwner, amount, targetEl = null) {
+  defenderOwner.life -= amount;
+
+  if (attackerOwner?.stats) attackerOwner.stats.damageDealt += amount;
+  if (defenderOwner?.stats) defenderOwner.stats.damageTaken += amount;
+
+  showDamagePopup(targetEl || enemyHudBox, `-${amount}`);
+}
+
+function healLife(owner, amount, targetEl = null) {
+  owner.life = Math.min(STARTING_LIFE + 15, owner.life + amount);
+  showDamagePopup(targetEl || document.body, `+${amount}`, true);
+}
+
+function recordBestCard(player, card) {
+  if (!player || !player.stats || !card) return;
+
+  if (card.type === "creature") {
+    if (player.stats.bestCard === "-" || card.attack >= 6 || card.stage === 3) {
+      player.stats.bestCard = card.name;
+    }
+  } else {
+    player.stats.bestCard = card.name;
+  }
 }
 
 async function handleCardDropOnOwnField(cardId) {
@@ -873,11 +1292,9 @@ async function handleCardDropOnOwnField(cardId) {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
-
   if (!me || !enemy) return;
 
   const card = me.hand.find(c => c.id === cardId);
-
   if (!card) return;
 
   if (!canPlayCard(card)) {
@@ -887,6 +1304,20 @@ async function handleCardDropOnOwnField(cardId) {
 
   if (card.type === "spell") {
     setMessage("Le magie si trascinano sul campo avversario.");
+    return;
+  }
+
+  if (card.type === "equipment") {
+    setMessage("Gli equipaggiamenti vanno trascinati sopra una tua creatura.");
+    return;
+  }
+
+  if (card.type === "terrain") {
+    playTerrain(me, card.id);
+    selectedAttackerIndex = null;
+    checkGameOver();
+    render();
+    await saveOnlineGame();
     return;
   }
 
@@ -900,7 +1331,6 @@ async function handleCardDropOnOwnField(cardId) {
 
   checkGameOver();
   render();
-
   await saveOnlineGame();
 }
 
@@ -909,15 +1339,22 @@ async function handleCardDropOnEnemyField(cardId) {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
-
   if (!me || !enemy) return;
 
   const card = me.hand.find(c => c.id === cardId);
-
   if (!card) return;
 
   if (!canPlayCard(card)) {
     setMessage("Non puoi giocare questa carta ora.");
+    return;
+  }
+
+  if (card.type === "terrain") {
+    playTerrain(me, card.id);
+    selectedAttackerIndex = null;
+    checkGameOver();
+    render();
+    await saveOnlineGame();
     return;
   }
 
@@ -931,7 +1368,6 @@ async function handleCardDropOnEnemyField(cardId) {
 
   checkGameOver();
   render();
-
   await saveOnlineGame();
 }
 
@@ -940,7 +1376,6 @@ async function handleCardDropOnOwnCreature(cardId, targetIndex) {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
-
   if (!me || !enemy) return;
 
   const card = me.hand.find(c => c.id === cardId);
@@ -953,8 +1388,17 @@ async function handleCardDropOnOwnCreature(cardId, targetIndex) {
     return;
   }
 
-  if (card.type === "spell") {
-    setMessage("Le magie si trascinano sul campo avversario.");
+  if (card.type === "equipment") {
+    playEquipment(me, card.id, targetIndex);
+    selectedAttackerIndex = null;
+    checkGameOver();
+    render();
+    await saveOnlineGame();
+    return;
+  }
+
+  if (card.type === "spell" || card.type === "terrain") {
+    setMessage("Questa carta non si sovrappone a una creatura.");
     return;
   }
 
@@ -963,7 +1407,7 @@ async function handleCardDropOnOwnCreature(cardId, targetIndex) {
     return;
   }
 
-  if (card.family !== target.family || card.stage !== target.stage + 1) {
+  if (!canEvolveWithCard(card, target)) {
     setMessage("Evoluzione non valida: devi sovrapporla alla creatura corretta.");
     return;
   }
@@ -973,7 +1417,6 @@ async function handleCardDropOnOwnCreature(cardId, targetIndex) {
 
   checkGameOver();
   render();
-
   await saveOnlineGame();
 }
 
@@ -982,11 +1425,9 @@ async function playerAttack(attackerIndex, targetIndex) {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
-
   if (!me || !enemy) return;
 
   const attacker = me.field[attackerIndex];
-
   if (!attacker || attacker.hasAttacked || !attacker.canAttack) return;
 
   lastAttackCardId = attacker.id;
@@ -997,12 +1438,11 @@ async function playerAttack(attackerIndex, targetIndex) {
       return;
     }
 
-    enemy.life -= attacker.attack;
+    dealLifeDamage(me, enemy, attacker.attack, enemyHudBox);
     attacker.hasAttacked = true;
     addLog(`${attacker.name} infligge ${attacker.attack} danni diretti.`);
   } else {
     const target = enemy.field[targetIndex];
-
     if (!target) return;
 
     const guards = enemy.field.filter(card => hasAbility(card, "guard"));
@@ -1030,6 +1470,11 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
   defender.currentHp -= attacker.attack;
   attacker.currentHp -= defender.attack;
   attacker.hasAttacked = true;
+
+  attackerOwner.stats.damageDealt += attacker.attack;
+  attackerOwner.stats.damageTaken += defender.attack;
+  defenderOwner.stats.damageDealt += defender.attack;
+  defenderOwner.stats.damageTaken += attacker.attack;
 
   applyRageIfDamaged(attacker);
   applyRageIfDamaged(defender);
@@ -1067,8 +1512,8 @@ function removeDead(player) {
 }
 
 function canAttackLife(attacker, defenderField) {
+  if (game?.activeTerrain?.type === "fog") return false;
   if (!defenderField.length) return true;
-
   if (defenderField.some(card => hasAbility(card, "guard"))) return false;
 
   if (hasAbility(attacker, "flying")) {
@@ -1092,7 +1537,7 @@ async function endTurn() {
 
   addLog(`${me.name} termina il turno.`);
 
-  if (gameMode === "bot") {
+  if (gameMode === "bot" || gameMode === "campaign") {
     startTurn("p2");
     render();
 
@@ -1101,6 +1546,8 @@ async function endTurn() {
 
       if (!game.winner) {
         game.turnNumber++;
+        game.players.p1.stats.turns = game.turnNumber;
+        game.players.p2.stats.turns = game.turnNumber;
         startTurn("p1");
       }
 
@@ -1108,6 +1555,8 @@ async function endTurn() {
     }, 600);
   } else {
     game.turnNumber++;
+    game.players.p1.stats.turns = game.turnNumber;
+    game.players.p2.stats.turns = game.turnNumber;
     startTurn(next);
     render();
     await saveOnlineGame();
@@ -1146,6 +1595,30 @@ function botTurn() {
       continue;
     }
 
+    const equipment = bot.hand.find(card =>
+      card.type === "equipment" &&
+      card.cost <= bot.energy &&
+      bot.field.length
+    );
+
+    if (equipment) {
+      playEquipment(bot, equipment.id, 0);
+      action = true;
+      continue;
+    }
+
+    const terrain = bot.hand.find(card =>
+      card.type === "terrain" &&
+      card.cost <= bot.energy &&
+      !game.activeTerrain
+    );
+
+    if (terrain) {
+      playTerrain(bot, terrain.id);
+      action = true;
+      continue;
+    }
+
     const usefulSpell = bot.hand.find(card =>
       card.type === "spell" &&
       card.cost <= bot.energy &&
@@ -1180,10 +1653,9 @@ function botTurn() {
     if (player.field.length) {
       const guards = player.field.filter(card => hasAbility(card, "guard"));
       const target = guards[0] || chooseBotTarget(player.field);
-
       fight(attacker, target, bot, player);
-    } else {
-      player.life -= attacker.attack;
+    } else if (canAttackLife(attacker, player.field)) {
+      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".hud-box.player"));
       attacker.hasAttacked = true;
       addLog(`Bot infligge ${attacker.attack} danni diretti.`);
     }
@@ -1198,26 +1670,11 @@ function botTurn() {
 }
 
 function shouldBotUseSpell(spell, bot, player) {
-  if (spell.effect === "spellHeal") {
-    return bot.life <= STARTING_LIFE - 5;
-  }
-
-  if (spell.effect === "spellDrawTwo") {
-    return bot.hand.length <= 3;
-  }
-
-  if (spell.effect === "spellBlessing") {
-    return bot.field.length >= 2;
-  }
-
-  if (spell.effect === "spellStorm") {
-    return player.field.length >= 2;
-  }
-
-  if (spell.effect === "spellGainEnergy") {
-    return bot.hand.some(card => card.cost > bot.energy);
-  }
-
+  if (spell.effect === "spellHeal") return bot.life <= STARTING_LIFE - 5;
+  if (spell.effect === "spellDrawTwo") return bot.hand.length <= 3;
+  if (spell.effect === "spellBlessing") return bot.field.length >= 2;
+  if (spell.effect === "spellStorm") return player.field.length >= 2;
+  if (spell.effect === "spellGainEnergy") return bot.hand.some(card => card.cost > bot.energy);
   return true;
 }
 
@@ -1242,25 +1699,110 @@ function checkGameOver() {
 
   if (game.winner) {
     addLog(`${game.players[game.winner].name} ha vinto.`);
+    saveMatchResult();
+    saveLeaderboardIfNeeded();
     showResult(game.winner === mySlot);
   }
 }
 
+function saveMatchResult() {
+  const me = getMyPlayer();
+  if (!me) return;
+
+  const won = game.winner === mySlot;
+  const profile = getProfile();
+
+  if (won) profile.wins = (profile.wins || 0) + 1;
+  else profile.losses = (profile.losses || 0) + 1;
+
+  const xp = won ? 35 : 15;
+  profile.xp += xp;
+
+  saveProfile(profile);
+  saveHistory(won);
+}
+
+function saveHistory(won) {
+  const history = getHistory();
+  const me = getMyPlayer();
+  const enemy = getEnemyPlayer();
+
+  history.unshift({
+    date: new Date().toLocaleString("it-IT"),
+    result: won ? "Vittoria" : "Sconfitta",
+    me: me?.name || "Tu",
+    enemy: enemy?.name || "Nemico",
+    turns: game.turnNumber
+  });
+
+  localStorage.setItem("ceaHistory", JSON.stringify(history.slice(0, 20)));
+}
+
+function getHistory() {
+  const raw = localStorage.getItem("ceaHistory");
+  if (!raw) return [];
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+async function saveLeaderboardIfNeeded() {
+  if (!game || game.leaderboardSaved) return;
+
+  game.leaderboardSaved = true;
+
+  const me = getMyPlayer();
+  if (!me) return;
+
+  try {
+    if (firebaseReady()) {
+      await updateLeaderboardPlayer(me.id, {
+        name: me.name,
+        avatar: me.avatar,
+        deck: me.deckType,
+        won: game.winner === mySlot,
+        xp: game.winner === mySlot ? 35 : 15
+      });
+    }
+  } catch (error) {
+    console.error("Errore aggiornamento classifica:", error);
+  }
+}
+
 function showResult(won) {
+  const me = getMyPlayer();
+  const stats = me?.stats || makeStats();
+
   resultModal.classList.remove("hidden");
   resultIcon.textContent = won ? "🏆" : "💀";
   resultTitle.textContent = won ? "Vittoria!" : "Sconfitta";
-  resultText.textContent = won ? "Hai vinto la partita." : "Hai perso la partita.";
+  resultText.textContent = won ? "Hai vinto la partita. +35 XP" : "Hai perso la partita. +15 XP";
+
+  matchStatsBox.innerHTML = `
+    <div>⏱️ Turni: <strong>${stats.turns}</strong></div>
+    <div>⚔️ Danni inflitti: <strong>${stats.damageDealt}</strong></div>
+    <div>🛡️ Danni subiti: <strong>${stats.damageTaken}</strong></div>
+    <div>🃏 Creature evocate: <strong>${stats.creaturesPlayed}</strong></div>
+    <div>🔺 Evoluzioni: <strong>${stats.evolutions}</strong></div>
+    <div>✨ Magie usate: <strong>${stats.spellsPlayed}</strong></div>
+    <div>🛡️ Equipaggiamenti: <strong>${stats.equipmentsPlayed}</strong></div>
+    <div>🌍 Terreni: <strong>${stats.terrainsPlayed}</strong></div>
+    <div>⭐ Carta migliore: <strong>${stats.bestCard}</strong></div>
+  `;
 }
 
-function addLog(text) {
-  if (!game) return;
+function addLog(text, targetGame = game) {
+  if (!targetGame) return;
 
-  game.log.unshift(text);
+  targetGame.log.unshift(text);
+  targetGame.replay = targetGame.replay || [];
+  targetGame.replay.unshift(`Turno ${targetGame.turnNumber}: ${text}`);
 
-  if (game.log.length > 35) {
-    game.log.pop();
-  }
+  if (targetGame.log.length > 35) targetGame.log.pop();
+  if (targetGame.replay.length > 80) targetGame.replay.pop();
 }
 
 function render() {
@@ -1268,11 +1810,10 @@ function render() {
 
   const me = getMyPlayer();
   const enemy = getEnemyPlayer();
-
   if (!me || !enemy) return;
 
-  playerNameText.textContent = me.name;
-  enemyNameEl.textContent = enemy.name;
+  playerNameText.textContent = `${me.avatar || ""} ${me.name}`;
+  enemyNameEl.textContent = `${enemy.avatar || ""} ${enemy.name}`;
 
   playerLifeEl.textContent = me.life;
   enemyLifeEl.textContent = enemy.life;
@@ -1283,11 +1824,18 @@ function render() {
   playerMaxEnergyEl.textContent = me.maxEnergy;
   enemyMaxEnergyEl.textContent = enemy.maxEnergy;
 
+  playerEnergyDotsEl.textContent = renderEnergyDots(me.energy, me.maxEnergy);
+  enemyEnergyDotsEl.textContent = renderEnergyDots(enemy.energy, enemy.maxEnergy);
+
   playerDeckCountEl.textContent = me.deck.length;
   enemyDeckCountEl.textContent = enemy.deck.length;
 
   playerHandCountEl.textContent = me.hand.length;
   enemyHandCountEl.textContent = enemy.hand.length;
+
+  activeTerrainText.textContent = game.activeTerrain
+    ? `${game.activeTerrain.name} · ${game.activeTerrain.turnsLeft} turni`
+    : "Nessun terreno";
 
   turnTextEl.textContent = isMyTurn()
     ? "Tuo turno"
@@ -1298,6 +1846,8 @@ function render() {
   if (enemyHudBox) {
     enemyHudBox.classList.toggle("targetable", selectedAttackerIndex !== null && isMyTurn());
   }
+
+  cancelAttackBtn.classList.toggle("hidden", !(selectedAttackerIndex !== null && isMyTurn()));
 
   if (selectedAttackerIndex !== null && isMyTurn()) {
     roomInfoText.textContent = "Scegli bersaglio";
@@ -1312,6 +1862,8 @@ function render() {
 
   if (gameMode === "online") {
     modeText.textContent = `Online · ${roomCode}`;
+  } else if (gameMode === "campaign") {
+    modeText.textContent = `Campagna · ${enemy.name}`;
   } else {
     modeText.textContent = `Bot · Mazzo ${deckLabels[selectedDeck]}`;
   }
@@ -1320,15 +1872,26 @@ function render() {
   renderField(playerFieldEl, me.field, "player");
   renderField(enemyFieldEl, enemy.field, "enemy");
   renderLog();
+  startTimerLoop();
 
   if (game.winner) {
     endTurnBtn.disabled = true;
   }
 }
 
+function renderEnergyDots(current, max) {
+  const safeMax = Math.max(0, Math.min(10, max || 0));
+  let text = "";
+
+  for (let i = 1; i <= safeMax; i++) {
+    text += i <= current ? "●" : "○";
+  }
+
+  return text;
+}
+
 function renderHand() {
   const me = getMyPlayer();
-
   if (!me) return;
 
   playerHandEl.innerHTML = "";
@@ -1336,11 +1899,8 @@ function renderHand() {
   me.hand.forEach(card => {
     const el = createCardEl(card, "hand-card");
 
-    if (canPlayCard(card)) {
-      el.classList.add("playable");
-    } else {
-      el.classList.add("unplayable");
-    }
+    if (canPlayCard(card)) el.classList.add("playable");
+    else el.classList.add("unplayable");
 
     el.dataset.cardId = card.id;
 
@@ -1373,13 +1933,8 @@ function addHandCardEvents(cardEl, card) {
 function startPointerDrag(event, cardEl, card) {
   event.preventDefault();
 
-  if (!isMyTurn() || !canPlayCard(card)) {
-    return;
-  }
-
-  if (event.button !== undefined && event.button !== 0) {
-    return;
-  }
+  if (!isMyTurn() || !canPlayCard(card)) return;
+  if (event.button !== undefined && event.button !== 0) return;
 
   dragState = {
     active: false,
@@ -1405,13 +1960,12 @@ function startPointerDrag(event, cardEl, card) {
       document.body.classList.add("dragging-card");
       cardEl.classList.add("dragging-source");
       createDragGhost(cardEl);
-      setMessage(
-        card.type === "spell"
-          ? "Trascina la magia sul campo avversario."
-          : card.stage === 1
-            ? "Trascina la creatura nel tuo campo."
-            : "Sovrapponi l'evoluzione alla creatura corretta."
-      );
+
+      if (card.type === "spell") setMessage("Trascina la magia sul campo avversario.");
+      else if (card.type === "equipment") setMessage("Trascina l'equipaggiamento sopra una tua creatura.");
+      else if (card.type === "terrain") setMessage("Trascina il terreno sul campo.");
+      else if (card.stage === 1) setMessage("Trascina la creatura nel tuo campo.");
+      else setMessage("Sovrapponi l'evoluzione alla creatura corretta.");
     }
 
     if (dragState.active) {
@@ -1460,16 +2014,10 @@ function moveDragGhost(x, y) {
 }
 
 function updateDropHighlights(x, y) {
-  document.querySelectorAll(".drop-zone-active").forEach(el => {
-    el.classList.remove("drop-zone-active");
-  });
-
-  document.querySelectorAll(".drop-target").forEach(el => {
-    el.classList.remove("drop-target");
-  });
+  document.querySelectorAll(".drop-zone-active").forEach(el => el.classList.remove("drop-zone-active"));
+  document.querySelectorAll(".drop-target").forEach(el => el.classList.remove("drop-target"));
 
   const target = document.elementFromPoint(x, y);
-
   if (!target) return;
 
   const ownCard = target.closest(".card[data-owner='player']");
@@ -1493,7 +2041,6 @@ function updateDropHighlights(x, y) {
 
 async function finishPointerDrop(x, y) {
   const target = document.elementFromPoint(x, y);
-
   if (!target) return;
 
   const ownCard = target.closest(".card[data-owner='player']");
@@ -1522,21 +2069,11 @@ async function finishPointerDrop(x, y) {
 function cleanupDragState() {
   document.body.classList.remove("dragging-card");
 
-  if (dragState.sourceEl) {
-    dragState.sourceEl.classList.remove("dragging-source");
-  }
+  if (dragState.sourceEl) dragState.sourceEl.classList.remove("dragging-source");
+  if (dragState.ghostEl) dragState.ghostEl.remove();
 
-  if (dragState.ghostEl) {
-    dragState.ghostEl.remove();
-  }
-
-  document.querySelectorAll(".drop-zone-active").forEach(el => {
-    el.classList.remove("drop-zone-active");
-  });
-
-  document.querySelectorAll(".drop-target").forEach(el => {
-    el.classList.remove("drop-target");
-  });
+  document.querySelectorAll(".drop-zone-active").forEach(el => el.classList.remove("drop-zone-active"));
+  document.querySelectorAll(".drop-target").forEach(el => el.classList.remove("drop-target"));
 
   const moved = dragState.moved;
 
@@ -1588,11 +2125,8 @@ function renderField(container, field, owner) {
       el.classList.add("enemy-targetable");
     }
 
-    if (owner === "player") {
-      addPlayerFieldCardEvents(el, card, index);
-    } else {
-      addEnemyFieldCardEvents(el, card, index);
-    }
+    if (owner === "player") addPlayerFieldCardEvents(el, card, index);
+    else addEnemyFieldCardEvents(el, card, index);
 
     container.appendChild(el);
   });
@@ -1664,6 +2198,10 @@ function createCardEl(card, extraClass) {
       .map(ability => `<span class="ability">${abilityLabels[ability]}</span>`)
       .join("");
 
+    const equipped = card.equipped?.length
+      ? `<span class="badge legendary">EQ ${card.equipped.length}</span>`
+      : "";
+
     el.innerHTML = `
       <div>
         <div class="card-top">
@@ -1677,6 +2215,7 @@ function createCardEl(card, extraClass) {
           <span class="badge">${families[card.family].label}</span>
           <span class="badge">E${card.stage}</span>
           <span class="badge ${card.rarity}">${shortRarity(card.rarity)}</span>
+          ${equipped}
         </div>
 
         <div class="ability-row">${abilities}</div>
@@ -1701,7 +2240,19 @@ function createCardEl(card, extraClass) {
       </div>
     `;
   } else {
-    el.className = `card spell-card ${card.rarity} ${extraClass}`;
+    const typeClass = card.type === "equipment"
+      ? "equipment-card"
+      : card.type === "terrain"
+        ? "terrain-card"
+        : "spell-card";
+
+    const typeLabel = card.type === "equipment"
+      ? "Equip"
+      : card.type === "terrain"
+        ? "Terreno"
+        : "Magia";
+
+    el.className = `card ${typeClass} ${card.rarity} ${extraClass}`;
 
     el.innerHTML = `
       <div>
@@ -1713,7 +2264,7 @@ function createCardEl(card, extraClass) {
         <div class="card-name">${card.name}</div>
 
         <div class="card-meta">
-          <span class="badge">Magia</span>
+          <span class="badge">${typeLabel}</span>
           <span class="badge ${card.rarity}">${shortRarity(card.rarity)}</span>
         </div>
 
@@ -1724,7 +2275,7 @@ function createCardEl(card, extraClass) {
         <div class="card-stats">
           <div class="card-stat">
             <small>TIPO</small>
-            Spell
+            ${typeLabel}
           </div>
           <div class="card-stat">
             <small>COSTO</small>
@@ -1744,6 +2295,9 @@ function showCardDetail(card) {
   detailCost.textContent = card.cost;
   detailDesc.textContent = card.desc || "Nessuna descrizione.";
 
+  detailAbilities.innerHTML = "";
+  detailAbilityDescriptions.innerHTML = "";
+
   if (card.type === "creature") {
     detailType.textContent = `${families[card.family].label} · Evoluzione ${card.stage}/3 · ${shortRarity(card.rarity)}`;
 
@@ -1753,24 +2307,38 @@ function showCardDetail(card) {
     detailAtk.textContent = card.attack;
     detailHp.textContent = `${card.currentHp}/${card.maxHp}`;
 
-    detailAbilities.innerHTML = "";
-
     if (card.abilities?.length) {
       card.abilities.forEach(ability => {
         const span = document.createElement("span");
         span.textContent = abilityLabels[ability];
         detailAbilities.appendChild(span);
+
+        const desc = document.createElement("div");
+        desc.textContent = abilityDescriptions[ability] || abilityLabels[ability];
+        detailAbilityDescriptions.appendChild(desc);
       });
     } else {
       detailAbilities.innerHTML = `<span>Nessuna abilità</span>`;
     }
+
+    if (card.equipped?.length) {
+      const div = document.createElement("div");
+      div.textContent = `Equipaggiata con: ${card.equipped.join(", ")}`;
+      detailAbilityDescriptions.appendChild(div);
+    }
   } else {
-    detailType.textContent = `Magia · ${shortRarity(card.rarity)}`;
+    const typeLabel = card.type === "equipment"
+      ? "Equipaggiamento"
+      : card.type === "terrain"
+        ? "Terreno"
+        : "Magia";
+
+    detailType.textContent = `${typeLabel} · ${shortRarity(card.rarity)}`;
 
     detailAtkWrap.classList.add("hidden");
     detailHpWrap.classList.add("hidden");
 
-    detailAbilities.innerHTML = `<span>Effetto magia</span>`;
+    detailAbilities.innerHTML = `<span>${typeLabel}</span>`;
   }
 
   cardDetailModal.classList.remove("hidden");
@@ -1778,7 +2346,6 @@ function showCardDetail(card) {
 
 function renderLog() {
   battleLogEl.innerHTML = "";
-
   if (!game) return;
 
   game.log.forEach(entry => {
@@ -1800,10 +2367,56 @@ function shortRarity(rarity) {
   return map[rarity] || rarity;
 }
 
-function showOnlyMenu() {
+function showDamagePopup(targetEl, text, heal = false) {
+  if (!targetEl || !document.body.contains(targetEl)) return;
+
+  const rect = targetEl.getBoundingClientRect();
+  const popup = document.createElement("div");
+
+  popup.className = `damage-popup ${heal ? "heal" : ""}`;
+  popup.textContent = text;
+  popup.style.left = `${rect.left + rect.width / 2}px`;
+  popup.style.top = `${rect.top + rect.height / 2}px`;
+
+  document.body.appendChild(popup);
+
+  setTimeout(() => popup.remove(), 900);
+}
+
+function startTimerLoop() {
+  if (turnTimerInterval) clearInterval(turnTimerInterval);
+
+  turnTimerInterval = setInterval(async () => {
+    if (!game || game.status !== "playing" || game.winner) {
+      turnTimerText.textContent = "⏱️ --";
+      return;
+    }
+
+    const elapsed = Math.floor((Date.now() - (game.turnStartedAt || Date.now())) / 1000);
+    const left = Math.max(0, TURN_SECONDS - elapsed);
+    turnTimerText.textContent = `⏱️ ${left}s`;
+
+    if (left <= 0 && isMyTurn()) {
+      setMessage("Tempo scaduto: turno passato.");
+      await endTurn();
+    }
+  }, 1000);
+}
+
+function showOnlyMenu(force = false) {
+  if (!force && game && game.status === "playing") {
+    const ok = confirm("Vuoi davvero uscire dalla partita?");
+    if (!ok) return;
+  }
+
   if (unsubscribeRoom) {
     unsubscribeRoom();
     unsubscribeRoom = null;
+  }
+
+  if (turnTimerInterval) {
+    clearInterval(turnTimerInterval);
+    turnTimerInterval = null;
   }
 
   roomCode = null;
@@ -1817,43 +2430,220 @@ function showOnlyMenu() {
   cardDetailModal.classList.add("hidden");
 
   showOnly(menuScreen);
+  renderProfile();
+}
+
+async function openLeaderboard() {
+  leaderboardModal.classList.remove("hidden");
+  leaderboardList.textContent = "Caricamento...";
+
+  if (!firebaseReady()) {
+    leaderboardList.innerHTML = `<div class="leaderboard-row">Firebase non configurato.</div>`;
+    return;
+  }
+
+  try {
+    const rows = await getLeaderboardTop(10);
+
+    if (!rows.length) {
+      leaderboardList.innerHTML = `<div class="leaderboard-row">Nessun risultato ancora.</div>`;
+      return;
+    }
+
+    leaderboardList.innerHTML = rows.map((row, index) => `
+      <div class="leaderboard-row">
+        <strong>${index + 1}. ${row.avatar || ""} ${row.name || "Giocatore"}</strong><br>
+        Vittorie: ${row.wins || 0} · Sconfitte: ${row.losses || 0} · XP: ${row.xp || 0} · Mazzo: ${deckLabels[row.lastDeck] || row.lastDeck || "-"}
+      </div>
+    `).join("");
+  } catch (error) {
+    console.error(error);
+    leaderboardList.innerHTML = `<div class="leaderboard-row">Errore nel caricamento classifica.</div>`;
+  }
+}
+
+function getInviteLink() {
+  if (!roomCode) return window.location.href;
+  const url = new URL(window.location.href);
+  url.searchParams.set("room", roomCode);
+  return url.toString();
+}
+
+function setupRoomFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const room = params.get("room");
+  if (room) joinCodeInput.value = room.toUpperCase();
+}
+
+function openPack() {
+  packModal.classList.remove("hidden");
+  const pool = allDraftTemplates();
+  const found = shuffle(pool).slice(0, 3);
+
+  packCards.innerHTML = found.map(card => `
+    <div class="pack-card">
+      ${card.icon || families[card.family]?.icon || "🃏"}<br>
+      ${card.name}<br>
+      <small>${card.type || "creature"} · ${card.rarity || "common"}</small>
+    </div>
+  `).join("");
+}
+
+function renderHistory() {
+  const history = getHistory();
+
+  if (!history.length) {
+    historyList.innerHTML = `<div class="history-row">Nessuna partita registrata.</div>`;
+    return;
+  }
+
+  historyList.innerHTML = history.map(item => `
+    <div class="history-row">
+      <strong>${item.result}</strong> · ${item.me} vs ${item.enemy}<br>
+      ${item.turns} turni · ${item.date}
+    </div>
+  `).join("");
+}
+
+function renderReplay() {
+  if (!game?.replay?.length) {
+    replayList.innerHTML = `<div class="replay-row">Nessun replay disponibile.</div>`;
+    return;
+  }
+
+  replayList.innerHTML = game.replay.map(row => `
+    <div class="replay-row">${row}</div>
+  `).join("");
+}
+
+function renderMissions() {
+  const profile = getProfile();
+
+  missionsList.innerHTML = `
+    <div class="mission-row">Vinci una partita · <strong>${profile.wins > 0 ? "Completata" : "+20 XP"}</strong></div>
+    <div class="mission-row">Gioca una partita · <strong>${(profile.wins + profile.losses) > 0 ? "Completata" : "+10 XP"}</strong></div>
+    <div class="mission-row">Raggiungi 100 XP · <strong>${profile.xp >= 100 ? "Completata" : "+30 XP"}</strong></div>
+  `;
+}
+
+function startDraft() {
+  draftDeck = [];
+  draftPickCount = 0;
+  draftModal.classList.remove("hidden");
+  renderDraftChoices();
+}
+
+function renderDraftChoices() {
+  draftCurrentChoices = shuffle(allDraftTemplates()).slice(0, 3);
+  draftProgressText.textContent = `${draftPickCount}/20 carte scelte`;
+
+  draftChoices.innerHTML = draftCurrentChoices.map((card, index) => `
+    <button class="draft-choice" data-index="${index}">
+      ${card.icon || families[card.family]?.icon || "🃏"}<br>
+      ${card.name}<br>
+      <small>${card.type || "creature"} · costo ${card.cost}</small>
+    </button>
+  `).join("");
+
+  document.querySelectorAll(".draft-choice").forEach(button => {
+    button.onclick = () => {
+      const index = Number(button.dataset.index);
+      const chosen = draftCurrentChoices[index];
+
+      draftDeck.push(cloneCardForDeck(chosen));
+      draftPickCount++;
+
+      if (draftPickCount >= 20) {
+        draftProgressText.textContent = "Mazzo draft pronto.";
+        return;
+      }
+
+      renderDraftChoices();
+    };
+  });
+}
+
+function startDraftGame() {
+  if (draftDeck.length < 20) {
+    alert("Scegli almeno 20 carte per il draft.");
+    return;
+  }
+
+  const fullDeck = shuffle([...draftDeck, ...draftDeck.map(card => cloneCardForDeck(card)).slice(0, 14)]);
+  draftModal.classList.add("hidden");
+  startBotGame(null, fullDeck);
+}
+
+function applyArenaSkin(value) {
+  document.body.classList.remove("arena-volcano", "arena-forest", "arena-abyss", "arena-beach");
+
+  if (value && value !== "default") {
+    document.body.classList.add(`arena-${value}`);
+  }
 }
 
 document.querySelectorAll(".deck-btn").forEach(button => {
   button.onclick = () => {
-    document.querySelectorAll(".deck-btn").forEach(btn => {
-      btn.classList.remove("selected");
-    });
-
+    document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
     button.classList.add("selected");
     selectedDeck = button.dataset.deck;
   };
 });
 
-playBotBtn.onclick = startBotGame;
+document.querySelectorAll(".avatar-btn").forEach(button => {
+  button.onclick = () => {
+    document.querySelectorAll(".avatar-btn").forEach(btn => btn.classList.remove("selected"));
+    button.classList.add("selected");
+    selectedAvatar = button.dataset.avatar;
+    localStorage.setItem("playerAvatar", selectedAvatar);
+    renderProfile();
+  };
+});
+
+document.querySelectorAll(".boss-btn").forEach(button => {
+  button.onclick = () => {
+    campaignModal.classList.add("hidden");
+    startBotGame(button.dataset.boss);
+  };
+});
+
+document.querySelectorAll(".quick-chat-msg").forEach(button => {
+  button.onclick = async () => {
+    const msg = button.dataset.msg;
+    addLog(`${getMyPlayer()?.name || "Giocatore"}: ${msg}`);
+    quickChatModal.classList.add("hidden");
+    render();
+    await saveOnlineGame();
+  };
+});
+
+playBotBtn.onclick = () => startBotGame();
 createOnlineBtn.onclick = createOnlineGame;
 joinOnlineBtn.onclick = joinOnlineGame;
 endTurnBtn.onclick = endTurn;
 
+campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
+draftBtn.onclick = startDraft;
+
 restartBtn.onclick = () => {
-  if (gameMode === "bot") {
-    startBotGame();
+  if (gameMode === "bot" || gameMode === "campaign") {
+    startBotGame(game?.players?.p2?.bossKey || null);
   } else {
     alert("Nelle partite online torna al menu e crea una nuova stanza.");
   }
 };
 
-backMenuBtn.onclick = showOnlyMenu;
-leaveLobbyBtn.onclick = showOnlyMenu;
-resultMenuBtn.onclick = showOnlyMenu;
+backMenuBtn.onclick = () => showOnlyMenu();
+leaveLobbyBtn.onclick = () => showOnlyMenu(true);
+resultMenuBtn.onclick = () => showOnlyMenu(true);
 
 playAgainBtn.onclick = () => {
   resultModal.classList.add("hidden");
 
-  if (gameMode === "bot") {
-    startBotGame();
+  if (gameMode === "bot" || gameMode === "campaign") {
+    startBotGame(game?.players?.p2?.bossKey || null);
   } else {
-    showOnlyMenu();
+    showOnlyMenu(true);
   }
 };
 
@@ -1868,18 +2658,29 @@ copyCodeBtn.onclick = async () => {
   }
 };
 
-toggleLogBtn.onclick = () => {
-  logWrapper.classList.toggle("collapsed");
+copyInviteLinkBtn.onclick = async () => {
+  if (!roomCode) return;
+
+  try {
+    await navigator.clipboard.writeText(getInviteLink());
+    lobbyStatusText.textContent = "Link invito copiato.";
+  } catch {
+    lobbyStatusText.textContent = getInviteLink();
+  }
 };
 
-closeDetailBtn.onclick = () => {
-  cardDetailModal.classList.add("hidden");
+toggleLogBtn.onclick = () => logWrapper.classList.toggle("collapsed");
+
+cancelAttackBtn.onclick = () => {
+  selectedAttackerIndex = null;
+  setMessage("Attacco annullato.");
+  render();
 };
+
+closeDetailBtn.onclick = () => cardDetailModal.classList.add("hidden");
 
 cardDetailModal.onclick = event => {
-  if (event.target === cardDetailModal) {
-    cardDetailModal.classList.add("hidden");
-  }
+  if (event.target === cardDetailModal) cardDetailModal.classList.add("hidden");
 };
 
 enemyHudBox.addEventListener("click", async () => {
@@ -1906,10 +2707,97 @@ enemyHudBox.addEventListener("click", async () => {
   render();
 });
 
-const savedName = localStorage.getItem("playerName");
+tutorialBtn.onclick = () => tutorialModal.classList.remove("hidden");
 
-if (savedName) {
-  playerNameInput.value = savedName;
+closeTutorialBtn.onclick = () => {
+  localStorage.setItem("tutorialSeen", "yes");
+  tutorialModal.classList.add("hidden");
+};
+
+tutorialModal.onclick = event => {
+  if (event.target === tutorialModal) tutorialModal.classList.add("hidden");
+};
+
+leaderboardBtn.onclick = openLeaderboard;
+closeLeaderboardBtn.onclick = () => leaderboardModal.classList.add("hidden");
+
+leaderboardModal.onclick = event => {
+  if (event.target === leaderboardModal) leaderboardModal.classList.add("hidden");
+};
+
+openMissionsBtn.onclick = () => {
+  renderMissions();
+  missionsModal.classList.remove("hidden");
+};
+
+closeMissionsBtn.onclick = () => missionsModal.classList.add("hidden");
+
+closeCampaignBtn.onclick = () => campaignModal.classList.add("hidden");
+
+closeDraftBtn.onclick = () => draftModal.classList.add("hidden");
+startDraftGameBtn.onclick = startDraftGame;
+
+openPackBtn.onclick = openPack;
+closePackBtn.onclick = () => packModal.classList.add("hidden");
+
+quickChatBtn.onclick = () => quickChatModal.classList.remove("hidden");
+closeQuickChatBtn.onclick = () => quickChatModal.classList.add("hidden");
+
+historyBtn.onclick = () => {
+  renderHistory();
+  historyModal.classList.remove("hidden");
+};
+
+closeHistoryBtn.onclick = () => historyModal.classList.add("hidden");
+
+replayBtn.onclick = () => {
+  renderReplay();
+  replayModal.classList.remove("hidden");
+};
+
+closeReplayBtn.onclick = () => replayModal.classList.add("hidden");
+
+cardBackSelect.onchange = () => {
+  selectedCardBack = cardBackSelect.value;
+  localStorage.setItem("cardBack", selectedCardBack);
+};
+
+arenaSkinSelect.onchange = () => {
+  selectedArena = arenaSkinSelect.value;
+  localStorage.setItem("arenaSkin", selectedArena);
+  applyArenaSkin(selectedArena);
+};
+
+playerNameInput.addEventListener("input", renderProfile);
+
+const savedName = localStorage.getItem("playerName");
+if (savedName) playerNameInput.value = savedName;
+
+const savedAvatar = localStorage.getItem("playerAvatar");
+if (savedAvatar) {
+  selectedAvatar = savedAvatar;
+  document.querySelectorAll(".avatar-btn").forEach(btn => {
+    btn.classList.toggle("selected", btn.dataset.avatar === savedAvatar);
+  });
 }
 
+const savedCardBack = localStorage.getItem("cardBack");
+if (savedCardBack && cardBackSelect) {
+  selectedCardBack = savedCardBack;
+  cardBackSelect.value = savedCardBack;
+}
+
+const savedArena = localStorage.getItem("arenaSkin");
+if (savedArena && arenaSkinSelect) {
+  selectedArena = savedArena;
+  arenaSkinSelect.value = savedArena;
+  applyArenaSkin(savedArena);
+}
+
+setupRoomFromUrl();
+renderProfile();
 showOnly(menuScreen);
+
+if (!localStorage.getItem("tutorialSeen")) {
+  setTimeout(() => tutorialModal.classList.remove("hidden"), 450);
+}
