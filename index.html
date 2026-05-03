@@ -10,141 +10,164 @@
 
   <!-- MENU PRINCIPALE -->
   <div id="menuScreen" class="screen menu-screen">
-    <div class="menu-card app-card">
+    <div class="menu-shell">
 
-      <div class="app-brand">
-        <div>
-          <h1>Creature Evolution Arena</h1>
-          <p>Trascina, evolvi, combatti online o contro il bot.</p>
+      <div class="hero-panel">
+        <div class="hero-glow hero-glow-one"></div>
+        <div class="hero-glow hero-glow-two"></div>
+
+        <div class="hero-top">
+          <div class="game-logo">
+            <div class="logo-mark">⚔️</div>
+            <div>
+              <h1>Creature<br>Evolution</h1>
+              <p>Arena card battle</p>
+            </div>
+          </div>
+
+          <button id="openMissionsBtn" class="icon-pill">🎯 Missioni</button>
         </div>
-        <div class="brand-orb">⚔️</div>
-      </div>
 
-      <div class="profile-strip">
-        <div>
-          <strong id="profileNameText">Profilo giocatore</strong>
-          <span id="profileLevelText">Livello 1 · XP 0/100</span>
+        <div class="profile-strip">
+          <div>
+            <strong id="profileNameText">Profilo giocatore</strong>
+            <span id="profileLevelText">Livello 1 · XP 0/100</span>
+          </div>
         </div>
-        <button id="openMissionsBtn" class="tiny-btn secondary-btn">Missioni</button>
-      </div>
 
-      <label class="input-label">
-        Il tuo nome
-        <input id="playerNameInput" type="text" placeholder="Es. Isaac" maxlength="18" />
-      </label>
-
-      <h2>Avatar</h2>
-      <div class="avatar-grid">
-        <button class="avatar-btn selected" data-avatar="🧙">🧙 Mago</button>
-        <button class="avatar-btn" data-avatar="⚔️">⚔️ Guerriero</button>
-        <button class="avatar-btn" data-avatar="🐉">🐉 Domatore</button>
-        <button class="avatar-btn" data-avatar="🌑">🌑 Stregone</button>
-        <button class="avatar-btn" data-avatar="☀️">☀️ Paladino</button>
-        <button class="avatar-btn" data-avatar="🏖️">🏖️ Tommi</button>
-      </div>
-
-      <h2>Scegli mazzo</h2>
-      <div class="deck-grid">
-        <button class="deck-btn fire" data-deck="fire">
-          🔥 Fuoco
-          <small>aggressivo</small>
-        </button>
-
-        <button class="deck-btn water" data-deck="water">
-          🌊 Acqua
-          <small>difesa e cura</small>
-        </button>
-
-        <button class="deck-btn forest" data-deck="forest">
-          🌿 Foresta
-          <small>buff e rabbia</small>
-        </button>
-
-        <button class="deck-btn shadow" data-deck="shadow">
-          🌑 Ombra
-          <small>veleno e danni</small>
-        </button>
-
-        <button class="deck-btn light" data-deck="light">
-          ☀️ Luce
-          <small>guardia e cura</small>
-        </button>
-
-        <button class="deck-btn balanced selected" data-deck="balanced">
-          ⚔️ Bilanciato
-          <small>mix completo</small>
-        </button>
-      </div>
-
-      <h2>Personalizza</h2>
-      <div class="custom-grid">
-        <label class="select-label">
-          Dorso carte
-          <select id="cardBackSelect">
-            <option value="classic">Classico</option>
-            <option value="fire">Fuoco</option>
-            <option value="water">Acqua</option>
-            <option value="shadow">Ombra</option>
-            <option value="legendary">Leggendario</option>
-          </select>
+        <label class="input-label">
+          Il tuo nome
+          <input id="playerNameInput" type="text" placeholder="Es. Isaac" maxlength="18" />
         </label>
 
-        <label class="select-label">
-          Arena
-          <select id="arenaSkinSelect">
-            <option value="default">Arena mistica</option>
-            <option value="volcano">Vulcano</option>
-            <option value="forest">Foresta sacra</option>
-            <option value="abyss">Abisso oscuro</option>
-            <option value="beach">Spiaggia Tommi 38</option>
-          </select>
-        </label>
-      </div>
+        <div class="section-row">
+          <h2>Avatar</h2>
+          <span>Scegli identità</span>
+        </div>
 
-      <div class="menu-actions">
-        <button id="playBotBtn">Gioca contro Bot</button>
-        <button id="createOnlineBtn" class="secondary-btn">Crea partita online</button>
-      </div>
+        <div class="avatar-grid">
+          <button class="avatar-btn selected" data-avatar="🧙">🧙<small>Mago</small></button>
+          <button class="avatar-btn" data-avatar="⚔️">⚔️<small>Guerriero</small></button>
+          <button class="avatar-btn" data-avatar="🐉">🐉<small>Domatore</small></button>
+          <button class="avatar-btn" data-avatar="🌑">🌑<small>Stregone</small></button>
+          <button class="avatar-btn" data-avatar="☀️">☀️<small>Paladino</small></button>
+          <button class="avatar-btn" data-avatar="🏖️">🏖️<small>Tommi</small></button>
+        </div>
 
-      <div class="menu-actions">
-        <button id="campaignBtn" class="secondary-btn">Campagna Boss</button>
-        <button id="draftBtn" class="secondary-btn">Modalità Draft</button>
-      </div>
+        <div class="section-row">
+          <h2>Mazzo</h2>
+          <span>Stile di gioco</span>
+        </div>
 
-      <div class="join-box">
-        <input id="joinCodeInput" type="text" placeholder="Codice partita" maxlength="6" />
-        <button id="joinOnlineBtn" class="secondary-btn">Entra</button>
-      </div>
+        <div class="deck-grid">
+          <button class="deck-btn fire" data-deck="fire">
+            <b>🔥 Fuoco</b>
+            <small>aggressivo</small>
+          </button>
 
-      <div class="menu-actions small-menu-actions">
-        <button id="tutorialBtn" class="secondary-btn">Tutorial</button>
-        <button id="leaderboardBtn" class="secondary-btn">Classifica</button>
-        <button id="historyBtn" class="secondary-btn">Storico</button>
-      </div>
+          <button class="deck-btn water" data-deck="water">
+            <b>🌊 Acqua</b>
+            <small>difesa e cura</small>
+          </button>
 
-      <div class="small-note">
-        Suggerimento: crea una stanza e condividi il link con un amico.
+          <button class="deck-btn forest" data-deck="forest">
+            <b>🌿 Foresta</b>
+            <small>buff e rabbia</small>
+          </button>
+
+          <button class="deck-btn shadow" data-deck="shadow">
+            <b>🌑 Ombra</b>
+            <small>veleno e danni</small>
+          </button>
+
+          <button class="deck-btn light" data-deck="light">
+            <b>☀️ Luce</b>
+            <small>guardia e cura</small>
+          </button>
+
+          <button class="deck-btn balanced selected" data-deck="balanced">
+            <b>⚔️ Bilanciato</b>
+            <small>mix completo</small>
+          </button>
+        </div>
+
+        <div class="section-row">
+          <h2>Stile</h2>
+          <span>Look app</span>
+        </div>
+
+        <div class="custom-grid">
+          <label class="select-label">
+            Dorso carte
+            <select id="cardBackSelect">
+              <option value="classic">Classico</option>
+              <option value="fire">Fuoco</option>
+              <option value="water">Acqua</option>
+              <option value="shadow">Ombra</option>
+              <option value="legendary">Leggendario</option>
+            </select>
+          </label>
+
+          <label class="select-label">
+            Arena
+            <select id="arenaSkinSelect">
+              <option value="default">Arena mistica</option>
+              <option value="volcano">Vulcano</option>
+              <option value="forest">Foresta sacra</option>
+              <option value="abyss">Abisso oscuro</option>
+              <option value="beach">Spiaggia Tommi 38</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="main-actions">
+          <button id="playBotBtn" class="primary-action">Gioca</button>
+          <button id="createOnlineBtn" class="glass-action">Online</button>
+        </div>
+
+        <div class="main-actions secondary-actions">
+          <button id="campaignBtn" class="glass-action">Campagna Boss</button>
+          <button id="draftBtn" class="glass-action">Draft</button>
+        </div>
+
+        <div class="join-box">
+          <input id="joinCodeInput" type="text" placeholder="Codice partita" maxlength="6" />
+          <button id="joinOnlineBtn" class="glass-action">Entra</button>
+        </div>
+
+        <div class="bottom-menu">
+          <button id="tutorialBtn">📘 Tutorial</button>
+          <button id="leaderboardBtn">🏆 Classifica</button>
+          <button id="historyBtn">📜 Storico</button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- LOBBY ONLINE -->
   <div id="lobbyScreen" class="screen lobby-screen hidden">
-    <div class="menu-card lobby-card">
-      <h1>Lobby online</h1>
-      <p>Condividi il codice o il link con l’altro giocatore.</p>
+    <div class="menu-shell">
+      <div class="hero-panel lobby-card">
+        <div class="hero-top">
+          <div class="game-logo">
+            <div class="logo-mark">🌐</div>
+            <div>
+              <h1>Lobby<br>Online</h1>
+              <p>Condividi il codice con l’altro giocatore.</p>
+            </div>
+          </div>
+        </div>
 
-      <div class="code-box" id="roomCodeText">----</div>
+        <div class="code-box" id="roomCodeText">----</div>
 
-      <p id="lobbyStatusText">In attesa del secondo giocatore...</p>
+        <p id="lobbyStatusText" class="lobby-status">In attesa del secondo giocatore...</p>
 
-      <div class="menu-actions">
-        <button id="copyCodeBtn">Copia codice</button>
-        <button id="copyInviteLinkBtn" class="secondary-btn">Copia link</button>
-      </div>
+        <div class="main-actions">
+          <button id="copyCodeBtn" class="primary-action">Copia codice</button>
+          <button id="copyInviteLinkBtn" class="glass-action">Copia link</button>
+        </div>
 
-      <div class="menu-actions">
-        <button id="leaveLobbyBtn" class="secondary-btn">Torna al menu</button>
+        <button id="leaveLobbyBtn" class="full-glass-btn">Torna al menu</button>
       </div>
     </div>
   </div>
@@ -152,29 +175,36 @@
   <!-- GIOCO -->
   <div id="gameScreen" class="game-screen hidden">
 
-    <header class="top-bar">
-      <div>
-        <h1>Evolution Arena</h1>
-        <p id="modeText">Bot</p>
+    <header class="app-topbar">
+      <div class="top-player-title">
+        <div class="mini-logo">⚔️</div>
+        <div>
+          <h1>Evolution Arena</h1>
+          <p id="modeText">Bot</p>
+        </div>
       </div>
 
       <div class="top-actions">
-        <button id="quickChatBtn" class="small-btn secondary-btn">Chat</button>
-        <button id="backMenuBtn" class="small-btn secondary-btn">Menu</button>
-        <button id="restartBtn" class="small-btn">Restart</button>
+        <button id="quickChatBtn" class="round-btn">💬</button>
+        <button id="backMenuBtn" class="round-btn">☰</button>
+        <button id="restartBtn" class="round-btn accent">↻</button>
       </div>
     </header>
 
-    <section class="hud">
-      <div class="hud-box enemy" id="enemyHudBox">
-        <strong id="enemyName">Nemico</strong>
-        <span>❤️ <b id="enemyLife">30</b></span>
-        <span>⚡ <b id="enemyEnergy">0</b>/<b id="enemyMaxEnergy">0</b></span>
-        <span id="enemyEnergyDots" class="energy-dots"></span>
-        <span>🃏 <b id="enemyHandCount">0</b></span>
+    <section class="battle-hud">
+      <div class="player-bar enemy-bar" id="enemyHudBox">
+        <div>
+          <strong id="enemyName">Nemico</strong>
+          <span>🃏 <b id="enemyHandCount">0</b></span>
+        </div>
+        <div class="life-energy">
+          <span>❤️ <b id="enemyLife">30</b></span>
+          <span>⚡ <b id="enemyEnergy">0</b>/<b id="enemyMaxEnergy">0</b></span>
+          <small id="enemyEnergyDots" class="energy-dots"></small>
+        </div>
       </div>
 
-      <div class="hud-box center">
+      <div class="turn-panel">
         <strong id="turnText">Tuo turno</strong>
         <span id="message">Trascina una carta o seleziona una creatura.</span>
         <span id="roomInfoText"></span>
@@ -182,25 +212,27 @@
         <button id="cancelAttackBtn" class="tiny-btn hidden">Annulla attacco</button>
       </div>
 
-      <div class="hud-box player">
-        <strong id="playerNameText">Tu</strong>
-        <span>❤️ <b id="playerLife">30</b></span>
-        <span>⚡ <b id="playerEnergy">0</b>/<b id="playerMaxEnergy">0</b></span>
-        <span id="playerEnergyDots" class="energy-dots"></span>
-        <span>📦 <b id="playerDeckCount">0</b></span>
+      <div class="player-bar my-bar">
+        <div>
+          <strong id="playerNameText">Tu</strong>
+          <span>📦 <b id="playerDeckCount">0</b></span>
+        </div>
+        <div class="life-energy">
+          <span>❤️ <b id="playerLife">30</b></span>
+          <span>⚡ <b id="playerEnergy">0</b>/<b id="playerMaxEnergy">0</b></span>
+          <small id="playerEnergyDots" class="energy-dots"></small>
+        </div>
       </div>
     </section>
 
-    <main class="board">
+    <main class="battle-board">
 
-      <section class="zone terrain-zone">
-        <div class="zone-title">
-          <h3>Terreno attivo</h3>
-          <span id="activeTerrainText">Nessun terreno</span>
-        </div>
+      <section class="terrain-zone">
+        <span>🌍 Terreno</span>
+        <strong id="activeTerrainText">Nessun terreno</strong>
       </section>
 
-      <section class="zone mini-zone">
+      <section class="field-zone enemy-zone">
         <div class="zone-title">
           <h3>Campo avversario</h3>
           <span>Mazzo: <b id="enemyDeckCount">0</b></span>
@@ -208,15 +240,15 @@
         <div id="enemyField" class="field compact-field"></div>
       </section>
 
-      <section class="zone mini-zone">
+      <section class="field-zone player-zone">
         <div class="zone-title">
           <h3>Il tuo campo</h3>
-          <button id="endTurnBtn" class="small-btn">Fine turno</button>
+          <button id="endTurnBtn" class="end-turn-btn">Fine turno</button>
         </div>
         <div id="playerField" class="field compact-field"></div>
       </section>
 
-      <section class="zone hand-zone">
+      <section class="hand-zone">
         <div class="zone-title">
           <h3>Mano</h3>
           <span><b id="playerHandCount">0</b> carte</span>
@@ -224,7 +256,7 @@
         <div id="playerHand" class="hand"></div>
       </section>
 
-      <section class="zone log-wrapper collapsed" id="logWrapper">
+      <section class="log-wrapper collapsed" id="logWrapper">
         <div class="zone-title clickable" id="toggleLogBtn">
           <h3>Log partita</h3>
           <span>apri/chiudi</span>
@@ -282,30 +314,11 @@
       <h2>Tutorial rapido</h2>
 
       <div class="tutorial-steps">
-        <div>
-          <strong>1. Evoca</strong>
-          <p>Trascina una Evo 1 dalla mano al tuo campo.</p>
-        </div>
-
-        <div>
-          <strong>2. Evolvi</strong>
-          <p>Trascina Evo 2 o Evo 3 sopra la creatura corretta.</p>
-        </div>
-
-        <div>
-          <strong>3. Equipaggia</strong>
-          <p>Trascina un equipaggiamento sopra una creatura.</p>
-        </div>
-
-        <div>
-          <strong>4. Terreno</strong>
-          <p>Trascina una carta terreno per cambiare le regole del campo.</p>
-        </div>
-
-        <div>
-          <strong>5. Attacca</strong>
-          <p>Clicca una tua creatura pronta, poi scegli il bersaglio.</p>
-        </div>
+        <div><strong>1. Evoca</strong><p>Trascina una Evo 1 dalla mano al tuo campo.</p></div>
+        <div><strong>2. Evolvi</strong><p>Trascina Evo 2 o Evo 3 sopra la creatura corretta.</p></div>
+        <div><strong>3. Equipaggia</strong><p>Trascina un equipaggiamento sopra una creatura.</p></div>
+        <div><strong>4. Terreno</strong><p>Trascina una carta terreno per cambiare le regole del campo.</p></div>
+        <div><strong>5. Attacca</strong><p>Clicca una tua creatura pronta, poi scegli il bersaglio.</p></div>
       </div>
 
       <button id="closeTutorialBtn">Ho capito</button>
@@ -318,11 +331,7 @@
       <div class="result-icon">🏆</div>
       <h2>Classifica</h2>
       <p>Classifica online basata sulle vittorie registrate.</p>
-
-      <div id="leaderboardList" class="leaderboard-list">
-        Caricamento...
-      </div>
-
+      <div id="leaderboardList" class="leaderboard-list">Caricamento...</div>
       <button id="closeLeaderboardBtn">Chiudi</button>
     </div>
   </div>
@@ -391,9 +400,7 @@
       <div class="result-icon">🎁</div>
       <h2>Pacchetto carte</h2>
       <p>Ricompensa partita.</p>
-
       <div id="packCards" class="pack-grid"></div>
-
       <button id="closePackBtn">Chiudi</button>
     </div>
   </div>
@@ -421,11 +428,7 @@
     <div class="modal-card">
       <div class="result-icon">📜</div>
       <h2>Storico partite</h2>
-
-      <div id="historyList" class="history-list">
-        Nessuna partita registrata.
-      </div>
-
+      <div id="historyList" class="history-list">Nessuna partita registrata.</div>
       <button id="closeHistoryBtn">Chiudi</button>
     </div>
   </div>
@@ -435,11 +438,7 @@
     <div class="modal-card">
       <div class="result-icon">🎬</div>
       <h2>Replay testuale</h2>
-
-      <div id="replayList" class="replay-list">
-        Nessun replay disponibile.
-      </div>
-
+      <div id="replayList" class="replay-list">Nessun replay disponibile.</div>
       <button id="closeReplayBtn">Chiudi</button>
     </div>
   </div>
