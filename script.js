@@ -1004,7 +1004,11 @@ function playCreature(owner, opponent, cardId) {
   owner.field.push(card);
 
 setTimeout(() => {
-  playSummonFx(card);
+  try {
+    playSummonFx(card);
+  } catch (error) {
+    console.warn("Animazione evocazione non riuscita:", error);
+  }
 }, 80);
 
   owner.stats.creaturesPlayed++;
@@ -1442,8 +1446,23 @@ async function handleCardDropOnOwnCreature(cardId, targetIndex) {
     return;
   }
 
+  /*
+    Fix mobile/drag: dopo la prima evocazione è facile lasciare una Evo 1
+    sopra una creatura già in campo. Prima il gioco la rifiutava come
+    "evoluzione non valida"; ora la interpreta come normale evocazione
+    nel campo, se c'è spazio.
+  */
   if (card.stage === 1) {
-    setMessage("Questa è una Evo 1: trascinala in uno spazio libero del tuo campo.");
+    if (me.field.length >= MAX_FIELD_SIZE) {
+      setMessage("Il tuo campo è pieno.");
+      return;
+    }
+
+    playCreature(me, enemy, card.id);
+    selectedAttackerIndex = null;
+    checkGameOver();
+    render();
+    await saveOnlineGame();
     return;
   }
 
