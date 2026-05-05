@@ -1,17 +1,28 @@
-Creature Evolution Arena v20
+Creature Evolution Arena v21 - Premium Graphics
 
-Migliorie aggiunte:
-- Grafica ancora più da app/game mobile: vetro premium, foil sulle carte epiche/leggendarie, HUD più brillante, campi evidenziati.
-- Icone abilità più compatte sulle carte.
-- Nuovi stati: Congela, Sanguinamento, Silenzio, Barriera, Esecuzione.
-- Nuove magie: Gelo Marino, Sigillo del Silenzio, Taglio Profondo, Barriera Mistica.
-- Nuovi equipaggiamenti: Cristallo Gelido, Corona del Duello.
-- Logica migliorata: status a inizio turno, scudo/barriera in combattimento, bot che valuta il valore delle creature.
-- Service worker aggiornato a v20.
+File inclusi:
+- index.html
+- style.css
+- script.js
+- firebase.js
+- service-worker.js
+- manifest.json
+- app-icon.svg
+
+Novità principali:
+- Splash screen premium iniziale.
+- Nuova barra inferiore stile app mobile.
+- Grafica home più cinematografica.
+- Carte più moderne con foil su epiche/leggendarie.
+- HUD partita più brillante.
+- Campi giocatore/nemico più leggibili.
+- Pulsanti e modali più da app.
+- Cache aggiornata a v21.
 
 Da testare:
-1. Partita contro bot.
-2. Carte con Congela / Silenzio / Barriera.
-3. Effetti grafici su carte leggendarie.
-4. Mobile: mano carte e barra in basso.
-5. Online: creazione e ingresso stanza.
+1. Apri index.html o pubblicalo online.
+2. Controlla splash e barra inferiore.
+3. Avvia partita contro Bot.
+4. Controlla mano carte e drag su telefono.
+5. Apri Campagna, Draft e Missioni dalla barra inferiore.
+6. Se hai già provato versioni vecchie online, svuota cache o aggiorna due volte.

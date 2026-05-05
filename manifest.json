@@ -1,13 +1,13 @@
 {
   "name": "Creature Evolution Arena",
   "short_name": "Evolution Arena",
-  "description": "Gioco di carte strategico con creature, mazzi puri, collezione, pacchetti, boss e multiplayer.",
+  "description": "Gioco di carte con creature, evoluzioni, magie, equipaggiamenti e multiplayer.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#05060b",
-  "theme_color": "#ffd43b",
+  "background_color": "#07040f",
+  "theme_color": "#f5c76b",
   "icons": [
     {
       "src": "app-icon.svg",
