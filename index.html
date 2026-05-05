@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=19" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -116,6 +116,13 @@
   <link rel="apple-touch-icon" href="app-icon.svg" />
 </head>
 <body>
+  <div id="appSplash" class="app-splash">
+    <div class="splash-orb">⚔️</div>
+    <h1>Creature Evolution</h1>
+    <p>Arena card battle</p>
+    <div class="splash-loader"><span></span></div>
+  </div>
+
 
   <!-- MENU PRINCIPALE -->
   <div id="menuScreen" class="screen menu-screen">
@@ -143,6 +150,12 @@
             <span id="profileLevelText">Livello 1 · XP 0/100</span>
           </div>
         </div>
+        <div class="app-wallet-strip">
+          <span>🪙 <b id="walletGoldText">0</b></span>
+          <span>✨ <b id="walletDustText">0</b></span>
+          <span>🏆 <b id="walletWinText">0</b>V</span>
+        </div>
+
 
         <label class="input-label">
           Il tuo nome
@@ -200,6 +213,20 @@
           </button>
         </div>
 
+
+        <div class="section-row">
+          <h2>Eroe</h2>
+          <span>Potere speciale ogni 3 turni</span>
+        </div>
+
+        <div class="hero-class-grid">
+          <button class="hero-class-btn selected" data-hero="pyromancer">🔥<b>Mago del Fuoco</b><small>2 danni diretti</small></button>
+          <button class="hero-class-btn" data-hero="tidequeen">🌊<b>Regina degli Abissi</b><small>pesca e cura</small></button>
+          <button class="hero-class-btn" data-hero="druid">🌿<b>Druido Antico</b><small>+1/+1 a un alleato</small></button>
+          <button class="hero-class-btn" data-hero="assassin">🌑<b>Assassino Ombra</b><small>avvelena un nemico</small></button>
+          <button class="hero-class-btn" data-hero="paladin">☀️<b>Paladino Solare</b><small>scudo e cura</small></button>
+        </div>
+
         <div class="section-row">
           <h2>Stile</h2>
           <span>Look app</span>
@@ -227,6 +254,16 @@
               <option value="beach">Spiaggia Tommi 38</option>
             </select>
           </label>
+
+          <label class="select-label">
+            Difficoltà Bot
+            <select id="difficultySelect">
+              <option value="easy">Facile</option>
+              <option value="normal">Normale</option>
+              <option value="hard">Difficile</option>
+              <option value="nightmare">Incubo</option>
+            </select>
+          </label>
         </div>
 
         <div class="main-actions">
@@ -244,8 +281,15 @@
           <button id="joinOnlineBtn" class="glass-action">Entra</button>
         </div>
 
-        <div class="bottom-menu">
+        <div class="bottom-menu expanded-menu">
           <button id="tutorialBtn">📘 Tutorial</button>
+          <button id="profileBtn">👤 Profilo</button>
+          <button id="settingsBtn">⚙️ Impostazioni</button>
+          <button id="collectionBtn">🗂️ Collezione</button>
+          <button id="deckBuilderBtn">🧩 Mazzi</button>
+          <button id="shopBtn">🛒 Negozio</button>
+          <button id="dailyRewardBtn">🎁 Daily</button>
+          <button id="achievementsBtn">🏅 Obiettivi</button>
           <button id="leaderboardBtn">🏆 Classifica</button>
           <button id="historyBtn">📜 Storico</button>
         </div>
@@ -300,6 +344,14 @@
       </div>
     </header>
 
+    <div id="tutorialGuideBox" class="tutorial-guide-box hidden">
+      <div>
+        <strong id="tutorialGuideTitle">Tutorial guidato</strong>
+        <span id="tutorialGuideText">Segui il passaggio indicato.</span>
+      </div>
+      <button id="skipGuidedTutorialBtn" class="tiny-btn">Salta</button>
+    </div>
+
     <section class="battle-hud">
       <div class="player-bar enemy-bar" id="enemyHudBox">
         <div>
@@ -318,6 +370,7 @@
         <span id="message">Trascina una carta o seleziona una creatura.</span>
         <span id="roomInfoText"></span>
         <span id="turnTimerText" class="timer-text">⏱️ --</span>
+        <button id="heroPowerBtn" class="tiny-btn hero-power-btn hidden">Potere eroe</button>
         <button id="cancelAttackBtn" class="tiny-btn hidden">Annulla attacco</button>
       </div>
 
@@ -430,7 +483,10 @@
         <div><strong>5. Attacca</strong><p>Clicca una tua creatura pronta, poi scegli il bersaglio.</p></div>
       </div>
 
-      <button id="closeTutorialBtn">Ho capito</button>
+      <div class="modal-actions">
+        <button id="startGuidedTutorialBtn">Avvia tutorial guidato</button>
+        <button id="closeTutorialBtn" class="secondary-btn">Ho capito</button>
+      </div>
     </div>
   </div>
 
@@ -459,6 +515,22 @@
       </div>
 
       <button id="closeMissionsBtn">Chiudi</button>
+    </div>
+  </div>
+
+
+  <!-- CAMPAGNA MAPPA -->
+  <div id="campaignMapModal" class="modal hidden">
+    <div class="modal-card campaign-map-card">
+      <div class="result-icon">🗺️</div>
+      <h2>Campagna</h2>
+      <p>Avanza nella mappa, sconfiggi i boss e sblocca ricompense.</p>
+      <div id="campaignProgressText" class="campaign-progress-text">Progresso campagna: 0/6</div>
+      <div id="campaignMapList" class="campaign-map-list"></div>
+      <div class="modal-actions">
+        <button id="resetCampaignBtn" class="secondary-btn">Reset campagna</button>
+        <button id="closeCampaignMapBtn">Chiudi</button>
+      </div>
     </div>
   </div>
 
@@ -505,11 +577,11 @@
 
   <!-- PACCHETTO CARTE -->
   <div id="packModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">🎁</div>
+    <div class="modal-card wide-card pack-opening-card">
+      <div id="packBigIcon" class="result-icon pack-big-icon">🎁</div>
       <h2>Pacchetto carte</h2>
-      <p>Ricompensa partita.</p>
-      <div id="packCards" class="pack-grid"></div>
+      <p id="packHintText">Tocca le carte coperte per rivelarle.</p>
+      <div id="packCards" class="pack-grid animated-pack-grid"></div>
       <button id="closePackBtn">Chiudi</button>
     </div>
   </div>
@@ -529,6 +601,155 @@
       </div>
 
       <button id="closeQuickChatBtn" class="secondary-btn">Chiudi</button>
+    </div>
+  </div>
+
+
+
+  <!-- COLLEZIONE CARTE -->
+  <div id="collectionModal" class="modal hidden">
+    <div class="modal-card wide-card">
+      <div class="result-icon">🗂️</div>
+      <h2>Collezione</h2>
+      <p id="collectionSummary">Le carte trovate nei pacchetti vengono salvate qui.</p>
+      <div class="filter-row">
+        <select id="collectionFamilyFilter">
+          <option value="all">Tutti gli elementi</option>
+          <option value="fire">Fuoco</option>
+          <option value="water">Acqua</option>
+          <option value="forest">Foresta</option>
+          <option value="shadow">Ombra</option>
+          <option value="light">Luce</option>
+        </select>
+        <select id="collectionRarityFilter">
+          <option value="all">Tutte le rarità</option>
+          <option value="common">Comune</option>
+          <option value="rare">Rara</option>
+          <option value="epic">Epica</option>
+          <option value="legendary">Leggendaria</option>
+        </select>
+      </div>
+      <div id="collectionList" class="collection-grid">Caricamento...</div>
+      <div class="modal-actions">
+        <button id="dustDuplicatesBtn" class="secondary-btn">Converti doppioni in polvere</button>
+        <button id="closeCollectionBtn">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECK BUILDER -->
+  <div id="deckBuilderModal" class="modal hidden">
+    <div class="modal-card wide-card">
+      <div class="result-icon">🧩</div>
+      <h2>Deck Builder</h2>
+      <p>Crea più mazzi usando le carte della collezione. Regole: 30-40 carte, max 3 copie comuni, 2 rare/epiche, 1 leggendaria.</p>
+      <div class="deck-builder-toolbar">
+        <input id="deckNameInput" type="text" maxlength="22" placeholder="Nome mazzo" />
+        <button id="newDeckBtn" class="secondary-btn">Nuovo mazzo</button>
+      </div>
+      <div id="savedDecksList" class="saved-decks-list">Caricamento mazzi...</div>
+      <div class="filter-row deck-filter-row">
+        <select id="deckFamilyFilter">
+          <option value="all">Tutti</option>
+          <option value="fire">Fuoco</option>
+          <option value="water">Acqua</option>
+          <option value="forest">Foresta</option>
+          <option value="shadow">Ombra</option>
+          <option value="light">Luce</option>
+        </select>
+        <select id="deckRarityFilter">
+          <option value="all">Tutte rarità</option>
+          <option value="common">Comune</option>
+          <option value="rare">Rara</option>
+          <option value="epic">Epica</option>
+          <option value="legendary">Leggendaria</option>
+        </select>
+        <select id="deckCostFilter">
+          <option value="all">Tutti costi</option>
+          <option value="0-1">Costo 0-1</option>
+          <option value="2-3">Costo 2-3</option>
+          <option value="4+">Costo 4+</option>
+        </select>
+        <input id="deckSearchInput" type="text" placeholder="Cerca carta" />
+        <button id="autoBuildDeckBtn" class="secondary-btn">Auto mazzo</button>
+      </div>
+      <p id="deckBuilderSummary">0/30 carte</p>
+      <div id="deckBuilderList" class="collection-grid">Caricamento...</div>
+      <div class="modal-actions">
+        <button id="saveCustomDeckBtn">Salva e usa mazzo</button>
+        <button id="deleteDeckBtn" class="secondary-btn">Elimina mazzo</button>
+        <button id="clearCustomDeckBtn" class="secondary-btn">Svuota</button>
+        <button id="closeDeckBuilderBtn" class="secondary-btn">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEGOZIO -->
+  <div id="shopModal" class="modal hidden">
+    <div class="modal-card wide-card">
+      <div class="result-icon">🛒</div>
+      <h2>Negozio</h2>
+      <p id="shopCurrencyText">Oro 0 · Polvere 0</p>
+      <div class="shop-grid">
+        <button class="shop-buy-btn" data-pack="base">🎁 Pacchetto Base<br><small>100 oro · 3 carte</small></button>
+        <button class="shop-buy-btn" data-pack="rare">💎 Pacchetto Raro<br><small>250 oro · rara garantita</small></button>
+        <button class="shop-buy-btn" data-pack="legendary">👑 Pacchetto Leggendario<br><small>700 oro · epica+ garantita</small></button>
+      </div>
+      <div id="shopResult" class="pack-grid"></div>
+      <button id="closeShopBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- DAILY REWARD -->
+  <div id="dailyRewardModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">🎁</div>
+      <h2>Ricompensa giornaliera</h2>
+      <p id="dailyRewardText">Controllo ricompensa...</p>
+      <div id="dailyRewardCards" class="pack-grid animated-pack-grid"></div>
+      <div class="modal-actions">
+        <button id="claimDailyRewardBtn">Riscatta</button>
+        <button id="closeDailyRewardBtn" class="secondary-btn">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBIETTIVI -->
+  <div id="achievementsModal" class="modal hidden">
+    <div class="modal-card wide-card">
+      <div class="result-icon">🏅</div>
+      <h2>Obiettivi</h2>
+      <div id="achievementsList" class="mission-list">Caricamento...</div>
+      <button id="closeAchievementsBtn">Chiudi</button>
+    </div>
+  </div>
+
+
+  <!-- PROFILO GIOCATORE -->
+  <div id="profileModal" class="modal hidden">
+    <div class="modal-card wide-card">
+      <div class="result-icon">👤</div>
+      <h2>Profilo giocatore</h2>
+      <div id="profileStatsBox" class="profile-stats-grid">Caricamento...</div>
+      <div id="profileTitlesBox" class="mission-list"></div>
+      <button id="closeProfileBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- IMPOSTAZIONI -->
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">⚙️</div>
+      <h2>Impostazioni</h2>
+      <div class="settings-list">
+        <label><span>Audio effetti</span><input id="audioToggle" type="checkbox" /></label>
+        <label><span>Vibrazione</span><input id="vibrationToggle" type="checkbox" /></label>
+        <label><span>Animazioni ridotte</span><input id="reducedMotionToggle" type="checkbox" /></label>
+      </div>
+      <div class="modal-actions">
+        <button id="saveSettingsBtn">Salva impostazioni</button>
+        <button id="closeSettingsBtn" class="secondary-btn">Chiudi</button>
+      </div>
     </div>
   </div>
 
@@ -552,11 +773,20 @@
     </div>
   </div>
 
+
+  <nav id="appBottomNav" class="app-bottom-nav" aria-label="Navigazione principale">
+    <button class="app-nav-btn active" data-action="home"><span>🏠</span><small>Home</small></button>
+    <button class="app-nav-btn" data-action="play"><span>⚔️</span><small>Gioca</small></button>
+    <button class="app-nav-btn" data-action="cards"><span>🃏</span><small>Carte</small></button>
+    <button class="app-nav-btn" data-action="shop"><span>🛒</span><small>Shop</small></button>
+    <button class="app-nav-btn" data-action="profile"><span>👤</span><small>Profilo</small></button>
+  </nav>
+
   <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=11")
+        .register("./service-worker.js?v=19")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -564,6 +794,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=13"></script>
+<script type="module" src="script.js?v=19"></script>
 </body>
 </html>

@@ -90,6 +90,11 @@ const replayBtn = $("replayBtn");
 const tutorialModal = $("tutorialModal");
 const tutorialBtn = $("tutorialBtn");
 const closeTutorialBtn = $("closeTutorialBtn");
+const startGuidedTutorialBtn = $("startGuidedTutorialBtn");
+const tutorialGuideBox = $("tutorialGuideBox");
+const tutorialGuideTitle = $("tutorialGuideTitle");
+const tutorialGuideText = $("tutorialGuideText");
+const skipGuidedTutorialBtn = $("skipGuidedTutorialBtn");
 
 const leaderboardModal = $("leaderboardModal");
 const leaderboardBtn = $("leaderboardBtn");
@@ -113,6 +118,7 @@ const closeDraftBtn = $("closeDraftBtn");
 const packModal = $("packModal");
 const packCards = $("packCards");
 const closePackBtn = $("closePackBtn");
+const packHintText = $("packHintText");
 
 const quickChatModal = $("quickChatModal");
 const quickChatBtn = $("quickChatBtn");
@@ -127,8 +133,73 @@ const replayModal = $("replayModal");
 const replayList = $("replayList");
 const closeReplayBtn = $("closeReplayBtn");
 
+const collectionModal = $("collectionModal");
+const collectionBtn = $("collectionBtn");
+const closeCollectionBtn = $("closeCollectionBtn");
+const collectionList = $("collectionList");
+const collectionSummary = $("collectionSummary");
+const collectionFamilyFilter = $("collectionFamilyFilter");
+const collectionRarityFilter = $("collectionRarityFilter");
+const dustDuplicatesBtn = $("dustDuplicatesBtn");
+
+const deckBuilderModal = $("deckBuilderModal");
+const deckBuilderBtn = $("deckBuilderBtn");
+const closeDeckBuilderBtn = $("closeDeckBuilderBtn");
+const deckBuilderList = $("deckBuilderList");
+const deckBuilderSummary = $("deckBuilderSummary");
+const deckFamilyFilter = $("deckFamilyFilter");
+const deckRarityFilter = $("deckRarityFilter");
+const deckCostFilter = $("deckCostFilter");
+const deckSearchInput = $("deckSearchInput");
+const deckNameInput = $("deckNameInput");
+const newDeckBtn = $("newDeckBtn");
+const deleteDeckBtn = $("deleteDeckBtn");
+const savedDecksList = $("savedDecksList");
+const autoBuildDeckBtn = $("autoBuildDeckBtn");
+const saveCustomDeckBtn = $("saveCustomDeckBtn");
+const clearCustomDeckBtn = $("clearCustomDeckBtn");
+
+const shopModal = $("shopModal");
+const shopBtn = $("shopBtn");
+const closeShopBtn = $("closeShopBtn");
+const shopCurrencyText = $("shopCurrencyText");
+const shopResult = $("shopResult");
+
+const dailyRewardModal = $("dailyRewardModal");
+const dailyRewardBtn = $("dailyRewardBtn");
+const closeDailyRewardBtn = $("closeDailyRewardBtn");
+const claimDailyRewardBtn = $("claimDailyRewardBtn");
+const dailyRewardText = $("dailyRewardText");
+const dailyRewardCards = $("dailyRewardCards");
+
+const achievementsModal = $("achievementsModal");
+const achievementsBtn = $("achievementsBtn");
+const closeAchievementsBtn = $("closeAchievementsBtn");
+const achievementsList = $("achievementsList");
+
+const profileModal = $("profileModal");
+const profileBtn = $("profileBtn");
+const closeProfileBtn = $("closeProfileBtn");
+const profileStatsBox = $("profileStatsBox");
+const profileTitlesBox = $("profileTitlesBox");
+
+const settingsModal = $("settingsModal");
+const settingsBtn = $("settingsBtn");
+const closeSettingsBtn = $("closeSettingsBtn");
+const saveSettingsBtn = $("saveSettingsBtn");
+const audioToggle = $("audioToggle");
+const vibrationToggle = $("vibrationToggle");
+const reducedMotionToggle = $("reducedMotionToggle");
+
 const cardBackSelect = $("cardBackSelect");
 const arenaSkinSelect = $("arenaSkinSelect");
+const difficultySelect = $("difficultySelect");
+const heroPowerBtn = $("heroPowerBtn");
+const campaignMapModal = $("campaignMapModal");
+const campaignMapList = $("campaignMapList");
+const campaignProgressText = $("campaignProgressText");
+const closeCampaignMapBtn = $("closeCampaignMapBtn");
+const resetCampaignBtn = $("resetCampaignBtn");
 const profileNameText = $("profileNameText");
 const profileLevelText = $("profileLevelText");
 
@@ -143,6 +214,10 @@ let selectedDeck = "balanced";
 let selectedAvatar = "🧙";
 let selectedCardBack = "classic";
 let selectedArena = "default";
+let selectedDifficulty = localStorage.getItem("botDifficulty") || "normal";
+let selectedHero = localStorage.getItem("selectedHero") || "pyromancer";
+let currentCampaignNode = null;
+let activeDeckId = localStorage.getItem("ceaActiveDeckId") || "deck_1";
 
 let game = null;
 let gameMode = "bot";
@@ -152,6 +227,7 @@ let unsubscribeRoom = null;
 let lastAttackCardId = null;
 let selectedAttackerIndex = null;
 let turnTimerInterval = null;
+let guidedTutorialStep = 0;
 
 let draftDeck = [];
 let draftPickCount = 0;
@@ -175,7 +251,14 @@ const abilityLabels = {
   haste: "Rapidità",
   flying: "Volare",
   rage: "Rabbia",
-  poison: "Veleno"
+  poison: "Veleno",
+  lifesteal: "Furto vitale",
+  shield: "Scudo",
+  regen: "Rigenera",
+  growth: "Crescita",
+  sniper: "Cecchino",
+  burn: "Bruciatura",
+  curse: "Maledizione"
 };
 
 const abilityDescriptions = {
@@ -183,7 +266,14 @@ const abilityDescriptions = {
   haste: "Rapidità: può attaccare subito quando entra.",
   flying: "Volare: può attaccare direttamente se il nemico non ha creature volanti.",
   rage: "Rabbia: quando subisce danno e sopravvive, guadagna +1 ATK.",
-  poison: "Veleno: avvelena la creatura con cui combatte. Il veleno fa danno a inizio turno."
+  poison: "Veleno: avvelena la creatura con cui combatte. Il veleno fa danno a inizio turno.",
+  lifesteal: "Furto vitale: quando infligge danno in combattimento cura il proprietario.",
+  shield: "Scudo: blocca il primo danno subito una volta entrata in campo.",
+  regen: "Rigenera: a inizio turno recupera 1 HP.",
+  growth: "Crescita: a inizio turno ottiene +1 ATK e +1 HP.",
+  sniper: "Cecchino: può ignorare Guardia quando attacca una creatura.",
+  burn: "Bruciatura: può incendiare i bersagli. Bruciato subisce 1 danno a inizio turno.",
+  curse: "Maledizione: indebolisce il nemico nelle partite lunghe."
 };
 
 const deckLabels = {
@@ -193,8 +283,70 @@ const deckLabels = {
   shadow: "Ombra",
   light: "Luce",
   balanced: "Bilanciato",
-  draft: "Draft"
+  draft: "Draft",
+  custom: "Mazzo personalizzato"
 };
+
+const difficultyLabels = {
+  easy: "Facile",
+  normal: "Normale",
+  hard: "Difficile",
+  nightmare: "Incubo"
+};
+
+const difficultyConfig = {
+  easy: { life: 24, startEnergy: 0, smart: 0, reward: 0.85 },
+  normal: { life: 30, startEnergy: 0, smart: 1, reward: 1 },
+  hard: { life: 35, startEnergy: 1, smart: 2, reward: 1.25 },
+  nightmare: { life: 40, startEnergy: 1, smart: 3, reward: 1.6 }
+};
+
+const heroData = {
+  pyromancer: {
+    name: "Mago del Fuoco",
+    icon: "🔥",
+    desc: "Infligge 2 danni diretti all'avversario.",
+    cooldown: 3,
+    type: "damage"
+  },
+  tidequeen: {
+    name: "Regina degli Abissi",
+    icon: "🌊",
+    desc: "Pesca 1 carta e cura 1 vita.",
+    cooldown: 3,
+    type: "drawHeal"
+  },
+  druid: {
+    name: "Druido Antico",
+    icon: "🌿",
+    desc: "Dà +1 ATK e +1 HP a una tua creatura.",
+    cooldown: 3,
+    type: "buff"
+  },
+  assassin: {
+    name: "Assassino Ombra",
+    icon: "🌑",
+    desc: "Avvelena una creatura nemica. Se non ci sono creature, fa 1 danno.",
+    cooldown: 3,
+    type: "poison"
+  },
+  paladin: {
+    name: "Paladino Solare",
+    icon: "☀️",
+    desc: "Dà Scudo a una tua creatura e cura 1 vita.",
+    cooldown: 3,
+    type: "shield"
+  }
+};
+
+const campaignNodes = [
+  { id: "arena", icon: "⚔️", title: "Arena degli Apprendisti", subtitle: "Battaglia introduttiva", boss: "apprentice", rewardGold: 70, rewardDust: 8 },
+  { id: "forest", icon: "🌿", title: "Foresta Antica", subtitle: "Nemici con crescita e rabbia", boss: "knight", rewardGold: 90, rewardDust: 12 },
+  { id: "volcano", icon: "🔥", title: "Vulcano Cremisi", subtitle: "Boss aggressivo Fuoco", boss: "dragon", rewardGold: 120, rewardDust: 18 },
+  { id: "abyss", icon: "🌊", title: "Maree Eterne", subtitle: "Resistenza e controllo", boss: "apprentice", rewardGold: 130, rewardDust: 20 },
+  { id: "shadow", icon: "🌑", title: "Regno delle Ombre", subtitle: "Veleno e danni sporchi", boss: "eclipse", rewardGold: 160, rewardDust: 26 },
+  { id: "final", icon: "👑", title: "Signore dell'Evoluzione", subtitle: "Boss finale della campagna", boss: "final", rewardGold: 250, rewardDust: 45 }
+];
 
 const bossData = {
   apprentice: {
@@ -303,11 +455,104 @@ const equipments = [
 ];
 
 const terrains = [
-  t("terrain_sun", "Sole Rovente", 2, "rare", "☀️", "Per 3 turni le creature Fuoco hanno +1 ATK.", "sun", ["fire", "light", "balanced"]),
-  t("terrain_fog", "Nebbia Oscura", 2, "rare", "🌫️", "Per 2 turni blocca gli attacchi diretti.", "fog", ["shadow", "water", "balanced"]),
+  t("terrain_sun", "Sole Rovente", 2, "rare", "☀️", "Per 3 turni le creature Fuoco hanno +1 ATK.", "sun", ["fire", "balanced"]),
+  t("terrain_fog", "Nebbia Oscura", 2, "rare", "🌫️", "Per 2 turni blocca gli attacchi diretti.", "fog", ["shadow", "balanced"]),
   t("terrain_tide", "Marea Alta", 2, "rare", "🌊", "Per 3 turni le creature Acqua hanno +2 HP.", "tide", ["water", "balanced"]),
-  t("terrain_swamp", "Palude Velenosa", 3, "epic", "☠️", "Per 3 turni il veleno fa 2 danni.", "swamp", ["shadow", "forest", "balanced"])
+  t("terrain_swamp", "Palude Velenosa", 3, "epic", "☠️", "Per 3 turni il veleno fa 2 danni.", "swamp", ["shadow", "balanced"])
 ];
+
+
+
+/* =========================
+   V15 - PIÙ CARTE E MAZZI PIÙ RICCHI
+   ========================= */
+function addV15Content() {
+  families.fire.cards.push(
+    c("fire_4", "Salamandra", "fire", 1, 2, 4, 1, "common", "Creatura fuoco stabile, utile per evolvere.", null, []),
+    c("fire_5", "Berserker di Brace", "fire", 1, 3, 2, 1, "common", "Attacca forte ma resiste poco.", null, ["haste"]),
+    c("fire_6", "Mago di Brace", "fire", 2, 3, 5, 2, "rare", "Quando entra infligge 1 danno diretto.", "burnEnemy", ["burn"]),
+    c("fire_7", "Golem di Magma", "fire", 2, 5, 6, 3, "rare", "Corpo pesante per il centro campo.", null, ["guard"]),
+    c("fire_8", "Cacciatore Vulcanico", "fire", 2, 5, 4, 3, "epic", "Rapido e aggressivo.", null, ["haste"]),
+    c("fire_9", "Spirito della Lava", "fire", 3, 7, 6, 4, "epic", "Quando entra fa danno diretto.", "burnEnemy", ["flying"]),
+    c("fire_10", "Fenice Imperiale", "fire", 3, 6, 9, 5, "legendary", "Quando entra colpisce tutto il campo nemico.", "fireStorm", ["flying", "regen"]),
+    c("fire_11", "Colosso Infernale", "fire", 3, 9, 8, 5, "legendary", "Enorme creatura d'attacco.", null, ["guard", "burn"])
+  );
+
+  families.water.cards.push(
+    c("water_4", "Sirena Curatrice", "water", 1, 1, 4, 1, "common", "Quando entra cura 2 vita.", "healOwner", []),
+    c("water_5", "Guardiano Corallino", "water", 1, 1, 6, 2, "common", "Blocca gli attacchi iniziali.", null, ["guard"]),
+    c("water_6", "Mago delle Maree", "water", 2, 2, 6, 2, "rare", "Quando entra pesca una carta.", "drawOne", []),
+    c("water_7", "Tartaruga Antica", "water", 2, 2, 10, 3, "rare", "Difensore molto resistente.", null, ["guard", "regen"]),
+    c("water_8", "Leviatano Giovane", "water", 2, 4, 7, 3, "epic", "Cura il proprietario quando entra.", "healOwner", []),
+    c("water_9", "Spirito della Nebbia", "water", 3, 5, 8, 4, "epic", "Quando entra pesca una carta.", "drawOne", ["flying"]),
+    c("water_10", "Regina degli Abissi", "water", 3, 5, 12, 5, "legendary", "Cura e resiste a lungo.", "bigHealOwner", ["guard", "regen"]),
+    c("water_11", "Oceano Vivente", "water", 3, 6, 13, 6, "legendary", "Quando entra pesca una carta.", "drawOne", ["guard"])
+  );
+
+  families.forest.cards.push(
+    c("forest_4", "Scoiattolo Selvaggio", "forest", 1, 1, 3, 1, "common", "Piccola creatura rapida.", null, ["haste"]),
+    c("forest_5", "Lupo Verde", "forest", 1, 3, 3, 2, "common", "Buon attacco iniziale.", null, ["rage"]),
+    c("forest_6", "Druido Antico", "forest", 2, 2, 6, 2, "rare", "Dà +1 ATK a un alleato.", "buffAllyAttack", ["growth"]),
+    c("forest_7", "Ent Giovane", "forest", 2, 3, 8, 3, "rare", "Difensore naturale.", null, ["guard", "growth"]),
+    c("forest_8", "Cervo Sacro", "forest", 2, 4, 5, 3, "epic", "Cura il campo quando entra.", "healTeam", []),
+    c("forest_9", "Bestia Rampicante", "forest", 3, 7, 7, 4, "epic", "Cresce ogni turno.", null, ["growth", "rage"]),
+    c("forest_10", "Spirito della Foresta", "forest", 3, 6, 10, 5, "legendary", "Dà HP a tutto il campo.", "buffTeamHp", ["regen"]),
+    c("forest_11", "Madre Natura", "forest", 3, 7, 11, 6, "legendary", "Potenzia il campo e cresce.", "buffTeamHp", ["growth", "regen"])
+  );
+
+  families.shadow.cards.push(
+    c("shadow_4", "Corvo Notturno", "shadow", 1, 2, 2, 1, "common", "Volante e fastidioso.", null, ["flying"]),
+    c("shadow_5", "Assassino Silente", "shadow", 1, 3, 2, 2, "common", "Ignora Guardia quando colpisce creature.", null, ["sniper"]),
+    c("shadow_6", "Strega del Vuoto", "shadow", 2, 3, 5, 2, "rare", "Indebolisce un nemico.", "weakenEnemy", ["poison"]),
+    c("shadow_7", "Demone Minore", "shadow", 2, 5, 4, 3, "rare", "Ruba vita in combattimento.", null, ["lifesteal"]),
+    c("shadow_8", "Lama d'Ombra", "shadow", 2, 6, 3, 3, "epic", "Cecchino aggressivo.", null, ["sniper", "poison"]),
+    c("shadow_9", "Mietitore", "shadow", 3, 7, 6, 4, "epic", "Quando entra fa danno diretto.", "darkBlast", ["lifesteal"]),
+    c("shadow_10", "Vampiro Antico", "shadow", 3, 6, 9, 5, "legendary", "Ruba vita e avvelena.", null, ["lifesteal", "poison", "flying"]),
+    c("shadow_11", "Re del Vuoto", "shadow", 3, 9, 7, 6, "legendary", "Danno diretto e pressione costante.", "darkBlast", ["sniper", "poison"])
+  );
+
+  families.light.cards.push(
+    c("light_4", "Scudiero Sacro", "light", 1, 1, 5, 1, "common", "Protegge il campo.", null, ["guard"]),
+    c("light_5", "Monaco Solare", "light", 1, 2, 4, 2, "common", "Rigenera salute.", null, ["regen"]),
+    c("light_6", "Angelo Custode", "light", 2, 3, 7, 2, "rare", "Difesa volante.", null, ["flying", "guard"]),
+    c("light_7", "Paladino Dorato", "light", 2, 4, 8, 3, "rare", "Scudo iniziale e Guardia.", null, ["guard", "shield"]),
+    c("light_8", "Sacerdotessa", "light", 2, 2, 7, 3, "epic", "Cura il campo.", "healTeam", ["regen"]),
+    c("light_9", "Leone Solare", "light", 3, 7, 8, 4, "epic", "Creatura solida da chiusura.", null, ["guard"]),
+    c("light_10", "Giudice Celeste", "light", 3, 6, 10, 5, "legendary", "Cura e protegge.", "bigHealOwner", ["shield", "flying"]),
+    c("light_11", "Imperatore della Luce", "light", 3, 7, 12, 6, "legendary", "Difensore finale.", "healTeam", ["guard", "shield", "regen"])
+  );
+
+  spells.push(
+    s("spell_flame_wave", "Ondata di Fiamme", 3, "rare", "🔥", "2 danni a tutte le creature nemiche.", "spellStorm", ["fire", "balanced"]),
+    s("spell_inferno", "Inferno", 4, "epic", "🌋", "2 danni al campo nemico.", "spellStorm", ["fire", "balanced"]),
+    s("spell_tide_call", "Richiamo della Marea", 2, "rare", "🌊", "Pesca 2 carte.", "spellDrawTwo", ["water", "balanced"]),
+    s("spell_deep_heal", "Cura Profonda", 3, "epic", "💧", "Cura 4 vita.", "spellHeal", ["water", "light", "balanced"]),
+    s("spell_wild_growth", "Crescita Selvaggia", 3, "rare", "🌿", "+1 ATK e +1 HP al campo.", "spellBlessing", ["forest", "balanced"]),
+    s("spell_roots", "Radici Vive", 1, "common", "🌱", "Pesca 2 carte.", "spellDrawTwo", ["forest", "balanced"]),
+    s("spell_void", "Colpo del Vuoto", 2, "rare", "🌑", "3 danni a un bersaglio.", "spellFireball", ["shadow", "balanced"]),
+    s("spell_dark_ritual", "Rituale Oscuro", 0, "epic", "🔮", "+2 energia nel turno.", "spellGainEnergy", ["shadow", "balanced"]),
+    s("spell_holy_light", "Luce Sacra", 2, "common", "☀️", "Cura 4 vita.", "spellHeal", ["light", "balanced"]),
+    s("spell_judgement", "Giudizio", 4, "epic", "⚖️", "2 danni a tutte le creature nemiche.", "spellStorm", ["light", "balanced"])
+  );
+
+  equipments.push(
+    e("eq_flame_claw", "Artigli di Fiamma", 1, "common", "🔥", "+2 ATK alla creatura.", "equipSword", ["fire", "balanced"]),
+    e("eq_coral_armor", "Armatura Corallina", 2, "rare", "🪸", "+3 HP e Guardia.", "equipShield", ["water", "balanced"]),
+    e("eq_nature_totem", "Totem Verde", 2, "rare", "🌿", "+3 HP e Guardia.", "equipShield", ["forest", "balanced"]),
+    e("eq_shadow_blade", "Pugnale Ombra", 2, "rare", "🗡️", "+2 ATK alla creatura.", "equipSword", ["shadow", "balanced"]),
+    e("eq_solar_aegis", "Egida Solare", 3, "epic", "🛡️", "+3 HP e Guardia.", "equipShield", ["light", "balanced"])
+  );
+
+  terrains.push(
+    t("terrain_volcano", "Arena Vulcanica", 2, "rare", "🌋", "Per 3 turni le creature Fuoco hanno +1 ATK.", "sun", ["fire", "balanced"]),
+    t("terrain_lagoon", "Laguna Eterna", 2, "rare", "🌊", "Per 3 turni le creature Acqua hanno +2 HP.", "tide", ["water", "balanced"]),
+    t("terrain_grove", "Bosco Sacro", 2, "rare", "🌳", "Per 3 turni aiuta la crescita del campo.", "tide", ["forest", "balanced"]),
+    t("terrain_void", "Portale del Vuoto", 3, "epic", "🌑", "Per 3 turni il veleno fa 2 danni.", "swamp", ["shadow", "balanced"]),
+    t("terrain_temple", "Tempio Solare", 2, "rare", "🏛️", "Per 2 turni blocca gli attacchi diretti.", "fog", ["light", "balanced"])
+  );
+}
+
+addV15Content();
 
 function c(cardId, name, family, stage, attack, hp, cost, rarity, desc, effect, abilities) {
   return { cardId, type: "creature", name, family, stage, attack, hp, cost, rarity, desc, effect, abilities };
@@ -385,7 +630,14 @@ function getProfile() {
     xp: 0,
     wins: 0,
     losses: 0,
-    missions: {}
+    gold: 250,
+    dust: 0,
+    missions: {},
+    collection: {},
+    achievements: {},
+    dailyMissions: {},
+    settings: { audio: true, vibration: true, reducedMotion: false },
+    title: "Apprendista dell'Arena"
   };
 }
 
@@ -404,6 +656,164 @@ function getLevelFromXp(xp) {
   return Math.floor(xp / 100) + 1;
 }
 
+function getCampaignProgress() {
+  const raw = localStorage.getItem("ceaCampaignProgress");
+  if (!raw) return { completed: [] };
+  try {
+    const data = JSON.parse(raw);
+    return { completed: Array.isArray(data.completed) ? data.completed : [] };
+  } catch {
+    return { completed: [] };
+  }
+}
+
+function saveCampaignProgress(progress) {
+  localStorage.setItem("ceaCampaignProgress", JSON.stringify(progress));
+}
+
+function isCampaignNodeUnlocked(index, progress = getCampaignProgress()) {
+  if (index === 0) return true;
+  return progress.completed.includes(campaignNodes[index - 1].id);
+}
+
+function openCampaignMap() {
+  if (!campaignMapModal || !campaignMapList) {
+    campaignModal.classList.remove("hidden");
+    return;
+  }
+  renderCampaignMap();
+  campaignMapModal.classList.remove("hidden");
+}
+
+function renderCampaignMap() {
+  const progress = getCampaignProgress();
+  const done = progress.completed.length;
+  if (campaignProgressText) {
+    campaignProgressText.textContent = `Progresso campagna: ${done}/${campaignNodes.length}`;
+  }
+  campaignMapList.innerHTML = campaignNodes.map((node, index) => {
+    const completed = progress.completed.includes(node.id);
+    const unlocked = isCampaignNodeUnlocked(index, progress);
+    const status = completed ? "Completato" : unlocked ? "Gioca" : "Bloccato";
+    const cls = completed ? "completed" : unlocked ? "current" : "locked";
+    return `
+      <button class="campaign-node ${cls}" data-node="${node.id}" ${unlocked ? "" : "disabled"}>
+        <span class="node-icon">${node.icon}</span>
+        <span><b>${index + 1}. ${node.title}</b><small>${node.subtitle} · Premio: ${node.rewardGold} oro / ${node.rewardDust} polvere</small></span>
+        <span class="node-status">${status}</span>
+      </button>
+    `;
+  }).join("");
+
+  campaignMapList.querySelectorAll(".campaign-node:not(.locked)").forEach(button => {
+    button.onclick = () => startCampaignNode(button.dataset.node);
+  });
+}
+
+function startCampaignNode(nodeId) {
+  const node = campaignNodes.find(item => item.id === nodeId);
+  if (!node) return;
+  currentCampaignNode = node;
+  if (campaignMapModal) campaignMapModal.classList.add("hidden");
+  startBotGame(node.boss);
+  if (modeText) modeText.textContent = `Campagna · ${node.title}`;
+  addLog(`Nodo campagna: ${node.title}. Vinci per sbloccare il prossimo livello.`);
+  render();
+}
+
+function completeCampaignNodeIfNeeded(won) {
+  if (!won || gameMode !== "campaign" || !currentCampaignNode) return;
+  const progress = getCampaignProgress();
+  if (!progress.completed.includes(currentCampaignNode.id)) {
+    progress.completed.push(currentCampaignNode.id);
+    saveCampaignProgress(progress);
+  }
+  const profile = getProfile();
+  profile.gold = (profile.gold || 0) + (currentCampaignNode.rewardGold || 0);
+  profile.dust = (profile.dust || 0) + (currentCampaignNode.rewardDust || 0);
+  saveProfile(profile);
+  addLog(`Ricompensa campagna: +${currentCampaignNode.rewardGold || 0} oro e +${currentCampaignNode.rewardDust || 0} polvere.`);
+}
+
+function updateHeroPowerButton() {
+  if (!heroPowerBtn || !game || !game.players?.[mySlot]) return;
+  const me = getMyPlayer();
+  const hero = heroData[me.heroKey];
+  const visible = Boolean(hero && game.status === "playing" && !game.winner && gameMode !== "tutorial");
+  heroPowerBtn.classList.toggle("hidden", !visible);
+  if (!visible) return;
+
+  const cooldown = me.heroCooldown || 0;
+  heroPowerBtn.textContent = cooldown > 0
+    ? `${hero.icon} ${cooldown} turni`
+    : `${hero.icon} Potere`;
+  heroPowerBtn.disabled = !isMyTurn() || cooldown > 0;
+}
+
+async function useHeroPower() {
+  if (!isMyTurn()) return;
+  const me = getMyPlayer();
+  const enemy = getEnemyPlayer();
+  if (!me || !enemy) return;
+  const hero = heroData[me.heroKey];
+  if (!hero || (me.heroCooldown || 0) > 0) return;
+
+  if (hero.type === "damage") {
+    dealLifeDamage(me, enemy, 2, enemyHudBox);
+    addLog(`${hero.name}: infligge 2 danni diretti.`);
+  }
+
+  if (hero.type === "drawHeal") {
+    drawCard(me);
+    healLife(me, 1, document.querySelector(".my-bar"));
+    addLog(`${hero.name}: pesca 1 carta e cura 1 vita.`);
+  }
+
+  if (hero.type === "buff") {
+    if (me.field.length) {
+      const target = [...me.field].sort((a, b) => (b.attack + b.currentHp) - (a.attack + a.currentHp))[0];
+      target.attack += 1;
+      target.maxHp += 1;
+      target.currentHp += 1;
+      addLog(`${hero.name}: ${target.name} ottiene +1 ATK e +1 HP.`);
+      playEquipmentFx(target);
+    } else {
+      setMessage("Evoca una creatura prima di usare questo potere.");
+      return;
+    }
+  }
+
+  if (hero.type === "poison") {
+    if (enemy.field.length) {
+      const target = [...enemy.field].sort((a, b) => b.attack - a.attack)[0];
+      target.poisoned = true;
+      addLog(`${hero.name}: ${target.name} è avvelenata.`);
+      playAttackFx(enemyFieldEl);
+    } else {
+      dealLifeDamage(me, enemy, 1, enemyHudBox);
+      addLog(`${hero.name}: nessuna creatura nemica, infligge 1 danno.`);
+    }
+  }
+
+  if (hero.type === "shield") {
+    if (me.field.length) {
+      const target = [...me.field].sort((a, b) => a.currentHp - b.currentHp)[0];
+      if (!target.abilities.includes("shield")) target.abilities.push("shield");
+      healLife(me, 1, document.querySelector(".my-bar"));
+      addLog(`${hero.name}: dà Scudo a ${target.name} e cura 1 vita.`);
+      playEquipmentFx(target);
+    } else {
+      healLife(me, 2, document.querySelector(".my-bar"));
+      addLog(`${hero.name}: cura 2 vita.`);
+    }
+  }
+
+  me.heroCooldown = hero.cooldown || 3;
+  checkGameOver();
+  render();
+  await saveOnlineGame();
+}
+
 function renderProfile() {
   const profile = getProfile();
   const name = playerNameInput.value.trim() || localStorage.getItem("playerName") || "Giocatore";
@@ -413,7 +823,7 @@ function renderProfile() {
 
   if (profileNameText) profileNameText.textContent = `${selectedAvatar} ${name}`;
   if (profileLevelText) {
-    profileLevelText.textContent = `Livello ${level} · XP ${profile.xp - currentBase}/${next - currentBase} · V ${profile.wins || 0} / S ${profile.losses || 0}`;
+    profileLevelText.textContent = `Livello ${level} · XP ${profile.xp - currentBase}/${next - currentBase} · Oro ${profile.gold || 0} · Polvere ${profile.dust || 0}`;
   }
 }
 
@@ -443,6 +853,8 @@ function makeStats() {
 }
 
 function makePlayer(name, deckType, forcedDeck = null) {
+  const savedCustomDeck = !forcedDeck && deckType === "custom" ? getSavedCustomDeckCards() : null;
+
   return {
     id: getPlayerId(),
     name,
@@ -451,7 +863,9 @@ function makePlayer(name, deckType, forcedDeck = null) {
     energy: 0,
     maxEnergy: 0,
     deckType,
-    deck: forcedDeck || createDeck(deckType),
+    deck: forcedDeck || savedCustomDeck || createDeck(deckType),
+    heroKey: selectedHero,
+    heroCooldown: 0,
     hand: [],
     field: [],
     stats: makeStats()
@@ -461,18 +875,23 @@ function makePlayer(name, deckType, forcedDeck = null) {
 function makeBot(bossKey = null) {
   const boss = bossData[bossKey] || null;
   const deckType = boss?.deck || "balanced";
+  const diff = difficultyConfig[selectedDifficulty] || difficultyConfig.normal;
+  const baseLife = boss?.life || diff.life || STARTING_LIFE;
 
   return {
     id: "bot",
-    name: boss?.name || "Bot",
+    name: boss?.name || `Bot ${difficultyLabels[selectedDifficulty] || "Normale"}`,
     avatar: boss?.avatar || "🤖",
     bossKey,
     bossPower: boss?.power || null,
-    life: boss?.life || STARTING_LIFE,
+    life: boss ? Math.round(baseLife + (diff.life - STARTING_LIFE) / 2) : baseLife,
     energy: 0,
-    maxEnergy: 0,
+    maxEnergy: diff.startEnergy || 0,
+    difficulty: selectedDifficulty,
     deckType,
-    deck: createDeck(deckType),
+    deck: createBotDeck(deckType, selectedDifficulty),
+    heroKey: null,
+    heroCooldown: 0,
     hand: [],
     field: [],
     stats: makeStats()
@@ -520,17 +939,30 @@ function createDeck(deckType) {
   return shuffle(deck);
 }
 
+function createBotDeck(deckType, difficulty = "normal") {
+  const base = createDeck(deckType);
+  if (difficulty === "easy") {
+    return shuffle(base.filter(card => (card.rarity || "common") !== "legendary").concat(base.slice(0, 6))).slice(0, base.length);
+  }
+  if (difficulty === "hard" || difficulty === "nightmare") {
+    const premium = base.filter(card => ["rare", "epic", "legendary"].includes(card.rarity || "common"));
+    const extra = premium.map(card => cloneCardForDeck(card));
+    return shuffle([...base, ...extra]).slice(0, Math.max(base.length, difficulty === "nightmare" ? 44 : 40));
+  }
+  return base;
+}
+
 function getFamiliesForDeck(deckType) {
   if (deckType === "balanced" || deckType === "draft") {
     return ["fire", "water", "forest", "shadow", "light"];
   }
 
   const map = {
-    fire: ["fire", "shadow"],
-    water: ["water", "light"],
-    forest: ["forest", "water"],
-    shadow: ["shadow", "fire"],
-    light: ["light", "forest"]
+    fire: ["fire"],
+    water: ["water"],
+    forest: ["forest"],
+    shadow: ["shadow"],
+    light: ["light"]
   };
 
   return map[deckType] || ["fire", "water", "forest", "shadow", "light"];
@@ -544,6 +976,8 @@ function createCreatureCard(template) {
     currentHp: template.hp,
     maxHp: template.hp,
     poisoned: false,
+    burned: false,
+    shieldUsed: false,
     canAttack: false,
     hasAttacked: false,
     equipped: [],
@@ -634,7 +1068,161 @@ function createBaseGame(mode, p1, p2) {
   };
 }
 
+
+const guidedTutorialSteps = [
+  {
+    title: "Tutorial 1/6 · Evoca",
+    text: "Trascina Scintilla dalla mano al tuo campo. Guarda il costo energia in alto sulla carta."
+  },
+  {
+    title: "Tutorial 2/6 · Fine turno",
+    text: "Premi Fine turno. Le tue creature si preparano e avrai più energia al turno dopo."
+  },
+  {
+    title: "Tutorial 3/6 · Attacca",
+    text: "Tocca Scintilla nel tuo campo, poi tocca il riquadro del nemico per attaccare la vita."
+  },
+  {
+    title: "Tutorial 4/6 · Evolvi",
+    text: "Trascina Lupo Ardente sopra Scintilla. È un'evoluzione Fuoco di livello successivo."
+  },
+  {
+    title: "Tutorial 5/6 · Ricarica energia",
+    text: "Premi Fine turno un'altra volta per avere energia sufficiente per la magia."
+  },
+  {
+    title: "Tutorial 6/6 · Magia",
+    text: "Trascina Palla Fuoco sul campo avversario per infliggere danni diretti."
+  },
+  {
+    title: "Tutorial completato",
+    text: "Hai imparato le basi: evocazione, attacco, evoluzione e magia. Ora puoi giocare una partita vera."
+  }
+];
+
+function stopGuidedTutorial(resetMode = true) {
+  document.body.classList.remove("guided-tutorial");
+  guidedTutorialStep = 0;
+  if (tutorialGuideBox) tutorialGuideBox.classList.add("hidden");
+  if (resetMode && gameMode === "tutorial") {
+    gameMode = "bot";
+  }
+}
+
+function updateGuidedTutorialBox() {
+  if (!tutorialGuideBox || gameMode !== "tutorial") return;
+  const step = guidedTutorialSteps[guidedTutorialStep] || guidedTutorialSteps[guidedTutorialSteps.length - 1];
+  tutorialGuideTitle.textContent = step.title;
+  tutorialGuideText.textContent = step.text;
+  tutorialGuideBox.classList.remove("hidden");
+}
+
+function guidedTutorialAdvance(eventName, data = {}) {
+  if (gameMode !== "tutorial") return;
+
+  if (guidedTutorialStep === 0 && eventName === "playCreature" && data.card?.cardId === "fire_1") {
+    guidedTutorialStep = 1;
+  } else if (guidedTutorialStep === 1 && eventName === "endTurn") {
+    guidedTutorialStep = 2;
+  } else if (guidedTutorialStep === 2 && eventName === "attack") {
+    guidedTutorialStep = 3;
+  } else if (guidedTutorialStep === 3 && eventName === "evolve" && data.card?.cardId === "fire_2") {
+    guidedTutorialStep = 4;
+  } else if (guidedTutorialStep === 4 && eventName === "endTurn") {
+    guidedTutorialStep = 5;
+  } else if (guidedTutorialStep === 5 && eventName === "spell" && data.card?.cardId === "spell_fireball") {
+    guidedTutorialStep = 6;
+    localStorage.setItem("tutorialSeen", "yes");
+    setTimeout(() => {
+      try { openPack(); } catch { /* ignore */ }
+    }, 600);
+  } else {
+    return;
+  }
+
+  updateGuidedTutorialBox();
+  if (guidedTutorialStep < 6) {
+    createFxText("Passaggio completato", "evolve", true);
+  } else {
+    createFxText("Tutorial completato", "evolve");
+  }
+}
+
+function findTemplate(cardId) {
+  return allCollectibleTemplates().find(card => card.cardId === cardId);
+}
+
+function createCardFromTemplateId(cardId) {
+  const template = findTemplate(cardId);
+  if (!template) return null;
+  if (template.type === "creature") return createCreatureCard(template);
+  if (template.type === "spell") return createSpellCard(template);
+  if (template.type === "equipment") return createEquipmentCard(template);
+  if (template.type === "terrain") return createTerrainCard(template);
+  return { ...template, id: uid() };
+}
+
+function startGuidedTutorial() {
+  tutorialModal.classList.add("hidden");
+  resultModal.classList.add("hidden");
+  cardDetailModal.classList.add("hidden");
+  packModal.classList.add("hidden");
+
+  if (unsubscribeRoom) {
+    unsubscribeRoom();
+    unsubscribeRoom = null;
+  }
+
+  gameMode = "tutorial";
+  roomCode = null;
+  mySlot = "p1";
+  selectedAttackerIndex = null;
+  lastAttackCardId = null;
+  guidedTutorialStep = 0;
+
+  const name = getPlayerName();
+  const p1 = makePlayer(name, "fire", []);
+  const p2 = makeBot(null);
+
+  p1.life = 30;
+  p1.maxEnergy = 1;
+  p1.energy = 1;
+  p1.hand = [
+    createCardFromTemplateId("fire_1"),
+    createCardFromTemplateId("fire_2"),
+    createCardFromTemplateId("spell_fireball")
+  ].filter(Boolean);
+  p1.deck = [
+    createCardFromTemplateId("fire_3"),
+    createCardFromTemplateId("eq_sword"),
+    createCardFromTemplateId("terrain_sun")
+  ].filter(Boolean);
+  p1.field = [];
+
+  p2.name = "Maestro Tutorial";
+  p2.avatar = "📘";
+  p2.life = 18;
+  p2.hand = [];
+  p2.deck = [];
+  p2.field = [];
+  p2.maxEnergy = 0;
+  p2.energy = 0;
+
+  game = createBaseGame("tutorial", p1, p2);
+  game.log = ["Tutorial guidato avviato."];
+  game.replay = ["Tutorial guidato avviato."];
+  game.turnStartedAt = Date.now();
+
+  modeText.textContent = "Tutorial guidato";
+  roomInfoText.textContent = "";
+  document.body.classList.add("guided-tutorial");
+  showOnly(gameScreen);
+  updateGuidedTutorialBox();
+  render();
+}
+
 function startBotGame(bossKey = null, forcedDeck = null) {
+  stopGuidedTutorial(false);
   const name = getPlayerName();
 
   gameMode = bossKey ? "campaign" : "bot";
@@ -652,8 +1240,8 @@ function startBotGame(bossKey = null, forcedDeck = null) {
   startTurn("p1");
 
   modeText.textContent = bossKey
-    ? `Campagna · ${p2.name}`
-    : `Bot · Mazzo ${deckLabels[selectedDeck]}`;
+    ? `Campagna · ${p2.name} · ${difficultyLabels[selectedDifficulty]}`
+    : `Bot ${difficultyLabels[selectedDifficulty]} · ${deckLabels[selectedDeck]}`;
 
   roomInfoText.textContent = "";
 
@@ -838,6 +1426,9 @@ function startTurnInGame(g, slot) {
 
   player.maxEnergy = Math.min(10, player.maxEnergy + 1);
   player.energy = player.maxEnergy;
+  if (typeof player.heroCooldown === "number" && player.heroCooldown > 0) {
+    player.heroCooldown = Math.max(0, player.heroCooldown - 1);
+  }
 
   tickTerrain(g);
   applyPoisonDamage(player);
@@ -899,6 +1490,18 @@ function applyBossPower(bossKey) {
 
 function prepareCreatures(player) {
   player.field.forEach(card => {
+    if (hasAbility(card, "regen") && card.currentHp < card.maxHp) {
+      card.currentHp = Math.min(card.maxHp, card.currentHp + 1);
+      addLog(`${card.name} rigenera 1 HP.`);
+    }
+
+    if (hasAbility(card, "growth")) {
+      card.attack += 1;
+      card.maxHp += 1;
+      card.currentHp += 1;
+      addLog(`${card.name} cresce: +1 ATK e +1 HP.`);
+    }
+
     card.canAttack = true;
     card.hasAttacked = false;
   });
@@ -911,6 +1514,11 @@ function applyPoisonDamage(player) {
     if (card.poisoned) {
       card.currentHp -= poisonDamage;
       addLog(`${card.name} subisce ${poisonDamage} danno da veleno.`);
+    }
+
+    if (card.burned) {
+      card.currentHp -= 1;
+      addLog(`${card.name} subisce 1 danno da bruciatura.`);
     }
   });
 
@@ -1000,6 +1608,7 @@ setTimeout(() => {
   recordBestCard(owner, card);
 
   addLog(`${owner.name} evoca ${card.name}.`);
+  guidedTutorialAdvance("playCreature", { card, owner });
 
   applyEntryEffect(card, owner, opponent);
 }
@@ -1058,6 +1667,7 @@ setTimeout(() => {
   recordBestCard(owner, evolved);
 
   addLog(`${owner.name} evolve ${base.name} in ${evolution.name}.`);
+  guidedTutorialAdvance("evolve", { card: evolution, owner });
 
   applyEntryEffect(evolved, owner, opponent);
 }
@@ -1076,6 +1686,7 @@ function playSpell(owner, opponent, cardId) {
   recordBestCard(owner, spell);
 
   addLog(`${owner.name} gioca ${spell.name}.`);
+  guidedTutorialAdvance("spell", { card: spell, owner });
 
   applySpellEffect(spell, owner, opponent);
 }
@@ -1483,14 +2094,15 @@ playAttackFx(enemyHudBox);
 
     const guards = enemy.field.filter(card => hasAbility(card, "guard"));
 
-    if (guards.length && !hasAbility(target, "guard")) {
-      setMessage("Devi attaccare prima Guardia.");
+    if (guards.length && !hasAbility(target, "guard") && !hasAbility(attacker, "sniper")) {
+      setMessage("Devi attaccare prima Guardia. Le creature con Cecchino possono ignorarla.");
       return;
     }
 
     fight(attacker, target, me, enemy);
   }
 
+  guidedTutorialAdvance("attack", { attacker });
   checkGameOver();
   render();
 
@@ -1503,14 +2115,39 @@ playAttackFx(enemyHudBox);
 }
 
 function fight(attacker, defender, attackerOwner, defenderOwner) {
-  defender.currentHp -= attacker.attack;
-  attacker.currentHp -= defender.attack;
+  let damageToDefender = attacker.attack;
+  let damageToAttacker = defender.attack;
+
+  if (hasAbility(defender, "shield") && !defender.shieldUsed) {
+    damageToDefender = 0;
+    defender.shieldUsed = true;
+    addLog(`${defender.name} blocca il danno con Scudo.`);
+  }
+
+  if (hasAbility(attacker, "shield") && !attacker.shieldUsed) {
+    damageToAttacker = 0;
+    attacker.shieldUsed = true;
+    addLog(`${attacker.name} blocca il danno con Scudo.`);
+  }
+
+  defender.currentHp -= damageToDefender;
+  attacker.currentHp -= damageToAttacker;
   attacker.hasAttacked = true;
 
-  attackerOwner.stats.damageDealt += attacker.attack;
-  attackerOwner.stats.damageTaken += defender.attack;
-  defenderOwner.stats.damageDealt += defender.attack;
-  defenderOwner.stats.damageTaken += attacker.attack;
+  attackerOwner.stats.damageDealt += damageToDefender;
+  attackerOwner.stats.damageTaken += damageToAttacker;
+  defenderOwner.stats.damageDealt += damageToAttacker;
+  defenderOwner.stats.damageTaken += damageToDefender;
+
+  if (damageToDefender > 0 && hasAbility(attacker, "lifesteal")) {
+    healLife(attackerOwner, Math.min(3, damageToDefender));
+    addLog(`${attacker.name} attiva Furto vitale.`);
+  }
+
+  if (damageToAttacker > 0 && hasAbility(defender, "lifesteal")) {
+    healLife(defenderOwner, Math.min(3, damageToAttacker));
+    addLog(`${defender.name} attiva Furto vitale.`);
+  }
 
   applyRageIfDamaged(attacker);
   applyRageIfDamaged(defender);
@@ -1525,10 +2162,20 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
     addLog(`${attacker.name} è avvelenata.`);
   }
 
+  if (hasAbility(attacker, "burn") && defender.currentHp > 0) {
+    defender.burned = true;
+    addLog(`${defender.name} prende fuoco.`);
+  }
+
+  if (hasAbility(defender, "burn") && attacker.currentHp > 0) {
+    attacker.burned = true;
+    addLog(`${attacker.name} prende fuoco.`);
+  }
+
   addLog(`${attacker.name} combatte contro ${defender.name}.`);
 
-const targetCardEl = document.querySelector(".card.enemy-targetable") || document.querySelector(".card.selected-attacker");
-playAttackFx(targetCardEl);
+  const targetCardEl = document.querySelector(".card.enemy-targetable") || document.querySelector(".card.selected-attacker");
+  playAttackFx(targetCardEl);
 
   removeDead(attackerOwner);
   removeDead(defenderOwner);
@@ -1576,6 +2223,16 @@ async function endTurn() {
 
   addLog(`${me.name} termina il turno.`);
 
+  if (gameMode === "tutorial") {
+    game.turnNumber++;
+    game.players.p1.stats.turns = game.turnNumber;
+    game.players.p2.stats.turns = game.turnNumber;
+    startTurn("p1");
+    guidedTutorialAdvance("endTurn");
+    render();
+    return;
+  }
+
   if (gameMode === "bot" || gameMode === "campaign") {
     startTurn("p2");
     render();
@@ -1605,43 +2262,49 @@ async function endTurn() {
 function botTurn() {
   const bot = game.players.p2;
   const player = game.players.p1;
+  const intelligence = difficultyConfig[bot.difficulty || selectedDifficulty]?.smart || 1;
 
   let action = true;
   let count = 0;
 
-  while (action && count < 8) {
+  while (action && count < 10) {
     count++;
     action = false;
 
-    const evolution = bot.hand.find(card =>
-      card.type === "creature" &&
-      card.stage > 1 &&
+    const lethalSpell = bot.hand.find(card =>
+      card.type === "spell" &&
       card.cost <= bot.energy &&
-      bot.field.some(fieldCard =>
-        fieldCard.family === card.family &&
-        fieldCard.stage === card.stage - 1
-      )
+      card.effect === "spellFireball" &&
+      player.life <= 3
     );
+    if (lethalSpell && intelligence >= 1) {
+      playSpell(bot, player, lethalSpell.id);
+      action = true;
+      continue;
+    }
 
+    const evolution = chooseBestEvolution(bot);
     if (evolution) {
       const index = bot.field.findIndex(fieldCard =>
         fieldCard.family === evolution.family &&
         fieldCard.stage === evolution.stage - 1
       );
-
       evolveCreature(bot, player, evolution.id, index);
       action = true;
       continue;
     }
 
-    const equipment = bot.hand.find(card =>
-      card.type === "equipment" &&
-      card.cost <= bot.energy &&
-      bot.field.length
-    );
+    const usefulSpell = chooseBestBotSpell(bot, player, intelligence);
+    if (usefulSpell) {
+      playSpell(bot, player, usefulSpell.id);
+      action = true;
+      continue;
+    }
 
+    const equipment = chooseBestEquipment(bot, intelligence);
     if (equipment) {
-      playEquipment(bot, equipment.id, 0);
+      const targetIndex = chooseEquipmentTargetIndex(bot, equipment, intelligence);
+      playEquipment(bot, equipment.id, targetIndex);
       action = true;
       continue;
     }
@@ -1649,54 +2312,46 @@ function botTurn() {
     const terrain = bot.hand.find(card =>
       card.type === "terrain" &&
       card.cost <= bot.energy &&
-      !game.activeTerrain
+      !game.activeTerrain &&
+      (intelligence >= 2 || bot.field.length >= 1)
     );
-
     if (terrain) {
       playTerrain(bot, terrain.id);
       action = true;
       continue;
     }
 
-    const usefulSpell = bot.hand.find(card =>
-      card.type === "spell" &&
-      card.cost <= bot.energy &&
-      shouldBotUseSpell(card, bot, player)
-    );
-
-    if (usefulSpell) {
-      playSpell(bot, player, usefulSpell.id);
-      action = true;
-      continue;
-    }
-
-    const creature = bot.hand.find(card =>
-      card.type === "creature" &&
-      card.stage === 1 &&
-      card.cost <= bot.energy
-    );
-
+    const creature = chooseBestCreatureToPlay(bot, intelligence);
     if (creature && bot.field.length < MAX_FIELD_SIZE) {
       playCreature(bot, player, creature.id);
       action = true;
     }
   }
 
-  [...bot.field].forEach(attacker => {
+  const attackers = [...bot.field].sort((a, b) => {
+    if (intelligence >= 2) return b.attack - a.attack;
+    return 0;
+  });
+
+  attackers.forEach(attacker => {
     if (game.winner) return;
     if (!bot.field.includes(attacker)) return;
     if (!attacker.canAttack || attacker.hasAttacked) return;
 
     lastAttackCardId = attacker.id;
 
-    if (player.field.length) {
+    if (canAttackLife(attacker, player.field) && (player.life <= attacker.attack || intelligence >= 2 && player.life <= attacker.attack + 3)) {
+      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".my-bar"));
+      attacker.hasAttacked = true;
+      addLog(`${bot.name} attacca direttamente e infligge ${attacker.attack} danni.`);
+    } else if (player.field.length) {
       const guards = player.field.filter(card => hasAbility(card, "guard"));
-      const target = guards[0] || chooseBotTarget(player.field);
+      const target = guards[0] || chooseBotTarget(player.field, attacker, intelligence);
       fight(attacker, target, bot, player);
     } else if (canAttackLife(attacker, player.field)) {
-      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".hud-box.player"));
+      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".my-bar"));
       attacker.hasAttacked = true;
-      addLog(`Bot infligge ${attacker.attack} danni diretti.`);
+      addLog(`${bot.name} infligge ${attacker.attack} danni diretti.`);
     }
 
     checkGameOver();
@@ -1708,6 +2363,57 @@ function botTurn() {
   }, 320);
 }
 
+function chooseBestEvolution(bot) {
+  return bot.hand
+    .filter(card => card.type === "creature" && card.stage > 1 && card.cost <= bot.energy)
+    .filter(card => bot.field.some(fieldCard => fieldCard.family === card.family && fieldCard.stage === card.stage - 1))
+    .sort((a, b) => (b.stage - a.stage) || (b.attack + b.hp - a.attack - a.hp))[0];
+}
+
+function chooseBestCreatureToPlay(bot, intelligence = 1) {
+  const playable = bot.hand.filter(card => card.type === "creature" && card.stage === 1 && card.cost <= bot.energy);
+  if (!playable.length) return null;
+  if (intelligence < 2) return playable[0];
+  return playable.sort((a, b) => (b.attack + b.hp + (b.abilities?.length || 0)) - (a.attack + a.hp + (a.abilities?.length || 0)))[0];
+}
+
+function chooseBestEquipment(bot, intelligence = 1) {
+  const playable = bot.hand.filter(card => card.type === "equipment" && card.cost <= bot.energy && bot.field.length);
+  if (!playable.length) return null;
+  if (intelligence < 2) return playable[0];
+  return playable.sort((a, b) => b.cost - a.cost)[0];
+}
+
+function chooseEquipmentTargetIndex(bot, equipment, intelligence = 1) {
+  if (intelligence < 2) return 0;
+  let best = 0;
+  bot.field.forEach((card, index) => {
+    if ((card.attack + card.currentHp) > (bot.field[best].attack + bot.field[best].currentHp)) best = index;
+  });
+  return best;
+}
+
+function chooseBestBotSpell(bot, player, intelligence = 1) {
+  const spellsPlayable = bot.hand.filter(card => card.type === "spell" && card.cost <= bot.energy && shouldBotUseSpell(card, bot, player));
+  if (!spellsPlayable.length) return null;
+  if (intelligence < 2) return spellsPlayable[0];
+
+  return spellsPlayable.sort((a, b) => {
+    const score = spellBotScore(b, bot, player) - spellBotScore(a, bot, player);
+    return score || b.cost - a.cost;
+  })[0];
+}
+
+function spellBotScore(spell, bot, player) {
+  if (spell.effect === "spellFireball") return player.life <= 3 ? 100 : player.field.length ? 45 : 30;
+  if (spell.effect === "spellStorm") return player.field.length * 18;
+  if (spell.effect === "spellHeal") return bot.life <= 12 ? 55 : 8;
+  if (spell.effect === "spellDrawTwo") return bot.hand.length <= 2 ? 50 : 20;
+  if (spell.effect === "spellBlessing") return bot.field.length * 15;
+  if (spell.effect === "spellGainEnergy") return bot.hand.some(card => card.cost > bot.energy) ? 35 : 12;
+  return 10;
+}
+
 function shouldBotUseSpell(spell, bot, player) {
   if (spell.effect === "spellHeal") return bot.life <= STARTING_LIFE - 5;
   if (spell.effect === "spellDrawTwo") return bot.hand.length <= 3;
@@ -1717,8 +2423,17 @@ function shouldBotUseSpell(spell, bot, player) {
   return true;
 }
 
-function chooseBotTarget(field) {
-  return [...field].sort((a, b) => a.currentHp - b.currentHp)[0];
+function chooseBotTarget(field, attacker = null, intelligence = 1) {
+  if (intelligence < 2 || !attacker) {
+    return [...field].sort((a, b) => a.currentHp - b.currentHp)[0];
+  }
+
+  const killable = field
+    .filter(card => card.currentHp <= attacker.attack)
+    .sort((a, b) => (b.attack + b.currentHp) - (a.attack + a.currentHp))[0];
+  if (killable) return killable;
+
+  return [...field].sort((a, b) => b.attack - a.attack || a.currentHp - b.currentHp)[0];
 }
 
 function checkGameOver() {
@@ -1745,20 +2460,50 @@ function checkGameOver() {
 }
 
 function saveMatchResult() {
+  if (!game || game.matchRewardSaved) return;
+  game.matchRewardSaved = true;
+
   const me = getMyPlayer();
   if (!me) return;
 
   const won = game.winner === mySlot;
-  const profile = getProfile();
+  const profile = normalizeProfile();
+  const diff = difficultyConfig[selectedDifficulty] || difficultyConfig.normal;
+  const multiplier = gameMode === "campaign" ? diff.reward + 0.25 : diff.reward;
 
   if (won) profile.wins = (profile.wins || 0) + 1;
   else profile.losses = (profile.losses || 0) + 1;
 
-  const xp = won ? 35 : 15;
+  const xp = Math.round((won ? 35 : 15) * multiplier);
+  const gold = Math.round((won ? 80 : 30) * multiplier);
+  const dust = Math.round((won ? 12 : 4) * multiplier);
   profile.xp += xp;
+  profile.gold = (profile.gold || 0) + gold;
+  profile.dust = (profile.dust || 0) + dust;
+
+  let bonusCard = null;
+  if (won || Math.random() < 0.35) {
+    bonusCard = randomItem(allCollectibleTemplates());
+    if (bonusCard) profile.collection[cardKey(bonusCard)] = (profile.collection[cardKey(bonusCard)] || 0) + 1;
+  }
+
+  game.lastRewards = {
+    xp,
+    gold,
+    dust,
+    bonusCard: bonusCard ? `${bonusCard.icon || families[bonusCard.family]?.icon || "🃏"} ${bonusCard.name}` : null,
+    difficulty: difficultyLabels[selectedDifficulty] || "Normale"
+  };
+
+  updateDailyMissionProgress("play", 1);
+  if (won) updateDailyMissionProgress("win", 1);
+  updateDailyMissionProgress("creatures", me.stats?.creaturesPlayed || 0);
+  updateDailyMissionProgress("spells", me.stats?.spellsPlayed || 0);
+  updateDailyMissionProgress("evolutions", me.stats?.evolutions || 0);
 
   saveProfile(profile);
   saveHistory(won);
+  completeCampaignNodeIfNeeded(won);
 }
 
 function saveHistory(won) {
@@ -1828,7 +2573,10 @@ if (modalCard) {
 playResultFx(won);
   resultIcon.textContent = won ? "🏆" : "💀";
   resultTitle.textContent = won ? "Vittoria!" : "Sconfitta";
-  resultText.textContent = won ? "Hai vinto la partita. +35 XP" : "Hai perso la partita. +15 XP";
+  const rewards = game?.lastRewards || { xp: won ? 35 : 15, gold: won ? 80 : 30, dust: won ? 12 : 4 };
+  resultText.textContent = won
+    ? `Hai vinto. +${rewards.xp} XP, +${rewards.gold} oro, +${rewards.dust} polvere${rewards.bonusCard ? `, carta: ${rewards.bonusCard}` : ""}`
+    : `Hai perso. +${rewards.xp} XP, +${rewards.gold} oro, +${rewards.dust} polvere${rewards.bonusCard ? `, carta: ${rewards.bonusCard}` : ""}`;
 
   matchStatsBox.innerHTML = `
     <div>⏱️ Turni: <strong>${stats.turns}</strong></div>
@@ -1897,6 +2645,7 @@ function render() {
   }
 
   cancelAttackBtn.classList.toggle("hidden", !(selectedAttackerIndex !== null && isMyTurn()));
+  updateHeroPowerButton();
 
   if (selectedAttackerIndex !== null && isMyTurn()) {
     roomInfoText.textContent = "Scegli bersaglio";
@@ -1911,10 +2660,13 @@ function render() {
 
   if (gameMode === "online") {
     modeText.textContent = `Online · ${roomCode}`;
+  } else if (gameMode === "tutorial") {
+    modeText.textContent = "Tutorial guidato";
+    updateGuidedTutorialBox();
   } else if (gameMode === "campaign") {
-    modeText.textContent = `Campagna · ${enemy.name}`;
+    modeText.textContent = `Campagna · ${enemy.name} · ${difficultyLabels[selectedDifficulty]}`;
   } else {
-    modeText.textContent = `Bot · Mazzo ${deckLabels[selectedDeck]}`;
+    modeText.textContent = `Bot ${difficultyLabels[selectedDifficulty]} · ${deckLabels[selectedDeck]}`;
   }
 
   renderHand();
@@ -2625,6 +3377,7 @@ function playAttackFx(targetEl = null) {
 }
 
 function playResultFx(won) {
+  maybeVibrate(won ? [30, 40, 30] : 60);
   createFxFlash(won ? "win" : "lose");
   createFxText(won ? "Vittoria!" : "Sconfitta", won ? "evolve" : "attack");
 }
@@ -2656,6 +3409,7 @@ function showDamagePopup(targetEl, text, heal = false) {
 
   if (!heal) {
     shakeScreen();
+    maybeVibrate(35);
   }
 
   setTimeout(() => {
@@ -2685,10 +3439,12 @@ function showOnlyMenu(force = false) {
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
+  currentCampaignNode = null;
 
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
 
+  stopGuidedTutorial(false);
   showOnly(menuScreen);
   renderProfile();
 }
@@ -2737,16 +3493,466 @@ function setupRoomFromUrl() {
 
 function openPack() {
   packModal.classList.remove("hidden");
-  const pool = allDraftTemplates();
-  const found = shuffle(pool).slice(0, 3);
+  if (packHintText) packHintText.textContent = "Tocca le carte coperte per rivelarle.";
+  const found = openRewardPack("base", true);
+  packCards.innerHTML = renderPackCards(found);
+  attachPackRevealEvents(packCards);
+}
 
-  packCards.innerHTML = found.map(card => `
-    <div class="pack-card">
-      ${card.icon || families[card.family]?.icon || "🃏"}<br>
-      ${card.name}<br>
-      <small>${card.type || "creature"} · ${card.rarity || "common"}</small>
-    </div>
+function cardKey(card) {
+  return card.cardId || card.name;
+}
+
+function normalizeProfile() {
+  const profile = getProfile();
+  profile.gold = profile.gold || 0;
+  profile.dust = profile.dust || 0;
+  profile.collection = profile.collection || {};
+  profile.achievements = profile.achievements || {};
+  profile.dailyMissions = profile.dailyMissions || {};
+  profile.settings = profile.settings || { audio: true, vibration: true, reducedMotion: false };
+  profile.title = profile.title || "Apprendista dell'Arena";
+  return profile;
+}
+
+function allCollectibleTemplates() {
+  return allDraftTemplates().filter(card => card.cardId);
+}
+
+function addCardToCollection(card, amount = 1) {
+  const profile = normalizeProfile();
+  const key = cardKey(card);
+  profile.collection[key] = (profile.collection[key] || 0) + amount;
+  saveProfile(profile);
+}
+
+function getOwnedCount(card) {
+  const profile = normalizeProfile();
+  return profile.collection[cardKey(card)] || 0;
+}
+
+function openRewardPack(packType = "base", save = true) {
+  const pool = allCollectibleTemplates();
+  const cards = [];
+
+  const byRarity = rarity => pool.filter(card => (card.rarity || "common") === rarity);
+  const pickByRarity = rarity => randomItem(byRarity(rarity).length ? byRarity(rarity) : pool);
+  const pickAny = () => randomItem(pool);
+
+  if (packType === "legendary") {
+    cards.push(pickByRarity(Math.random() < 0.35 ? "legendary" : "epic"));
+    cards.push(pickByRarity(Math.random() < 0.45 ? "rare" : "common"));
+    cards.push(pickAny());
+    cards.push(pickAny());
+    cards.push(pickAny());
+  } else if (packType === "rare") {
+    cards.push(pickByRarity(Math.random() < 0.2 ? "epic" : "rare"));
+    cards.push(pickAny());
+    cards.push(pickAny());
+    cards.push(pickAny());
+  } else {
+    cards.push(pickAny());
+    cards.push(pickAny());
+    cards.push(pickAny());
+  }
+
+  const result = cards.map(card => ({
+    ...card,
+    __wasNew: getOwnedCount(card) <= 0
+  }));
+
+  if (save) {
+    result.forEach(card => addCardToCollection(card, 1));
+  }
+
+  return result;
+}
+
+function renderPackCards(cards, revealed = false) {
+  return cards.map((card, index) => {
+    const familyLabel = card.family ? families[card.family]?.label : (card.type || "Carta");
+    const rarity = card.rarity || "common";
+    const badge = card.__wasNew
+      ? `<span class="new-badge">Nuova carta</span>`
+      : `<span class="duplicate-badge">Doppione</span>`;
+
+    return `
+      <button type="button" class="pack-card reveal-card rarity-${rarity} ${revealed ? "revealed" : ""}" data-pack-index="${index}">
+        <span class="card-back-cover">🎴<br>Rivela</span>
+        <span class="card-front">
+          ${card.icon || families[card.family]?.icon || "🃏"}<br>
+          <strong>${card.name}</strong><br>
+          <small>${familyLabel} · ${shortRarity(rarity)}</small><br>
+          ${badge}
+        </span>
+      </button>
+    `;
+  }).join("");
+}
+
+function attachPackRevealEvents(container) {
+  if (!container) return;
+
+  const cards = [...container.querySelectorAll(".reveal-card")];
+  cards.forEach(card => {
+    card.onclick = () => {
+      if (card.classList.contains("revealed")) return;
+      card.classList.add("revealed");
+      createParticlesFromElement(card, card.classList.contains("rarity-legendary") ? "light" : "blue", 12);
+
+      const allRevealed = cards.every(item => item.classList.contains("revealed"));
+      if (allRevealed && packHintText && container === packCards) {
+        packHintText.textContent = "Pacchetto aperto. Le carte sono state aggiunte alla collezione.";
+      }
+    };
+  });
+}
+
+
+function renderCollection() {
+  const profile = normalizeProfile();
+  const familyFilter = collectionFamilyFilter?.value || "all";
+  const rarityFilter = collectionRarityFilter?.value || "all";
+  const cards = allCollectibleTemplates().filter(card => {
+    if (familyFilter !== "all" && card.family !== familyFilter && !(card.decks || []).includes(familyFilter)) return false;
+    if (rarityFilter !== "all" && (card.rarity || "common") !== rarityFilter) return false;
+    return true;
+  });
+
+  const ownedUnique = allCollectibleTemplates().filter(card => (profile.collection[cardKey(card)] || 0) > 0).length;
+  const totalUnique = allCollectibleTemplates().length;
+  collectionSummary.textContent = `Carte diverse: ${ownedUnique}/${totalUnique} · Oro ${profile.gold || 0} · Polvere ${profile.dust || 0}`;
+
+  collectionList.innerHTML = cards.map(card => {
+    const count = profile.collection[cardKey(card)] || 0;
+    const locked = count <= 0;
+    const familyLabel = card.family ? families[card.family]?.label : (card.type || "Carta");
+    return `
+      <div class="collection-card ${locked ? "locked" : ""}">
+        <strong>${locked ? "❔ Carta non trovata" : `${card.icon || families[card.family]?.icon || "🃏"} ${card.name}`}</strong>
+        <small>${familyLabel} · ${shortRarity(card.rarity || "common")} · copie ${count}</small>
+      </div>
+    `;
+  }).join("");
+}
+
+function openCollection() {
+  collectionModal.classList.remove("hidden");
+  renderCollection();
+}
+
+function dustDuplicates() {
+  const profile = normalizeProfile();
+  let gained = 0;
+  const rarityDust = { common: 5, rare: 20, epic: 80, legendary: 250 };
+
+  allCollectibleTemplates().forEach(card => {
+    const key = cardKey(card);
+    const count = profile.collection[key] || 0;
+    if (count > 1) {
+      const extra = count - 1;
+      gained += extra * (rarityDust[card.rarity || "common"] || 5);
+      profile.collection[key] = 1;
+    }
+  });
+
+  profile.dust = (profile.dust || 0) + gained;
+  saveProfile(profile);
+  alert(gained ? `Hai ottenuto ${gained} polvere.` : "Non hai doppioni da convertire.");
+  renderCollection();
+}
+
+function openShop() {
+  const profile = normalizeProfile();
+  shopCurrencyText.textContent = `Oro ${profile.gold || 0} · Polvere ${profile.dust || 0}`;
+  shopResult.innerHTML = "";
+  shopModal.classList.remove("hidden");
+}
+
+function buyPack(packType) {
+  const costs = { base: 100, rare: 250, legendary: 700 };
+  const cost = costs[packType] || 100;
+  const profile = normalizeProfile();
+
+  if ((profile.gold || 0) < cost) {
+    alert(`Oro insufficiente. Ti servono ${cost} oro.`);
+    return;
+  }
+
+  profile.gold -= cost;
+  saveProfile(profile);
+  const cards = openRewardPack(packType, true);
+  shopCurrencyText.textContent = `Oro ${profile.gold || 0} · Polvere ${profile.dust || 0}`;
+  shopResult.innerHTML = renderPackCards(cards);
+  attachPackRevealEvents(shopResult);
+}
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function openDailyReward() {
+  const profile = normalizeProfile();
+  const claimed = profile.lastDailyReward === todayKey();
+  dailyRewardText.textContent = claimed
+    ? "Hai già riscattato la ricompensa di oggi. Torna domani."
+    : "Ricompensa pronta: 120 oro + 1 pacchetto base.";
+  claimDailyRewardBtn.disabled = claimed;
+  if (dailyRewardCards) dailyRewardCards.innerHTML = "";
+  dailyRewardModal.classList.remove("hidden");
+}
+
+function claimDailyReward() {
+  const profile = normalizeProfile();
+  if (profile.lastDailyReward === todayKey()) return;
+  profile.lastDailyReward = todayKey();
+  profile.gold = (profile.gold || 0) + 120;
+  saveProfile(profile);
+  const cards = openRewardPack("base", true);
+  dailyRewardText.textContent = "Ricompensa riscattata: +120 oro. Tocca le carte per rivelarle.";
+  if (dailyRewardCards) {
+    dailyRewardCards.innerHTML = renderPackCards(cards);
+    attachPackRevealEvents(dailyRewardCards);
+  }
+  claimDailyRewardBtn.disabled = true;
+}
+
+const achievementDefs = [
+  { id: "first_win", title: "Prima vittoria", test: p => (p.wins || 0) >= 1, reward: 100 },
+  { id: "ten_wins", title: "10 vittorie", test: p => (p.wins || 0) >= 10, reward: 300 },
+  { id: "collector_10", title: "Collezionista I", test: p => Object.values(p.collection || {}).filter(v => v > 0).length >= 10, reward: 150 },
+  { id: "collector_30", title: "Collezionista II", test: p => Object.values(p.collection || {}).filter(v => v > 0).length >= 30, reward: 350 },
+  { id: "level_5", title: "Livello 5", test: p => getLevelFromXp(p.xp || 0) >= 5, reward: 250 }
+];
+
+function renderAchievements() {
+  const profile = normalizeProfile();
+  achievementsList.innerHTML = achievementDefs.map(a => {
+    const done = a.test(profile);
+    const claimed = profile.achievements?.[a.id];
+    return `
+      <div class="mission-row">
+        <strong>${done ? "✅" : "⬜"} ${a.title}</strong><br>
+        Premio: ${a.reward} oro · ${claimed ? "riscattato" : done ? `<button class="claim-achievement-btn" data-id="${a.id}">Riscatta</button>` : "non completato"}
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".claim-achievement-btn").forEach(btn => {
+    btn.onclick = () => claimAchievement(btn.dataset.id);
+  });
+}
+
+function claimAchievement(id) {
+  const profile = normalizeProfile();
+  const achievement = achievementDefs.find(a => a.id === id);
+  if (!achievement || profile.achievements?.[id] || !achievement.test(profile)) return;
+  profile.achievements[id] = true;
+  profile.gold = (profile.gold || 0) + achievement.reward;
+  saveProfile(profile);
+  renderAchievements();
+}
+
+function openAchievements() {
+  achievementsModal.classList.remove("hidden");
+  renderAchievements();
+}
+
+function getSavedDecks() {
+  let decks = [];
+  try { decks = JSON.parse(localStorage.getItem("ceaSavedDecks") || "[]"); }
+  catch { decks = []; }
+  if (!Array.isArray(decks) || decks.length === 0) {
+    decks = [{ id: "deck_1", name: "Mazzo 1", cards: [] }];
+    localStorage.setItem("ceaSavedDecks", JSON.stringify(decks));
+  }
+  if (!decks.some(deck => deck.id === activeDeckId)) activeDeckId = decks[0].id;
+  localStorage.setItem("ceaActiveDeckId", activeDeckId);
+  return decks;
+}
+
+function saveSavedDecks(decks) {
+  localStorage.setItem("ceaSavedDecks", JSON.stringify(decks));
+}
+
+function getActiveDeck() {
+  const decks = getSavedDecks();
+  return decks.find(deck => deck.id === activeDeckId) || decks[0];
+}
+
+function getCustomDeckList() {
+  return getActiveDeck().cards || [];
+}
+
+function saveCustomDeckList(list) {
+  const decks = getSavedDecks();
+  const deck = decks.find(d => d.id === activeDeckId) || decks[0];
+  deck.cards = list;
+  if (deckNameInput && deckNameInput.value.trim()) deck.name = deckNameInput.value.trim();
+  saveSavedDecks(decks);
+}
+
+function getSavedCustomDeckCards() {
+  const list = getCustomDeckList();
+  if (list.length < 30) return null;
+  const templates = allCollectibleTemplates();
+  const cards = list.map(id => templates.find(card => cardKey(card) === id)).filter(Boolean).map(cloneCardForDeck);
+  return cards.length >= 30 ? shuffle(cards) : null;
+}
+
+function getMaxCopiesForCard(card) {
+  if ((card.rarity || "common") === "legendary") return 1;
+  if ((card.rarity || "common") === "epic") return 2;
+  if ((card.rarity || "common") === "rare") return 2;
+  return 3;
+}
+
+function openDeckBuilder() {
+  deckBuilderModal.classList.remove("hidden");
+  renderDeckBuilder();
+}
+
+function renderSavedDecks() {
+  const decks = getSavedDecks();
+  const active = getActiveDeck();
+  if (deckNameInput) deckNameInput.value = active.name || "Mazzo";
+  if (!savedDecksList) return;
+  savedDecksList.innerHTML = decks.map(deck => `
+    <button class="saved-deck-pill ${deck.id === activeDeckId ? "active" : ""}" data-id="${deck.id}">
+      ${deck.name || "Mazzo"} · ${(deck.cards || []).length}
+    </button>
   `).join("");
+  document.querySelectorAll(".saved-deck-pill").forEach(btn => {
+    btn.onclick = () => {
+      activeDeckId = btn.dataset.id;
+      localStorage.setItem("ceaActiveDeckId", activeDeckId);
+      renderDeckBuilder();
+    };
+  });
+}
+
+function renderDeckBuilder() {
+  const profile = normalizeProfile();
+  const custom = getCustomDeckList();
+  renderSavedDecks();
+  const filter = deckFamilyFilter?.value || "all";
+  const rarity = deckRarityFilter?.value || "all";
+  const cost = deckCostFilter?.value || "all";
+  const search = (deckSearchInput?.value || "").trim().toLowerCase();
+  const cards = allCollectibleTemplates().filter(card => {
+    const owned = profile.collection[cardKey(card)] || 0;
+    if (owned <= 0) return false;
+    if (filter !== "all" && card.family !== filter && !(card.decks || []).includes(filter)) return false;
+    if (rarity !== "all" && (card.rarity || "common") !== rarity) return false;
+    if (cost === "0-1" && card.cost > 1) return false;
+    if (cost === "2-3" && (card.cost < 2 || card.cost > 3)) return false;
+    if (cost === "4+" && card.cost < 4) return false;
+    if (search && !card.name.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const active = getActiveDeck();
+  const valid = custom.length >= 30 && custom.length <= 40;
+  deckBuilderSummary.textContent = `${active.name || "Mazzo"}: ${custom.length}/30 carte · massimo 40 · ${valid ? "pronto" : "non valido"}`;
+  deckBuilderList.innerHTML = cards.map(card => {
+    const key = cardKey(card);
+    const count = custom.filter(id => id === key).length;
+    const max = Math.min(getMaxCopiesForCard(card), profile.collection[key] || 0);
+    const familyLabel = card.family ? families[card.family]?.label : (card.type || "Carta");
+    return `
+      <div class="deck-build-card">
+        <strong>${card.icon || families[card.family]?.icon || "🃏"} ${card.name}</strong>
+        <small>${familyLabel} · ${shortRarity(card.rarity || "common")} · costo ${card.cost} · possedute ${profile.collection[key] || 0} · max ${max}</small>
+        <div class="deck-build-actions">
+          <button class="deck-remove-card" data-id="${key}">−</button>
+          <div class="deck-count-pill">${count}</div>
+          <button class="deck-add-card" data-id="${key}">+</button>
+        </div>
+      </div>
+    `;
+  }).join("") || `<div class="mission-row">Nessuna carta trovata. Cambia filtri o apri pacchetti.</div>`;
+
+  document.querySelectorAll(".deck-add-card").forEach(btn => btn.onclick = () => addCardToCustomDeck(btn.dataset.id));
+  document.querySelectorAll(".deck-remove-card").forEach(btn => btn.onclick = () => removeCardFromCustomDeck(btn.dataset.id));
+}
+
+function addCardToCustomDeck(id) {
+  const profile = normalizeProfile();
+  const card = allCollectibleTemplates().find(ca => cardKey(ca) === id);
+  if (!card) return;
+  const custom = getCustomDeckList();
+  const current = custom.filter(x => x === id).length;
+  const max = Math.min(getMaxCopiesForCard(card), profile.collection[id] || 0);
+  if (custom.length >= 40) return alert("Il mazzo può avere massimo 40 carte.");
+  if (current >= max) return alert("Hai raggiunto il limite copie per questa carta.");
+  custom.push(id);
+  saveCustomDeckList(custom);
+  renderDeckBuilder();
+}
+
+function removeCardFromCustomDeck(id) {
+  const custom = getCustomDeckList();
+  const index = custom.indexOf(id);
+  if (index >= 0) custom.splice(index, 1);
+  saveCustomDeckList(custom);
+  renderDeckBuilder();
+}
+
+function autoBuildDeck() {
+  const profile = normalizeProfile();
+  const filter = deckFamilyFilter?.value || selectedDeck || "balanced";
+  const owned = allCollectibleTemplates().filter(card => {
+    if ((profile.collection[cardKey(card)] || 0) <= 0) return false;
+    if (filter !== "all" && filter !== "balanced" && card.family !== filter && !(card.decks || []).includes(filter)) return false;
+    return true;
+  });
+  const sorted = shuffle(owned).sort((a, b) => {
+    const rarityScore = { legendary: 4, epic: 3, rare: 2, common: 1 };
+    return (rarityScore[b.rarity] || 1) - (rarityScore[a.rarity] || 1) || b.cost - a.cost;
+  });
+  const list = [];
+  sorted.forEach(card => {
+    const max = Math.min(getMaxCopiesForCard(card), profile.collection[cardKey(card)] || 0);
+    for (let i = 0; i < max && list.length < 30; i++) list.push(cardKey(card));
+  });
+  saveCustomDeckList(list);
+  renderDeckBuilder();
+}
+
+function createNewDeck() {
+  const decks = getSavedDecks();
+  const id = `deck_${Date.now()}`;
+  const name = deckNameInput?.value?.trim() || `Mazzo ${decks.length + 1}`;
+  decks.push({ id, name, cards: [] });
+  activeDeckId = id;
+  localStorage.setItem("ceaActiveDeckId", activeDeckId);
+  saveSavedDecks(decks);
+  renderDeckBuilder();
+}
+
+function deleteActiveDeck() {
+  let decks = getSavedDecks();
+  if (decks.length <= 1) {
+    decks[0].cards = [];
+    saveSavedDecks(decks);
+    renderDeckBuilder();
+    return;
+  }
+  decks = decks.filter(deck => deck.id !== activeDeckId);
+  activeDeckId = decks[0].id;
+  localStorage.setItem("ceaActiveDeckId", activeDeckId);
+  saveSavedDecks(decks);
+  renderDeckBuilder();
+}
+
+function saveAndUseCustomDeck() {
+  const list = getCustomDeckList();
+  if (list.length < 30) return alert("Il mazzo deve avere almeno 30 carte.");
+  if (deckNameInput?.value.trim()) saveCustomDeckList(list);
+  selectedDeck = "custom";
+  document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
+  alert("Mazzo salvato. Ora quando premi Gioca userai il mazzo personalizzato selezionato.");
+  deckBuilderModal.classList.add("hidden");
 }
 
 function renderHistory() {
@@ -2776,14 +3982,69 @@ function renderReplay() {
   `).join("");
 }
 
-function renderMissions() {
-  const profile = getProfile();
+const dailyMissionDefs = [
+  { id: "play", label: "Gioca 1 partita", target: 1, rewardGold: 50, rewardXp: 15 },
+  { id: "win", label: "Vinci 1 partita", target: 1, rewardGold: 90, rewardXp: 25 },
+  { id: "creatures", label: "Evoca 6 creature", target: 6, rewardGold: 60, rewardXp: 20 },
+  { id: "spells", label: "Usa 3 magie", target: 3, rewardGold: 60, rewardXp: 20 },
+  { id: "evolutions", label: "Fai 2 evoluzioni", target: 2, rewardGold: 70, rewardXp: 25 }
+];
 
-  missionsList.innerHTML = `
-    <div class="mission-row">Vinci una partita · <strong>${profile.wins > 0 ? "Completata" : "+20 XP"}</strong></div>
-    <div class="mission-row">Gioca una partita · <strong>${(profile.wins + profile.losses) > 0 ? "Completata" : "+10 XP"}</strong></div>
-    <div class="mission-row">Raggiungi 100 XP · <strong>${profile.xp >= 100 ? "Completata" : "+30 XP"}</strong></div>
-  `;
+function ensureDailyMissions(profile = normalizeProfile()) {
+  const today = todayKey();
+  if (!profile.dailyMissions || profile.dailyMissions.date !== today) {
+    profile.dailyMissions = {
+      date: today,
+      progress: {},
+      claimed: {}
+    };
+    saveProfile(profile);
+  }
+  return profile.dailyMissions;
+}
+
+function updateDailyMissionProgress(id, amount) {
+  const profile = normalizeProfile();
+  const daily = ensureDailyMissions(profile);
+  daily.progress[id] = (daily.progress[id] || 0) + amount;
+  profile.dailyMissions = daily;
+  saveProfile(profile);
+}
+
+function claimDailyMission(id) {
+  const profile = normalizeProfile();
+  const daily = ensureDailyMissions(profile);
+  const def = dailyMissionDefs.find(m => m.id === id);
+  if (!def || daily.claimed[id]) return;
+  if ((daily.progress[id] || 0) < def.target) return;
+  daily.claimed[id] = true;
+  profile.gold = (profile.gold || 0) + def.rewardGold;
+  profile.xp = (profile.xp || 0) + def.rewardXp;
+  profile.dailyMissions = daily;
+  saveProfile(profile);
+  renderMissions();
+}
+
+function renderMissions() {
+  const profile = normalizeProfile();
+  const daily = ensureDailyMissions(profile);
+
+  missionsList.innerHTML = dailyMissionDefs.map(def => {
+    const progress = Math.min(def.target, daily.progress[def.id] || 0);
+    const done = progress >= def.target;
+    const claimed = daily.claimed[def.id];
+    return `
+      <div class="mission-row">
+        <strong>${done ? "✅" : "⬜"} ${def.label}</strong><br>
+        Progresso: ${progress}/${def.target} · Premio: ${def.rewardGold} oro + ${def.rewardXp} XP<br>
+        ${claimed ? "Riscattata" : done ? `<button class="claim-daily-mission-btn" data-id="${def.id}">Riscatta</button>` : "In corso"}
+      </div>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".claim-daily-mission-btn").forEach(btn => {
+    btn.onclick = () => claimDailyMission(btn.dataset.id);
+  });
 }
 
 function startDraft() {
@@ -2842,11 +4103,114 @@ function applyArenaSkin(value) {
   }
 }
 
+function getWinRate(profile) {
+  const total = (profile.wins || 0) + (profile.losses || 0);
+  return total ? Math.round(((profile.wins || 0) / total) * 100) : 0;
+}
+
+function getCollectionCompletion(profile) {
+  const total = allCollectibleTemplates().length;
+  const owned = Object.values(profile.collection || {}).filter(v => v > 0).length;
+  return { owned, total, pct: total ? Math.round((owned / total) * 100) : 0 };
+}
+
+function openProfile() {
+  const profile = normalizeProfile();
+  const level = getLevelFromXp(profile.xp || 0);
+  const coll = getCollectionCompletion(profile);
+  const active = getActiveDeck();
+  const favoriteDeck = localStorage.getItem("favoriteDeck") || deckLabels[selectedDeck] || "Bilanciato";
+
+  profileStatsBox.innerHTML = `
+    <div class="profile-stat-card"><small>Titolo</small><strong>${profile.title || "Apprendista"}</strong></div>
+    <div class="profile-stat-card"><small>Livello</small><strong>${level}</strong></div>
+    <div class="profile-stat-card"><small>XP</small><strong>${profile.xp || 0}</strong></div>
+    <div class="profile-stat-card"><small>Oro</small><strong>${profile.gold || 0}</strong></div>
+    <div class="profile-stat-card"><small>Polvere</small><strong>${profile.dust || 0}</strong></div>
+    <div class="profile-stat-card"><small>Vittorie / Sconfitte</small><strong>${profile.wins || 0} / ${profile.losses || 0}</strong></div>
+    <div class="profile-stat-card"><small>Win rate</small><strong>${getWinRate(profile)}%</strong></div>
+    <div class="profile-stat-card"><small>Collezione</small><strong>${coll.owned}/${coll.total} · ${coll.pct}%</strong></div>
+    <div class="profile-stat-card"><small>Mazzo attivo</small><strong>${selectedDeck === "custom" ? active.name : deckLabels[selectedDeck]}</strong></div>
+    <div class="profile-stat-card"><small>Difficoltà</small><strong>${difficultyLabels[selectedDifficulty]}</strong></div>
+  `;
+
+  const titles = [
+    { title: "Apprendista dell'Arena", ok: true },
+    { title: "Campione dell'Arena", ok: (profile.wins || 0) >= 10 },
+    { title: "Collezionista Leggendario", ok: coll.owned >= 40 },
+    { title: "Signore delle Ombre", ok: (profile.collection?.shadow_12 || 0) > 0 },
+    { title: "Domatore di Draghi", ok: Object.keys(profile.collection || {}).some(k => k.toLowerCase().includes("dragon") || k.toLowerCase().includes("drago")) }
+  ];
+
+  profileTitlesBox.innerHTML = titles.map(t => `
+    <div class="mission-row">
+      <strong>${t.ok ? "✅" : "🔒"} ${t.title}</strong>
+      ${t.ok ? `<button class="equip-title-btn" data-title="${t.title}">Equipaggia</button>` : ""}
+    </div>
+  `).join("");
+  document.querySelectorAll(".equip-title-btn").forEach(btn => {
+    btn.onclick = () => {
+      const p = normalizeProfile();
+      p.title = btn.dataset.title;
+      saveProfile(p);
+      openProfile();
+    };
+  });
+
+  profileModal.classList.remove("hidden");
+}
+
+function getSettings() {
+  return normalizeProfile().settings || { audio: true, vibration: true, reducedMotion: false };
+}
+
+function applySettings() {
+  const settings = getSettings();
+  document.body.classList.toggle("reduced-motion", Boolean(settings.reducedMotion));
+}
+
+function openSettings() {
+  const settings = getSettings();
+  if (audioToggle) audioToggle.checked = Boolean(settings.audio);
+  if (vibrationToggle) vibrationToggle.checked = Boolean(settings.vibration);
+  if (reducedMotionToggle) reducedMotionToggle.checked = Boolean(settings.reducedMotion);
+  settingsModal.classList.remove("hidden");
+}
+
+function saveSettingsFromModal() {
+  const profile = normalizeProfile();
+  profile.settings = {
+    audio: Boolean(audioToggle?.checked),
+    vibration: Boolean(vibrationToggle?.checked),
+    reducedMotion: Boolean(reducedMotionToggle?.checked)
+  };
+  saveProfile(profile);
+  applySettings();
+  settingsModal.classList.add("hidden");
+}
+
+function maybeVibrate(pattern = 25) {
+  const settings = getSettings();
+  if (settings.vibration && navigator.vibrate) navigator.vibrate(pattern);
+}
+
+document.querySelectorAll(".hero-class-btn").forEach(button => {
+  button.classList.toggle("selected", button.dataset.hero === selectedHero);
+  button.onclick = () => {
+    document.querySelectorAll(".hero-class-btn").forEach(btn => btn.classList.remove("selected"));
+    button.classList.add("selected");
+    selectedHero = button.dataset.hero;
+    localStorage.setItem("selectedHero", selectedHero);
+    renderProfile();
+  };
+});
+
 document.querySelectorAll(".deck-btn").forEach(button => {
   button.onclick = () => {
     document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
     button.classList.add("selected");
     selectedDeck = button.dataset.deck;
+    localStorage.setItem("favoriteDeck", deckLabels[selectedDeck] || selectedDeck);
   };
 });
 
@@ -2882,11 +4246,13 @@ createOnlineBtn.onclick = createOnlineGame;
 joinOnlineBtn.onclick = joinOnlineGame;
 endTurnBtn.onclick = endTurn;
 
-campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
+campaignBtn.onclick = openCampaignMap;
 draftBtn.onclick = startDraft;
 
 restartBtn.onclick = () => {
-  if (gameMode === "bot" || gameMode === "campaign") {
+  if (gameMode === "tutorial") {
+    startGuidedTutorial();
+  } else if (gameMode === "bot" || gameMode === "campaign") {
     startBotGame(game?.players?.p2?.bossKey || null);
   } else {
     alert("Nelle partite online torna al menu e crea una nuova stanza.");
@@ -2900,7 +4266,9 @@ resultMenuBtn.onclick = () => showOnlyMenu(true);
 playAgainBtn.onclick = () => {
   resultModal.classList.add("hidden");
 
-  if (gameMode === "bot" || gameMode === "campaign") {
+  if (gameMode === "tutorial") {
+    startGuidedTutorial();
+  } else if (gameMode === "bot" || gameMode === "campaign") {
     startBotGame(game?.players?.p2?.bossKey || null);
   } else {
     showOnlyMenu(true);
@@ -2968,6 +4336,8 @@ enemyHudBox.addEventListener("click", async () => {
 });
 
 tutorialBtn.onclick = () => tutorialModal.classList.remove("hidden");
+if (startGuidedTutorialBtn) startGuidedTutorialBtn.onclick = startGuidedTutorial;
+if (skipGuidedTutorialBtn) skipGuidedTutorialBtn.onclick = () => showOnlyMenu(true);
 
 closeTutorialBtn.onclick = () => {
   localStorage.setItem("tutorialSeen", "yes");
@@ -3028,7 +4398,59 @@ arenaSkinSelect.onchange = () => {
   applyArenaSkin(selectedArena);
 };
 
+if (difficultySelect) {
+  difficultySelect.value = selectedDifficulty;
+  difficultySelect.onchange = () => {
+    selectedDifficulty = difficultySelect.value;
+    localStorage.setItem("botDifficulty", selectedDifficulty);
+    renderProfile();
+  };
+}
+
 playerNameInput.addEventListener("input", renderProfile);
+
+
+
+if (collectionBtn) collectionBtn.onclick = openCollection;
+if (closeCollectionBtn) closeCollectionBtn.onclick = () => collectionModal.classList.add("hidden");
+if (collectionFamilyFilter) collectionFamilyFilter.onchange = renderCollection;
+if (collectionRarityFilter) collectionRarityFilter.onchange = renderCollection;
+if (dustDuplicatesBtn) dustDuplicatesBtn.onclick = dustDuplicates;
+
+if (shopBtn) shopBtn.onclick = openShop;
+if (closeShopBtn) closeShopBtn.onclick = () => shopModal.classList.add("hidden");
+document.querySelectorAll(".shop-buy-btn").forEach(btn => {
+  btn.onclick = () => buyPack(btn.dataset.pack);
+});
+
+if (dailyRewardBtn) dailyRewardBtn.onclick = openDailyReward;
+if (closeDailyRewardBtn) closeDailyRewardBtn.onclick = () => dailyRewardModal.classList.add("hidden");
+if (claimDailyRewardBtn) claimDailyRewardBtn.onclick = claimDailyReward;
+
+if (achievementsBtn) achievementsBtn.onclick = openAchievements;
+if (closeAchievementsBtn) closeAchievementsBtn.onclick = () => achievementsModal.classList.add("hidden");
+
+if (profileBtn) profileBtn.onclick = openProfile;
+if (closeProfileBtn) closeProfileBtn.onclick = () => profileModal.classList.add("hidden");
+if (settingsBtn) settingsBtn.onclick = openSettings;
+if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsModal.classList.add("hidden");
+if (saveSettingsBtn) saveSettingsBtn.onclick = saveSettingsFromModal;
+
+if (heroPowerBtn) heroPowerBtn.onclick = useHeroPower;
+if (closeCampaignMapBtn) closeCampaignMapBtn.onclick = () => campaignMapModal.classList.add("hidden");
+if (resetCampaignBtn) resetCampaignBtn.onclick = () => {
+  const ok = confirm("Vuoi azzerare il progresso campagna?");
+  if (!ok) return;
+  saveCampaignProgress({ completed: [] });
+  renderCampaignMap();
+};
+
+if (deckBuilderBtn) deckBuilderBtn.onclick = openDeckBuilder;
+if (closeDeckBuilderBtn) closeDeckBuilderBtn.onclick = () => deckBuilderModal.classList.add("hidden");
+if (deckFamilyFilter) deckFamilyFilter.onchange = renderDeckBuilder;
+if (autoBuildDeckBtn) autoBuildDeckBtn.onclick = autoBuildDeck;
+if (clearCustomDeckBtn) clearCustomDeckBtn.onclick = () => { saveCustomDeckList([]); renderDeckBuilder(); };
+if (saveCustomDeckBtn) saveCustomDeckBtn.onclick = saveAndUseCustomDeck;
 
 const savedName = localStorage.getItem("playerName");
 if (savedName) playerNameInput.value = savedName;
@@ -3055,9 +4477,110 @@ if (savedArena && arenaSkinSelect) {
 }
 
 setupRoomFromUrl();
+getSavedDecks();
+applySettings();
 renderProfile();
 showOnly(menuScreen);
 
 if (!localStorage.getItem("tutorialSeen")) {
   setTimeout(() => tutorialModal.classList.remove("hidden"), 450);
 }
+
+/* =========================
+   V18 - UI APP POLISH
+   ========================= */
+function updateWalletStripV18() {
+  try {
+    const profile = getProfile();
+    const gold = document.getElementById("walletGoldText");
+    const dust = document.getElementById("walletDustText");
+    const wins = document.getElementById("walletWinText");
+    if (gold) gold.textContent = profile.gold || 0;
+    if (dust) dust.textContent = profile.dust || 0;
+    if (wins) wins.textContent = profile.wins || 0;
+  } catch (error) {
+    console.warn("Wallet strip non aggiornata:", error);
+  }
+}
+
+function setupAppNavigationV18() {
+  const nav = document.getElementById("appBottomNav");
+  if (!nav) return;
+
+  const setActive = action => {
+    nav.querySelectorAll(".app-nav-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.action === action);
+    });
+  };
+
+  nav.querySelectorAll(".app-nav-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.action;
+      setActive(action);
+
+      if (action === "home") {
+        showOnlyMenu(true);
+        return;
+      }
+
+      if (action === "play") {
+        if (typeof startBotGame === "function") startBotGame();
+        return;
+      }
+
+      if (action === "cards") {
+        const deckBtn = document.getElementById("deckBuilderBtn");
+        const collectionBtn = document.getElementById("collectionBtn");
+        if (deckBtn) deckBtn.click();
+        else if (collectionBtn) collectionBtn.click();
+        return;
+      }
+
+      if (action === "shop") {
+        const shopBtn = document.getElementById("shopBtn");
+        if (shopBtn) shopBtn.click();
+        return;
+      }
+
+      if (action === "profile") {
+        const profileBtn = document.getElementById("profileBtn");
+        if (profileBtn) profileBtn.click();
+        return;
+      }
+    });
+  });
+}
+
+function hideSplashV18() {
+  const splash = document.getElementById("appSplash");
+  if (!splash) return;
+  setTimeout(() => {
+    splash.classList.add("splash-hide");
+    setTimeout(() => splash.remove(), 520);
+  }, 700);
+}
+
+function applySettingsLookV18() {
+  try {
+    const settings = JSON.parse(localStorage.getItem("ceaSettings") || "{}");
+    document.body.classList.toggle("reduced-motion", Boolean(settings.reducedMotion));
+  } catch {
+    document.body.classList.remove("reduced-motion");
+  }
+}
+
+const originalRenderProfileV18 = typeof renderProfile === "function" ? renderProfile : null;
+if (originalRenderProfileV18) {
+  renderProfile = function patchedRenderProfileV18() {
+    originalRenderProfileV18();
+    updateWalletStripV18();
+    applySettingsLookV18();
+  };
+}
+
+window.addEventListener("load", () => {
+  hideSplashV18();
+  setupAppNavigationV18();
+  updateWalletStripV18();
+  applySettingsLookV18();
+});
