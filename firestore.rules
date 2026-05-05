@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /werewolfRooms/{roomId} {
+      allow read, write: if true;
+
+      match /players/{playerId} {
+        allow read, write: if true;
+      }
+
+      match /bodies/{bodyId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}
