@@ -1,36 +1,36 @@
-WEREWOLF 3D FIREBASE
+Creature Evolution Arena v24
 
-Questa versione usa Firebase Firestore, quindi NON serve un server Node.
+COSA HO MIGLIORATO
+- Home iniziale riprogettata: semplice, pulita, senza dover scorrere.
+- CTA principali subito visibili: Gioca subito, Online, Campagna, Draft.
+- Tutte le opzioni avanzate sono state spostate in un pannello dedicato.
+- Riepilogo rapido in home per Avatar, Mazzo e Arena.
+- Pannello opzioni con avatar, mazzi, stile, codice partita, tutorial, classifica e storico.
+- Aggiornamento cache/service worker a v23 per forzare il refresh.
+- Mazzi elementali resi puri: Fuoco solo Fuoco, Acqua solo Acqua, ecc.
 
-COME SI USA
-1. Apri Firebase Console.
-2. Nel progetto creature-evolution-arena attiva Firestore Database.
-3. Per provare velocemente, inserisci le regole presenti in firestore.rules.
-4. Apri index.html.
-5. Crea una stanza, per esempio TOMMI38.
-6. Gli altri aprono la stessa pagina e inseriscono lo stesso codice stanza.
-
-IMPORTANTE
-- Per giocare da telefoni diversi, tutti devono aprire la stessa pagina web.
-- Puoi caricare questi file su Firebase Hosting, Render Static Site, Netlify o anche provarli da browser locale.
-- La apiKey Firebase Web non è una password segreta, ma le regole Firestore sono fondamentali.
-- Le regole incluse sono aperte solo per test. Per produzione vanno ristrette.
-
-FILE
+FILE DA COPIARE
 - index.html
-- styles.css
-- firebase-config.js
-- app.js
-- firestore.rules
+- style.css
+- script.js
+- firebase.js
+- service-worker.js
+- manifest.json
+- app-icon.svg
 
-COSA FA
-- stanza con codice
-- nickname per ogni giocatore
-- movimenti realtime
-- pupini visibili
-- task simultanee
-- lupo con kill live
-- cadaveri e segnalazione
-- meeting e voto
-- sabotaggi
-- ruoli base
+COME INSTALLARE
+1. Sostituisci tutti i file del tuo progetto con questi.
+2. Se il browser mostra ancora la versione vecchia, fai refresh forzato o svuota la cache.
+3. Se usi la PWA su iPhone/Android, chiudi e riapri l'app dopo il deploy.
+
+TEST CONSIGLIATI
+- Home iniziale
+- Pulsante Personalizza / Altre opzioni
+- Gioca vs Bot
+- Online con codice
+- Campagna
+- Draft
+- Tutorial / Classifica / Storico
+
+NOTE
+Questa versione punta soprattutto al salto di qualità della schermata iniziale e dell'esperienza mobile.

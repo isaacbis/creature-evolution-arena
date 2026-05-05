@@ -2,257 +2,611 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Werewolf 3D Firebase</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Creature Evolution Arena</title>
+
+  <link rel="stylesheet" href="style.css?v=23" />
+
+  <style>
+    /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
+    html,
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      min-height: 100% !important;
+      background: radial-gradient(circle at 15% 0%, rgba(255,159,67,0.22), transparent 28%),
+                  radial-gradient(circle at 90% 12%, rgba(89,209,255,0.16), transparent 32%),
+                  linear-gradient(160deg, #1a2134, #05060b) !important;
+      overflow-x: hidden !important;
+    }
+
+    #menuScreen.menu-screen {
+      min-height: auto !important;
+      height: auto !important;
+      display: block !important;
+      place-items: unset !important;
+      align-items: unset !important;
+      padding: 4px 6px 8px !important;
+      margin: 0 !important;
+      background: transparent !important;
+      overflow-y: auto !important;
+    }
+
+    #menuScreen .menu-shell {
+      width: 100% !important;
+      max-width: 780px !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+    }
+
+    #menuScreen .hero-panel {
+      margin: 0 !important;
+      padding: 6px 14px 15px !important;
+      border-radius: 26px !important;
+      background: linear-gradient(180deg, rgba(18, 22, 36, 0.96), rgba(7, 9, 18, 0.94)) !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+      overflow: hidden !important;
+      box-shadow: 0 18px 46px rgba(0,0,0,0.45) !important;
+    }
+
+    #menuScreen .hero-glow,
+    #menuScreen .hero-glow-one,
+    #menuScreen .hero-glow-two {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: none !important;
+    }
+
+    #menuScreen .hero-top,
+    #menuScreen .game-logo {
+      margin: 0 !important;
+      padding: 0 !important;
+      align-items: flex-start !important;
+    }
+
+    #menuScreen .logo-mark {
+      margin-top: 0 !important;
+      flex: 0 0 auto !important;
+    }
+
+    #menuScreen .game-logo h1 {
+      margin: -5px 0 0 !important;
+      padding: 0 !important;
+      line-height: 0.78 !important;
+    }
+
+    #menuScreen .profile-strip {
+      margin-top: 12px !important;
+    }
+
+    @media (max-width: 700px) {
+      #menuScreen.menu-screen {
+        padding: 2px 6px 8px !important;
+      }
+
+      #menuScreen .hero-panel {
+        padding-top: 5px !important;
+      }
+
+      #menuScreen .game-logo h1 {
+        margin-top: -6px !important;
+      }
+    }
+  
+    /* IMPORTANTE: quando JS cambia schermata, la home deve sparire davvero */
+    #menuScreen.menu-screen.hidden,
+    #lobbyScreen.lobby-screen.hidden,
+    #gameScreen.game-screen.hidden {
+      display: none !important;
+    }
+  </style>
+
+  <link rel="manifest" href="manifest.json" />
+
+  <meta name="theme-color" content="#ff9f43" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Evolution Arena" />
+
+  <link rel="apple-touch-icon" href="app-icon.svg" />
 </head>
 <body>
-  <section id="setupScreen" class="screen active">
-    <div class="bg-app">
-      <div class="container">
-        <div class="hero">
-          <div class="card">
-            <div class="brand-row">
-              <div class="logo">🐺</div>
-              <div>
-                <div class="chip">Firebase realtime</div>
-                <div class="mini">ogni giocatore entra col proprio dispositivo</div>
-              </div>
-            </div>
 
-            <h1>Werewolf<br>3D Firebase</h1>
-            <p>
-              Versione con Firebase Firestore: uno crea la stanza, gli altri entrano con codice stanza e nickname.
-              Tutti si muovono, vedono gli altri pupini e giocano contemporaneamente.
-            </p>
+  <!-- MENU PRINCIPALE -->
+  <div id="menuScreen" class="screen menu-screen compact-menu-screen">
+    <div class="menu-shell compact-home-shell">
+      <div class="home-hero-card">
+        <div class="home-hero-bg home-hero-bg-one"></div>
+        <div class="home-hero-bg home-hero-bg-two"></div>
 
-            <div class="chips">
-              <div class="chip">👥 multiplayer</div>
-              <div class="chip">🎯 task live</div>
-              <div class="chip">🐺 kill live</div>
-              <div class="chip">☠️ corpi</div>
-              <div class="chip">🗳️ meeting</div>
-              <div class="chip">💡 sabotaggi</div>
-            </div>
-
-            <div id="joinBox">
-              <label>Nickname</label>
-              <input id="nameInput" placeholder="Es. Isaac" maxlength="18" />
-
-              <div class="row">
-                <div>
-                  <label>Codice stanza</label>
-                  <input id="roomInput" placeholder="Es. TOMMI38" maxlength="12" />
-                </div>
-                <div>
-                  <label>Grafica</label>
-                  <select id="graphicsInput">
-                    <option value="clean">Pulita</option>
-                    <option value="realistic" selected>Realistica</option>
-                    <option value="cinematic">Cinematica</option>
-                  </select>
-                </div>
-              </div>
-
-              <button class="big" id="createBtn">Crea stanza</button>
-              <button class="secondary rules-btn" id="joinBtn">Entra in stanza</button>
-            </div>
-
-            <div id="lobbyBox" class="hidden">
-              <h3>Lobby</h3>
-              <p>Condividi il codice stanza con gli altri giocatori. Quando siete pronti, l'host avvia la partita.</p>
-              <div class="pill" id="roomCodePill">Stanza: ---</div>
-
-              <div id="hostControls" class="hidden">
-                <div class="row">
-                  <div>
-                    <label>Lupi</label>
-                    <select id="wolvesInput">
-                      <option value="1" selected>1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label>Task per cittadino</label>
-                    <select id="tasksInput">
-                      <option value="2">2</option>
-                      <option value="3" selected>3</option>
-                      <option value="4">4</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label>Cooldown kill</label>
-                    <select id="cooldownInput">
-                      <option value="8000">8 sec</option>
-                      <option value="14000" selected>14 sec</option>
-                      <option value="22000">22 sec</option>
-                    </select>
-                  </div>
-                </div>
-                <button class="big" id="startBtn">Avvia partita</button>
-                <button class="secondary rules-btn" id="resetBtn">Reset stanza</button>
-              </div>
-            </div>
-
-            <button class="secondary rules-btn" id="rulesBtn">📜 Regolamento</button>
-          </div>
-
-          <div class="card">
-            <h2>Giocatori</h2>
-            <div id="lobbyList"></div>
-            <div class="rule-block">
-              <b>Come provarlo</b>
-              <p>Apri questa stessa pagina da più dispositivi, inserisci lo stesso codice stanza e un nickname diverso. Serve Firestore attivo nel progetto Firebase.</p>
+        <div class="home-topbar">
+          <div class="profile-strip home-profile-strip">
+            <div>
+              <strong id="profileNameText">Profilo giocatore</strong>
+              <span id="profileLevelText">Livello 1 · XP 0/100</span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <section id="gameScreen" class="screen">
-    <canvas id="gameCanvas"></canvas>
-
-    <div class="blood-flash" id="bloodFlash"></div>
-    <div class="lights-out" id="lightsOut"></div>
-    <div class="danger-banner" id="dangerBanner">⚠️ Sabotaggio</div>
-
-    <div class="crosshair"></div>
-    <div class="task-glow" id="taskGlow"></div>
-    <div class="room-banner" id="roomBanner">🏛️ Sala Centrale</div>
-    <div class="center-msg" id="centerMsg">Caricamento...</div>
-
-    <div class="log-panel" id="eventLog"><b>Diario</b><br>Partita non iniziata.</div>
-    <div class="objective-panel">
-      <div class="objective-title">Obiettivo</div>
-      <div class="objective-small" id="objectiveText">Completa task o trova il lupo.</div>
-      <div class="status-effect" id="statusEffect">Stato: normale</div>
-      <div class="objective-small" id="turnStats"></div>
-    </div>
-
-    <div class="hud">
-      <div class="topbar">
-        <div class="top-left">
-          <div class="pill" id="statusPill">Live</div>
-          <div class="pill" id="taskPill">Task 0/0</div>
-          <div class="pill" id="alivePill">Vivi 0</div>
-          <div class="pill" id="cooldownPill">Kill 0</div>
+          <button id="openMissionsBtn" class="icon-pill">🎯 Missioni</button>
         </div>
 
-        <div class="hud-card turn-card">
-          <div class="mini">Tu sei</div>
-          <div class="turn-name" id="turnName">Giocatore</div>
-          <div class="mini" id="turnInfo">Stanza</div>
-          <div class="mission-box">
-            <div class="mini" id="taskInfo">Task</div>
-            <div class="progress"><span id="taskProgress"></span></div>
-            <div class="stamina-wrap"><div class="stamina" id="staminaBar"></div></div>
+        <div class="home-brand-block">
+          <div class="home-logo-mark">⚔️</div>
+          <div class="home-brand-copy">
+            <p class="eyebrow">Card battle mobile game</p>
+            <h1>Creature Evolution Arena</h1>
+            <p class="home-subtitle">Una home semplice, pulita e d'impatto. Le opzioni avanzate le trovi in un pannello dedicato.</p>
           </div>
         </div>
-      </div>
 
-      <div class="bottom">
-        <div class="hud-card map-card">
-          <div class="map-wrap"><canvas id="miniMap" width="160" height="160"></canvas></div>
+        <label class="input-label home-name-label">
+          Il tuo nome
+          <input id="playerNameInput" type="text" placeholder="Es. Isaac" maxlength="18" />
+        </label>
+
+        <div class="home-summary-grid">
+          <button id="summaryAvatarChip" class="summary-chip" type="button">
+            <span>Avatar</span>
+            <strong id="summaryAvatar">🧙 Mago</strong>
+          </button>
+
+          <button id="summaryDeckChip" class="summary-chip" type="button">
+            <span>Mazzo</span>
+            <strong id="summaryDeck">⚔️ Bilanciato</strong>
+          </button>
+
+          <button id="summaryArenaChip" class="summary-chip" type="button">
+            <span>Arena</span>
+            <strong id="summaryArena">Arena mistica</strong>
+          </button>
         </div>
 
-        <div class="controls">
-          <button class="empty"></button>
-          <button data-hold="forward">▲</button>
-          <button class="empty"></button>
-          <button data-hold="left">◀</button>
-          <button data-hold="back">▼</button>
-          <button data-hold="right">▶</button>
-          <button data-hold="turnL">↺</button>
-          <button data-hold="sprint">⚡</button>
-          <button data-hold="turnR">↻</button>
+        <div class="main-actions hero-main-actions">
+          <button id="playBotBtn" class="primary-action home-primary-action">Gioca subito</button>
+          <button id="createOnlineBtn" class="glass-action home-secondary-main">Online</button>
         </div>
 
-        <div class="hud-card actions">
-          <button class="good" id="taskBtn">Task</button>
-          <button class="danger" id="killBtn">Uccidi</button>
-          <button class="blue" id="reportBtn">Segnala</button>
-          <button class="emergency" id="emergencyBtn">Emergenza</button>
-          <button class="sabotage" id="sabotageBtn">Sabota</button>
-          <button class="yellow" id="repairBtn">Ripara</button>
-          <button class="secondary" id="specialBtn">Abilità</button>
+        <div class="main-actions hero-secondary-actions">
+          <button id="campaignBtn" class="glass-action">Campagna</button>
+          <button id="draftBtn" class="glass-action">Draft</button>
+        </div>
+
+        <button id="openOptionsHubBtn" class="full-glass-btn options-trigger-btn">Personalizza · Entra con codice · Altre opzioni</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUB OPZIONI -->
+  <div id="optionsHubModal" class="modal hidden">
+    <div class="modal-card settings-hub-card">
+      <div class="settings-hub-head">
+        <div>
+          <div class="result-icon">⚙️</div>
+          <h2>Personalizza la partita</h2>
+          <p>Tutte le opzioni sono qui, così la schermata iniziale resta semplice e pulita.</p>
         </div>
       </div>
-    </div>
-  </section>
 
-  <div class="overlay" id="taskModal">
-    <div class="modal">
-      <h2>Mini task</h2>
-      <p id="taskGameText">Completa il mini task.</p>
-      <div id="taskGameArea"></div>
-      <button class="big good" id="finishTaskBtn" disabled>Completa task</button>
-      <button class="big secondary" data-close="taskModal">Annulla</button>
-    </div>
-  </div>
+      <div class="settings-hub-scroll">
+        <div class="section-row compact-section-row">
+          <h2>Avatar</h2>
+          <span>Scegli identità</span>
+        </div>
 
-  <div class="overlay" id="killModal">
-    <div class="modal">
-      <h2>Uccisione</h2>
-      <p>Puoi uccidere solo un giocatore vivo vicino o nella tua stessa stanza.</p>
-      <label>Vittima</label>
-      <select id="killTarget"></select>
-      <div class="row" style="margin-top:12px">
-        <button class="danger" id="confirmKillBtn">Conferma uccisione</button>
-        <button class="secondary" data-close="killModal">Annulla</button>
-      </div>
-    </div>
-  </div>
+        <div class="avatar-grid">
+          <button class="avatar-btn selected" data-avatar="🧙">🧙<small>Mago</small></button>
+          <button class="avatar-btn" data-avatar="⚔️">⚔️<small>Guerriero</small></button>
+          <button class="avatar-btn" data-avatar="🐉">🐉<small>Domatore</small></button>
+          <button class="avatar-btn" data-avatar="🌑">🌑<small>Stregone</small></button>
+          <button class="avatar-btn" data-avatar="☀️">☀️<small>Paladino</small></button>
+          <button class="avatar-btn" data-avatar="🏖️">🏖️<small>Tommi</small></button>
+        </div>
 
-  <div class="overlay" id="specialModal">
-    <div class="modal">
-      <h2>Abilità speciale</h2>
-      <p id="specialText">Usa l'abilità del tuo ruolo.</p>
-      <div id="specialArea"></div>
-      <button class="big secondary" data-close="specialModal">Chiudi</button>
-    </div>
-  </div>
+        <div class="section-row compact-section-row">
+          <h2>Mazzo</h2>
+          <span>Stile di gioco</span>
+        </div>
 
-  <div class="overlay" id="voteModal">
-    <div class="modal">
-      <h2>Riunione</h2>
-      <p id="voteReason">Discutete e votate.</p>
-      <div id="voteList" class="meeting-table"></div>
-      <div id="meetingHostControls" class="hidden">
-        <div class="row" style="margin-top:12px">
-          <button class="danger" id="resolveVotesBtn">Elimina più votato</button>
-          <button class="secondary" id="skipMeetingBtn">Nessuno</button>
+        <div class="deck-grid compact-deck-grid">
+          <button class="deck-btn fire" data-deck="fire">
+            <b>🔥 Fuoco</b>
+            <small>aggressivo</small>
+          </button>
+          <button class="deck-btn water" data-deck="water">
+            <b>🌊 Acqua</b>
+            <small>difesa e cura</small>
+          </button>
+          <button class="deck-btn forest" data-deck="forest">
+            <b>🌿 Foresta</b>
+            <small>buff e rabbia</small>
+          </button>
+          <button class="deck-btn shadow" data-deck="shadow">
+            <b>🌑 Ombra</b>
+            <small>veleno e danni</small>
+          </button>
+          <button class="deck-btn light" data-deck="light">
+            <b>☀️ Luce</b>
+            <small>guardia e cura</small>
+          </button>
+          <button class="deck-btn balanced selected" data-deck="balanced">
+            <b>⚔️ Bilanciato</b>
+            <small>mix completo</small>
+          </button>
+        </div>
+
+        <div class="section-row compact-section-row">
+          <h2>Stile</h2>
+          <span>Look app</span>
+        </div>
+
+        <div class="custom-grid compact-custom-grid">
+          <label class="select-label">
+            Dorso carte
+            <select id="cardBackSelect">
+              <option value="classic">Classico</option>
+              <option value="fire">Fuoco</option>
+              <option value="water">Acqua</option>
+              <option value="shadow">Ombra</option>
+              <option value="legendary">Leggendario</option>
+            </select>
+          </label>
+
+          <label class="select-label">
+            Arena
+            <select id="arenaSkinSelect">
+              <option value="default">Arena mistica</option>
+              <option value="volcano">Vulcano</option>
+              <option value="forest">Foresta sacra</option>
+              <option value="abyss">Abisso oscuro</option>
+              <option value="beach">Spiaggia Tommi 38</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="section-row compact-section-row">
+          <h2>Partita online</h2>
+          <span>Entra con codice</span>
+        </div>
+
+        <div class="join-box settings-join-box">
+          <input id="joinCodeInput" type="text" placeholder="Codice partita" maxlength="6" />
+          <button id="joinOnlineBtn" class="glass-action">Entra</button>
+        </div>
+
+        <div class="section-row compact-section-row">
+          <h2>Altro</h2>
+          <span>Utility rapide</span>
+        </div>
+
+        <div class="bottom-menu settings-bottom-menu">
+          <button id="tutorialBtn">📘 Tutorial</button>
+          <button id="leaderboardBtn">🏆 Classifica</button>
+          <button id="historyBtn">📜 Storico</button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="overlay" id="rulesModal">
-    <div class="modal">
-      <h2>Regolamento</h2>
-      <div class="rules-list">
-        <div class="rule-block"><b>Cittadini</b><p>Vincono completando tutti i task o eliminando tutti i lupi.</p></div>
-        <div class="rule-block"><b>Lupi</b><p>Vincono quando restano in numero pari o superiore agli altri vivi. Possono uccidere e sabotare.</p></div>
-        <div class="rule-block"><b>Task simultanee</b><p>Tutti si muovono e fanno task contemporaneamente dai propri dispositivi.</p></div>
-        <div class="rule-block"><b>Kill live</b><p>Il lupo può uccidere mentre gira nella mappa se è vicino a una vittima.</p></div>
-        <div class="rule-block"><b>Cadaveri</b><p>Chi trova un corpo può segnalarlo e far partire una riunione.</p></div>
+      <div class="modal-actions sticky-modal-actions">
+        <button id="closeOptionsHubBtn">Chiudi</button>
       </div>
-      <button class="big" data-close="rulesModal">Chiudi</button>
     </div>
   </div>
 
-  <div class="overlay" id="endModal">
-    <div class="modal">
-      <h2 id="endTitle">Fine partita</h2>
-      <p id="endText"></p>
-      <div id="endRoles"></div>
-      <button class="big" id="newGameBtn">Nuova partita</button>
+  <!-- LOBBY ONLINE -->
+  <div id="lobbyScreen" class="screen lobby-screen hidden">
+    <div class="menu-shell">
+      <div class="hero-panel lobby-card">
+        <div class="hero-top">
+          <div class="game-logo">
+            <div class="logo-mark">🌐</div>
+            <div>
+              <h1>Lobby<br>Online</h1>
+              <p>Condividi il codice con l’altro giocatore.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-box" id="roomCodeText">----</div>
+
+        <p id="lobbyStatusText" class="lobby-status">In attesa del secondo giocatore...</p>
+
+        <div class="main-actions">
+          <button id="copyCodeBtn" class="primary-action">Copia codice</button>
+          <button id="copyInviteLinkBtn" class="glass-action">Copia link</button>
+        </div>
+
+        <button id="leaveLobbyBtn" class="full-glass-btn">Torna al menu</button>
+      </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <!-- GIOCO -->
+  <div id="gameScreen" class="game-screen hidden">
 
-  <script type="module" src="app.js"></script>
+    <header class="app-topbar">
+      <div class="top-player-title">
+        <div class="mini-logo">⚔️</div>
+        <div>
+          <h1>Evolution Arena</h1>
+          <p id="modeText">Bot</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="quickChatBtn" class="round-btn">💬</button>
+        <button id="backMenuBtn" class="round-btn">☰</button>
+        <button id="restartBtn" class="round-btn accent">↻</button>
+      </div>
+    </header>
+
+    <section class="battle-hud">
+      <div class="player-bar enemy-bar" id="enemyHudBox">
+        <div>
+          <strong id="enemyName">Nemico</strong>
+          <span>🃏 <b id="enemyHandCount">0</b></span>
+        </div>
+        <div class="life-energy">
+          <span>❤️ <b id="enemyLife">30</b></span>
+          <span>⚡ <b id="enemyEnergy">0</b>/<b id="enemyMaxEnergy">0</b></span>
+          <small id="enemyEnergyDots" class="energy-dots"></small>
+        </div>
+      </div>
+
+      <div class="turn-panel">
+        <strong id="turnText">Tuo turno</strong>
+        <span id="message">Trascina una carta o seleziona una creatura.</span>
+        <span id="roomInfoText"></span>
+        <span id="turnTimerText" class="timer-text">⏱️ --</span>
+        <button id="cancelAttackBtn" class="tiny-btn hidden">Annulla attacco</button>
+      </div>
+
+      <div class="player-bar my-bar">
+        <div>
+          <strong id="playerNameText">Tu</strong>
+          <span>📦 <b id="playerDeckCount">0</b></span>
+        </div>
+        <div class="life-energy">
+          <span>❤️ <b id="playerLife">30</b></span>
+          <span>⚡ <b id="playerEnergy">0</b>/<b id="playerMaxEnergy">0</b></span>
+          <small id="playerEnergyDots" class="energy-dots"></small>
+        </div>
+      </div>
+    </section>
+
+    <main class="battle-board">
+
+      <section class="terrain-zone">
+        <span>🌍 Terreno</span>
+        <strong id="activeTerrainText">Nessun terreno</strong>
+      </section>
+
+      <section class="field-zone enemy-zone">
+        <div class="zone-title">
+          <h3>Campo avversario</h3>
+          <span>Mazzo: <b id="enemyDeckCount">0</b></span>
+        </div>
+        <div id="enemyField" class="field compact-field"></div>
+      </section>
+
+      <section class="field-zone player-zone">
+        <div class="zone-title">
+          <h3>Il tuo campo</h3>
+          <button id="endTurnBtn" class="end-turn-btn">Fine turno</button>
+        </div>
+        <div id="playerField" class="field compact-field"></div>
+      </section>
+
+      <section class="hand-zone">
+        <div class="zone-title">
+          <h3>Mano</h3>
+          <span><b id="playerHandCount">0</b> carte</span>
+        </div>
+        <div id="playerHand" class="hand"></div>
+      </section>
+
+      <section class="log-wrapper collapsed" id="logWrapper">
+        <div class="zone-title clickable" id="toggleLogBtn">
+          <h3>Log partita</h3>
+          <span>apri/chiudi</span>
+        </div>
+        <div id="battleLog" class="battle-log"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- DETTAGLIO CARTA -->
+  <div id="cardDetailModal" class="modal hidden">
+    <div class="modal-card detail-card">
+      <div id="detailIcon" class="result-icon">🔥</div>
+      <h2 id="detailName">Nome carta</h2>
+      <p id="detailType">Tipo carta</p>
+
+      <div class="detail-stats">
+        <span>Costo: <strong id="detailCost">0</strong></span>
+        <span id="detailAtkWrap">ATK: <strong id="detailAtk">0</strong></span>
+        <span id="detailHpWrap">HP: <strong id="detailHp">0</strong></span>
+      </div>
+
+      <div id="detailAbilities" class="detail-abilities"></div>
+      <div id="detailAbilityDescriptions" class="ability-descriptions"></div>
+
+      <p id="detailDesc" class="detail-desc">Descrizione carta.</p>
+
+      <button id="closeDetailBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- RISULTATO -->
+  <div id="resultModal" class="modal hidden">
+    <div class="modal-card">
+      <div id="resultIcon" class="result-icon">🏆</div>
+      <h2 id="resultTitle">Vittoria</h2>
+      <p id="resultText">Hai vinto.</p>
+
+      <div id="matchStatsBox" class="match-stats-box"></div>
+
+      <div class="modal-actions">
+        <button id="openPackBtn">Apri pacchetto</button>
+        <button id="replayBtn" class="secondary-btn">Replay testuale</button>
+        <button id="playAgainBtn">Rigioca</button>
+        <button id="resultMenuBtn" class="secondary-btn">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TUTORIAL -->
+  <div id="tutorialModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">📘</div>
+      <h2>Tutorial rapido</h2>
+
+      <div class="tutorial-steps">
+        <div><strong>1. Evoca</strong><p>Trascina una Evo 1 dalla mano al tuo campo.</p></div>
+        <div><strong>2. Evolvi</strong><p>Trascina Evo 2 o Evo 3 sopra la creatura corretta.</p></div>
+        <div><strong>3. Equipaggia</strong><p>Trascina un equipaggiamento sopra una creatura.</p></div>
+        <div><strong>4. Terreno</strong><p>Trascina una carta terreno per cambiare le regole del campo.</p></div>
+        <div><strong>5. Attacca</strong><p>Clicca una tua creatura pronta, poi scegli il bersaglio.</p></div>
+      </div>
+
+      <button id="closeTutorialBtn">Ho capito</button>
+    </div>
+  </div>
+
+  <!-- CLASSIFICA -->
+  <div id="leaderboardModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">🏆</div>
+      <h2>Classifica</h2>
+      <p>Classifica online basata sulle vittorie registrate.</p>
+      <div id="leaderboardList" class="leaderboard-list">Caricamento...</div>
+      <button id="closeLeaderboardBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- MISSIONI -->
+  <div id="missionsModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">🎯</div>
+      <h2>Missioni</h2>
+      <p>Completa obiettivi per guadagnare XP.</p>
+
+      <div id="missionsList" class="mission-list">
+        <div class="mission-row">Evoca 5 creature · <strong>+20 XP</strong></div>
+        <div class="mission-row">Fai 3 evoluzioni · <strong>+25 XP</strong></div>
+        <div class="mission-row">Infliggi 30 danni · <strong>+30 XP</strong></div>
+      </div>
+
+      <button id="closeMissionsBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- CAMPAGNA BOSS -->
+  <div id="campaignModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">🐉</div>
+      <h2>Campagna Boss</h2>
+      <p>Scegli un boss da affrontare.</p>
+
+      <div class="boss-grid">
+        <button class="boss-btn" data-boss="apprentice">🧙 Apprendista</button>
+        <button class="boss-btn" data-boss="knight">⚔️ Cavaliere</button>
+        <button class="boss-btn" data-boss="dragon">🐉 Drago Solare</button>
+        <button class="boss-btn" data-boss="eclipse">🌑 Signore Eclissi</button>
+        <button class="boss-btn" data-boss="final">👑 Boss Finale</button>
+      </div>
+
+      <button id="closeCampaignBtn" class="secondary-btn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- DRAFT -->
+  <div id="draftModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">🃏</div>
+      <h2>Modalità Draft</h2>
+      <p>Scegli una carta tra tre proposte per costruire il mazzo.</p>
+
+      <div id="draftChoices" class="draft-grid">
+        <button class="draft-choice">Carta 1</button>
+        <button class="draft-choice">Carta 2</button>
+        <button class="draft-choice">Carta 3</button>
+      </div>
+
+      <p id="draftProgressText">0/20 carte scelte</p>
+
+      <div class="modal-actions">
+        <button id="startDraftGameBtn">Inizia Draft</button>
+        <button id="closeDraftBtn" class="secondary-btn">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PACCHETTO CARTE -->
+  <div id="packModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">🎁</div>
+      <h2>Pacchetto carte</h2>
+      <p>Ricompensa partita.</p>
+      <div id="packCards" class="pack-grid"></div>
+      <button id="closePackBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- CHAT RAPIDA -->
+  <div id="quickChatModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">💬</div>
+      <h2>Chat rapida</h2>
+
+      <div class="quick-chat-grid">
+        <button class="quick-chat-msg" data-msg="Bella mossa!">Bella mossa!</button>
+        <button class="quick-chat-msg" data-msg="Tocca a te">Tocca a te</button>
+        <button class="quick-chat-msg" data-msg="GG">GG</button>
+        <button class="quick-chat-msg" data-msg="Ops...">Ops...</button>
+        <button class="quick-chat-msg" data-msg="Partita tirata">Partita tirata</button>
+      </div>
+
+      <button id="closeQuickChatBtn" class="secondary-btn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- STORICO -->
+  <div id="historyModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">📜</div>
+      <h2>Storico partite</h2>
+      <div id="historyList" class="history-list">Nessuna partita registrata.</div>
+      <button id="closeHistoryBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- REPLAY -->
+  <div id="replayModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="result-icon">🎬</div>
+      <h2>Replay testuale</h2>
+      <div id="replayList" class="replay-list">Nessun replay disponibile.</div>
+      <button id="closeReplayBtn">Chiudi</button>
+    </div>
+  </div>
+
+  <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./service-worker.js?v=23")
+        .catch(error => {
+          console.warn("Service Worker non registrato:", error);
+        });
+    });
+  }
+</script>
+
+<script type="module" src="script.js?v=23"></script>
 </body>
 </html>
