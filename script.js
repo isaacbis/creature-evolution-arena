@@ -258,7 +258,12 @@ const abilityLabels = {
   growth: "Crescita",
   sniper: "Cecchino",
   burn: "Bruciatura",
-  curse: "Maledizione"
+  curse: "Maledizione",
+  freeze: "Congela",
+  bleed: "Sanguina",
+  silence: "Silenzio",
+  barrier: "Barriera",
+  execute: "Esecuzione"
 };
 
 const abilityDescriptions = {
@@ -444,14 +449,20 @@ const spells = [
   s("spell_draw", "Richiamo", 1, "rare", "📜", "Pesca 2 carte.", "spellDrawTwo", ["water", "forest", "balanced"]),
   s("spell_blessing", "Benedizione", 3, "rare", "✨", "+1 ATK e +1 HP al tuo campo.", "spellBlessing", ["light", "forest", "balanced"]),
   s("spell_storm", "Tempesta", 4, "epic", "🌀", "2 danni a tutte le creature nemiche.", "spellStorm", ["shadow", "fire", "balanced"]),
-  s("spell_energy", "Energia Antica", 0, "legendary", "🔮", "+2 energia nel turno.", "spellGainEnergy", ["balanced", "shadow", "light"])
+  s("spell_energy", "Energia Antica", 0, "legendary", "🔮", "+2 energia nel turno.", "spellGainEnergy", ["balanced", "shadow", "light"]),
+  s("spell_freeze", "Gelo Marino", 2, "rare", "❄️", "Congela la creatura nemica più pericolosa.", "spellFreeze", ["water", "balanced"]),
+  s("spell_silence", "Sigillo del Silenzio", 2, "rare", "🔇", "Silenza una creatura nemica per 1 turno.", "spellSilence", ["light", "shadow", "balanced"]),
+  s("spell_bleed", "Taglio Profondo", 1, "common", "🩸", "Applica sanguinamento a una creatura nemica.", "spellBleed", ["shadow", "fire", "balanced"]),
+  s("spell_barrier", "Barriera Mistica", 2, "rare", "🛡️", "Dà Barriera a tutto il tuo campo.", "spellBarrier", ["light", "water", "balanced"])
 ];
 
 const equipments = [
   e("eq_sword", "Spada di Fuoco", 2, "rare", "🗡️", "+2 ATK alla creatura.", "equipSword", ["fire", "forest", "balanced"]),
   e("eq_shield", "Scudo Antico", 2, "rare", "🛡️", "+3 HP e Guardia.", "equipShield", ["water", "light", "balanced"]),
   e("eq_wings", "Ali Mistiche", 3, "epic", "🪽", "Dà Volare.", "equipWings", ["light", "water", "balanced"]),
-  e("eq_poison", "Lama Tossica", 2, "rare", "☠️", "Dà Veleno.", "equipPoison", ["shadow", "forest", "balanced"])
+  e("eq_poison", "Lama Tossica", 2, "rare", "☠️", "Dà Veleno.", "equipPoison", ["shadow", "forest", "balanced"]),
+  e("eq_frost", "Cristallo Gelido", 2, "rare", "❄️", "Dà Congela.", "equipFreeze", ["water", "balanced"]),
+  e("eq_crown", "Corona del Duello", 3, "epic", "👑", "Dà Esecuzione e Barriera.", "equipDuelCrown", ["fire", "shadow", "balanced"])
 ];
 
 const terrains = [
@@ -977,6 +988,9 @@ function createCreatureCard(template) {
     maxHp: template.hp,
     poisoned: false,
     burned: false,
+    frozen: 0,
+    bleeding: false,
+    silenced: 0,
     shieldUsed: false,
     canAttack: false,
     hasAttacked: false,
@@ -1431,7 +1445,7 @@ function startTurnInGame(g, slot) {
   }
 
   tickTerrain(g);
-  applyPoisonDamage(player);
+  applyStartTurnStatus(player);
   prepareCreatures(player);
   drawCard(player);
 
@@ -1507,18 +1521,52 @@ function prepareCreatures(player) {
   });
 }
 
-function applyPoisonDamage(player) {
+function applyStartTurnStatus(player) {
   const poisonDamage = game?.activeTerrain?.type === "swamp" ? 2 : 1;
 
   player.field.forEach(card => {
     if (card.poisoned) {
       card.currentHp -= poisonDamage;
       addLog(`${card.name} subisce ${poisonDamage} danno da veleno.`);
+      showMiniStatusText(card.id, "☠️ Veleno");
     }
 
     if (card.burned) {
       card.currentHp -= 1;
       addLog(`${card.name} subisce 1 danno da bruciatura.`);
+      showMiniStatusText(card.id, "🔥 Brucia");
+    }
+
+    if (card.bleeding) {
+      card.currentHp -= 1;
+      card.bleeding = false;
+      addLog(`${card.name} perde 1 HP da sanguinamento.`);
+      showMiniStatusText(card.id, "🩸 Sanguina");
+    }
+
+    if (card.silenced && card.silenced > 0) {
+      card.silenced -= 1;
+      if (card.silenced === 0) addLog(`${card.name} recupera le abilità.`);
+    }
+
+    if (hasAbility(card, "regen") && card.currentHp > 0) {
+      const before = card.currentHp;
+      card.currentHp = Math.min(card.maxHp, card.currentHp + 1);
+      if (card.currentHp > before) showMiniStatusText(card.id, "🌱 +1 HP");
+    }
+
+    if (hasAbility(card, "growth") && card.currentHp > 0) {
+      card.attack += 1;
+      card.maxHp += 1;
+      card.currentHp += 1;
+      addLog(`${card.name} cresce: +1 ATK e +1 HP.`);
+      showMiniStatusText(card.id, "🌿 Crescita");
+    }
+
+    if (hasAbility(card, "curse") && card.attack > 0) {
+      card.attack = Math.max(0, card.attack - 1);
+      addLog(`${card.name} perde 1 ATK per Maledizione.`);
+      showMiniStatusText(card.id, "🌑 -1 ATK");
     }
   });
 
@@ -1723,6 +1771,15 @@ function playEquipment(owner, cardId, targetIndex) {
     if (!target.abilities.includes("poison")) target.abilities.push("poison");
   }
 
+  if (eq.effect === "equipFreeze") {
+    if (!target.abilities.includes("freeze")) target.abilities.push("freeze");
+  }
+
+  if (eq.effect === "equipDuelCrown") {
+    if (!target.abilities.includes("execute")) target.abilities.push("execute");
+    if (!target.abilities.includes("barrier")) target.abilities.push("barrier");
+  }
+
 setTimeout(() => {
   try {
     playEquipmentFx(target);
@@ -1895,15 +1952,61 @@ function applySpellEffect(spell, owner, opponent) {
       addLog(`${spell.name} dà +2 energia.`);
       break;
 
+    case "spellFreeze": {
+      const target = chooseSpellTarget(opponent.field);
+      if (target) {
+        target.frozen = Math.max(target.frozen || 0, 1);
+        addLog(`${spell.name} congela ${target.name}.`);
+        showMiniStatusText(target.id, "❄️ Congela");
+      }
+      break;
+    }
+
+    case "spellSilence": {
+      const target = chooseSpellTarget(opponent.field);
+      if (target) {
+        target.silenced = Math.max(target.silenced || 0, 1);
+        addLog(`${spell.name} silenzia ${target.name}.`);
+        showMiniStatusText(target.id, "🔇 Silenzio");
+      }
+      break;
+    }
+
+    case "spellBleed": {
+      const target = chooseSpellTarget(opponent.field);
+      if (target) {
+        target.bleeding = true;
+        addLog(`${spell.name} fa sanguinare ${target.name}.`);
+        showMiniStatusText(target.id, "🩸 Sanguina");
+      } else {
+        dealLifeDamage(owner, opponent, 1, enemyHudBox);
+      }
+      break;
+    }
+
+    case "spellBarrier":
+      owner.field.forEach(creature => {
+        if (!creature.abilities.includes("barrier")) creature.abilities.push("barrier");
+      });
+      addLog(`${spell.name} dà Barriera al tuo campo.`);
+      break;
+
     default:
       break;
   }
 }
 
 function chooseSpellTarget(field) {
+  if (!field || !field.length) return null;
   const guard = field.find(card => hasAbility(card, "guard"));
   if (guard) return guard;
-  return [...field].sort((a, b) => b.attack - a.attack)[0];
+  return [...field].sort((a, b) => cardThreatValue(b) - cardThreatValue(a))[0];
+}
+
+function cardThreatValue(card) {
+  if (!card) return 0;
+  const abilityScore = { guard: 3, flying: 3, poison: 2, lifesteal: 4, shield: 4, regen: 3, growth: 5, freeze: 4, silence: 4, barrier: 3, execute: 4, burn: 3, bleed: 3 };
+  return (card.attack || 0) * 2 + (card.currentHp || card.hp || 0) + (card.stage || 0) * 2 + (card.abilities || []).reduce((sum, a) => sum + (abilityScore[a] || 1), 0);
 }
 
 function dealLifeDamage(attackerOwner, defenderOwner, amount, targetEl = null) {
@@ -2118,6 +2221,24 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
   let damageToDefender = attacker.attack;
   let damageToAttacker = defender.attack;
 
+  if (hasAbility(attacker, "execute") && defender.currentHp < defender.maxHp) {
+    damageToDefender += 2;
+    addLog(`${attacker.name} attiva Esecuzione: +2 danni.`);
+  }
+
+  if (hasAbility(defender, "execute") && attacker.currentHp < attacker.maxHp) {
+    damageToAttacker += 2;
+    addLog(`${defender.name} attiva Esecuzione: +2 danni.`);
+  }
+
+  if (hasAbility(defender, "barrier")) {
+    damageToDefender = Math.max(0, damageToDefender - 1);
+  }
+
+  if (hasAbility(attacker, "barrier")) {
+    damageToAttacker = Math.max(0, damageToAttacker - 1);
+  }
+
   if (hasAbility(defender, "shield") && !defender.shieldUsed) {
     damageToDefender = 0;
     defender.shieldUsed = true;
@@ -2172,6 +2293,36 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
     addLog(`${attacker.name} prende fuoco.`);
   }
 
+  if (hasAbility(attacker, "freeze") && defender.currentHp > 0) {
+    defender.frozen = Math.max(defender.frozen || 0, 1);
+    addLog(`${defender.name} viene congelata.`);
+  }
+
+  if (hasAbility(defender, "freeze") && attacker.currentHp > 0) {
+    attacker.frozen = Math.max(attacker.frozen || 0, 1);
+    addLog(`${attacker.name} viene congelata.`);
+  }
+
+  if (hasAbility(attacker, "bleed") && defender.currentHp > 0) {
+    defender.bleeding = true;
+    addLog(`${defender.name} sanguina.`);
+  }
+
+  if (hasAbility(defender, "bleed") && attacker.currentHp > 0) {
+    attacker.bleeding = true;
+    addLog(`${attacker.name} sanguina.`);
+  }
+
+  if (hasAbility(attacker, "silence") && defender.currentHp > 0) {
+    defender.silenced = Math.max(defender.silenced || 0, 1);
+    addLog(`${defender.name} è silenziata per 1 turno.`);
+  }
+
+  if (hasAbility(defender, "silence") && attacker.currentHp > 0) {
+    attacker.silenced = Math.max(attacker.silenced || 0, 1);
+    addLog(`${attacker.name} è silenziata per 1 turno.`);
+  }
+
   addLog(`${attacker.name} combatte contro ${defender.name}.`);
 
   const targetCardEl = document.querySelector(".card.enemy-targetable") || document.querySelector(".card.selected-attacker");
@@ -2198,9 +2349,9 @@ function removeDead(player) {
 }
 
 function canAttackLife(attacker, defenderField) {
-  if (game?.activeTerrain?.type === "fog") return false;
+  if (game?.activeTerrain?.type === "fog" && !hasAbility(attacker, "sniper")) return false;
   if (!defenderField.length) return true;
-  if (defenderField.some(card => hasAbility(card, "guard"))) return false;
+  if (defenderField.some(card => hasAbility(card, "guard")) && !hasAbility(attacker, "sniper")) return false;
 
   if (hasAbility(attacker, "flying")) {
     return !defenderField.some(card => hasAbility(card, "flying"));
@@ -2210,6 +2361,7 @@ function canAttackLife(attacker, defenderField) {
 }
 
 function hasAbility(card, ability) {
+  if (!card || (card.silenced && card.silenced > 0)) return false;
   return Array.isArray(card.abilities) && card.abilities.includes(ability);
 }
 
@@ -3059,6 +3211,26 @@ function addEnemyFieldCardEvents(cardEl, card, index) {
   });
 }
 
+function getStatusBadges(card) {
+  const badges = [];
+  if (card.poisoned) badges.push(`<span class="status-chip poison">☠️</span>`);
+  if (card.burned) badges.push(`<span class="status-chip burn">🔥</span>`);
+  if (card.frozen && card.frozen > 0) badges.push(`<span class="status-chip freeze">❄️</span>`);
+  if (card.bleeding) badges.push(`<span class="status-chip bleed">🩸</span>`);
+  if (card.silenced && card.silenced > 0) badges.push(`<span class="status-chip silence">🔇</span>`);
+  if (hasAbility(card, "shield") && !card.shieldUsed) badges.push(`<span class="status-chip shield">🛡️</span>`);
+  return badges.join("");
+}
+
+function abilityIcon(ability) {
+  const map = {
+    guard: "🛡️", haste: "⚡", flying: "🪽", rage: "💢", poison: "☠️", lifesteal: "🩸",
+    shield: "✨", regen: "🌱", growth: "🌿", sniper: "🎯", burn: "🔥", curse: "🌑",
+    freeze: "❄️", bleed: "🩸", silence: "🔇", barrier: "🛡️", execute: "⚔️"
+  };
+  return map[ability] || "✦";
+}
+
 function createCardEl(card, extraClass) {
   const el = document.createElement("div");
 
@@ -3067,12 +3239,14 @@ function createCardEl(card, extraClass) {
 
     const hpPercent = Math.max(0, Math.min(100, Math.round((card.currentHp / card.maxHp) * 100)));
     const abilities = (card.abilities || [])
-      .map(ability => `<span class="ability">${abilityLabels[ability]}</span>`)
+      .map(ability => `<span class="ability" title="${abilityLabels[ability]}">${abilityIcon(ability)}</span>`)
       .join("");
 
     const equipped = card.equipped?.length
       ? `<span class="badge legendary">EQ ${card.equipped.length}</span>`
       : "";
+
+    const statusBadges = getStatusBadges(card);
 
     el.innerHTML = `
       <div>
@@ -3090,6 +3264,7 @@ function createCardEl(card, extraClass) {
           ${equipped}
         </div>
 
+        <div class="status-row">${statusBadges}</div>
         <div class="ability-row">${abilities}</div>
         <div class="card-desc">${card.desc}</div>
       </div>
@@ -3380,6 +3555,21 @@ function playResultFx(won) {
   maybeVibrate(won ? [30, 40, 30] : 60);
   createFxFlash(won ? "win" : "lose");
   createFxText(won ? "Vittoria!" : "Sconfitta", won ? "evolve" : "attack");
+}
+
+function showMiniStatusText(cardId, text) {
+  requestAnimationFrame(() => {
+    const el = findCardElementById(cardId);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const tag = document.createElement("div");
+    tag.className = "mini-status-pop";
+    tag.textContent = text;
+    tag.style.left = `${rect.left + rect.width / 2}px`;
+    tag.style.top = `${rect.top + 12}px`;
+    document.body.appendChild(tag);
+    setTimeout(() => tag.remove(), 900);
+  });
 }
 
 function showDamagePopup(targetEl, text, heal = false) {
