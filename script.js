@@ -309,6 +309,64 @@ const terrains = [
   t("terrain_swamp", "Palude Velenosa", 3, "epic", "☠️", "Per 3 turni il veleno fa 2 danni.", "swamp", ["shadow", "forest", "balanced"])
 ];
 
+/* =========================
+   V22 - Espansione carte e identità dei mazzi
+   ========================= */
+families.fire.cards.push(
+  c("fire_1b", "Salamandra", "fire", 1, 3, 2, 1, "common", "Creatura rapida da pressione.", null, ["haste"]),
+  c("fire_2b", "Berserker di Brace", "fire", 2, 5, 4, 3, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["rage"]),
+  c("fire_3b", "Fenice Imperiale", "fire", 3, 6, 7, 4, "epic", "Quando entra, cura 2 vita e resta aggressiva.", "healOwner", ["flying", "haste"]),
+  c("fire_3c", "Colosso Infernale", "fire", 3, 10, 6, 5, "legendary", "Quando entra, colpisce tutto il campo nemico.", "fireStorm", ["rage"])
+);
+
+families.water.cards.push(
+  c("water_1b", "Sirena Curatrice", "water", 1, 1, 5, 1, "common", "Difesa iniziale con Guardia.", null, ["guard"]),
+  c("water_2b", "Mago delle Maree", "water", 2, 3, 6, 3, "rare", "Quando entra, pesca 1 carta.", "drawOne", []),
+  c("water_3b", "Regina degli Abissi", "water", 3, 5, 12, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["guard"]),
+  c("water_3c", "Leviatano Giovane", "water", 3, 7, 9, 4, "epic", "Quando entra, pesca 1 carta.", "drawOne", ["guard"])
+);
+
+families.forest.cards.push(
+  c("forest_1b", "Scoiattolo Selvaggio", "forest", 1, 2, 3, 1, "common", "Piccolo corpo per riempire il campo.", null, []),
+  c("forest_2b", "Druido Antico", "forest", 2, 3, 7, 3, "rare", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["guard"]),
+  c("forest_3b", "Madre Natura", "forest", 3, 7, 10, 5, "legendary", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["rage"]),
+  c("forest_3c", "Bestia Rampicante", "forest", 3, 8, 8, 4, "epic", "Quando entra, dà +1 ATK a un alleato.", "buffAllyAttack", ["rage"])
+);
+
+families.shadow.cards.push(
+  c("shadow_1b", "Corvo Notturno", "shadow", 1, 2, 3, 1, "common", "Veleno e pressione iniziale.", null, ["poison"]),
+  c("shadow_2b", "Assassino Silente", "shadow", 2, 5, 3, 3, "rare", "Quando entra, indebolisce un nemico.", "weakenEnemy", ["haste", "poison"]),
+  c("shadow_3b", "Vampiro Antico", "shadow", 3, 7, 7, 4, "epic", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison"]),
+  c("shadow_3c", "Re del Vuoto", "shadow", 3, 9, 8, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["flying", "poison"])
+);
+
+families.light.cards.push(
+  c("light_1b", "Scudiero Sacro", "light", 1, 2, 4, 1, "common", "Buona base difensiva.", null, ["guard"]),
+  c("light_2b", "Paladino Dorato", "light", 2, 4, 8, 3, "rare", "Quando entra, cura il campo di 1.", "healTeam", ["guard"]),
+  c("light_3b", "Serafino", "light", 3, 6, 11, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["flying", "guard"]),
+  c("light_3c", "Leone Solare", "light", 3, 7, 8, 4, "epic", "Quando entra, cura il campo di 1.", "healTeam", ["guard"])
+);
+
+spells.push(
+  s("spell_cinder", "Pioggia di Brace", 3, "rare", "🔥", "2 danni a tutte le creature nemiche.", "spellStorm", ["fire", "balanced"]),
+  s("spell_tidecall", "Canto delle Maree", 2, "rare", "🌊", "Pesca 2 carte.", "spellDrawTwo", ["water", "balanced"]),
+  s("spell_roots", "Radici Vive", 3, "rare", "🌿", "+1 ATK e +1 HP al tuo campo.", "spellBlessing", ["forest", "balanced"]),
+  s("spell_void", "Lama del Vuoto", 2, "rare", "🌑", "Infligge 3 danni mirati.", "spellFireball", ["shadow", "balanced"]),
+  s("spell_sunrise", "Alba Sacra", 2, "rare", "☀️", "Cura 4 vita.", "spellHeal", ["light", "balanced"])
+);
+
+equipments.push(
+  e("eq_flame_crown", "Corona Ardente", 3, "epic", "👑", "+2 ATK alla creatura.", "equipSword", ["fire", "balanced"]),
+  e("eq_ocean_shell", "Conchiglia Antica", 2, "rare", "🐚", "+3 HP e Guardia.", "equipShield", ["water", "light", "balanced"]),
+  e("eq_shadow_claw", "Artiglio d'Ombra", 2, "rare", "🦂", "Dà Veleno.", "equipPoison", ["shadow", "balanced"])
+);
+
+terrains.push(
+  t("terrain_roots", "Santuario Verde", 2, "rare", "🌿", "Per 3 turni potenzia le creature Foresta.", "tide", ["forest", "balanced"]),
+  t("terrain_eclipse", "Eclissi Totale", 3, "epic", "🌑", "Per 3 turni il veleno è più forte.", "swamp", ["shadow", "balanced"])
+);
+
+
 function c(cardId, name, family, stage, attack, hp, cost, rarity, desc, effect, abilities) {
   return { cardId, type: "creature", name, family, stage, attack, hp, cost, rarity, desc, effect, abilities };
 }
@@ -526,11 +584,11 @@ function getFamiliesForDeck(deckType) {
   }
 
   const map = {
-    fire: ["fire", "shadow"],
-    water: ["water", "light"],
-    forest: ["forest", "water"],
-    shadow: ["shadow", "fire"],
-    light: ["light", "forest"]
+    fire: ["fire"],
+    water: ["water"],
+    forest: ["forest"],
+    shadow: ["shadow"],
+    light: ["light"]
   };
 
   return map[deckType] || ["fire", "water", "forest", "shadow", "light"];
@@ -1709,16 +1767,46 @@ function botTurn() {
 }
 
 function shouldBotUseSpell(spell, bot, player) {
-  if (spell.effect === "spellHeal") return bot.life <= STARTING_LIFE - 5;
-  if (spell.effect === "spellDrawTwo") return bot.hand.length <= 3;
+  const botAttackReady = bot.field
+    .filter(card => card.canAttack && !card.hasAttacked)
+    .reduce((total, card) => total + card.attack, 0);
+
+  if (spell.effect === "spellFireball") {
+    return player.life <= 3 || player.field.some(card => cardThreatScore(card) >= 9 || card.currentHp <= 3);
+  }
+
+  if (spell.effect === "spellHeal") return bot.life <= STARTING_LIFE - 6;
+  if (spell.effect === "spellDrawTwo") return bot.hand.length <= 3 || bot.energy >= 5;
   if (spell.effect === "spellBlessing") return bot.field.length >= 2;
-  if (spell.effect === "spellStorm") return player.field.length >= 2;
-  if (spell.effect === "spellGainEnergy") return bot.hand.some(card => card.cost > bot.energy);
+  if (spell.effect === "spellStorm") return player.field.length >= 2 || player.field.some(card => card.currentHp <= 2);
+  if (spell.effect === "spellGainEnergy") return bot.hand.some(card => card.cost > bot.energy) || botAttackReady >= player.life;
   return true;
 }
 
+function cardThreatScore(card) {
+  if (!card) return 0;
+
+  const abilityBonus = (card.abilities || []).reduce((total, ability) => {
+    const values = {
+      guard: 2,
+      haste: 2,
+      flying: 3,
+      rage: 2,
+      poison: 3
+    };
+
+    return total + (values[ability] || 1);
+  }, 0);
+
+  const rarityBonus = { common: 0, rare: 1, epic: 2, legendary: 4 }[card.rarity] || 0;
+  return card.attack * 2 + card.currentHp + abilityBonus + rarityBonus + (card.stage || 0);
+}
+
 function chooseBotTarget(field) {
-  return [...field].sort((a, b) => a.currentHp - b.currentHp)[0];
+  const guards = field.filter(card => hasAbility(card, "guard"));
+  const pool = guards.length ? guards : field;
+
+  return [...pool].sort((a, b) => cardThreatScore(b) - cardThreatScore(a))[0];
 }
 
 function checkGameOver() {
@@ -3119,4 +3207,55 @@ if (!localStorage.getItem("tutorialSeen")) {
       document.getElementById("missionsModal")?.classList.remove("hidden");
     });
   }
+})();
+
+
+/* =========================
+   V22 - polish finale: haptics, aria, micro-interazioni
+   ========================= */
+(function setupPremiumUiV22() {
+  const root = document.documentElement;
+  root.dataset.ceaVersion = "22";
+
+  function vibrate(ms = 12) {
+    try {
+      if (navigator.vibrate) navigator.vibrate(ms);
+    } catch {
+      // ignore
+    }
+  }
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest("button");
+    if (!button || button.disabled) return;
+    vibrate(button.classList.contains("primary-action") || button.classList.contains("end-turn-btn") ? 18 : 8);
+  }, { passive: true });
+
+  const mainButtons = document.querySelectorAll("button, input, select");
+  mainButtons.forEach(el => {
+    if (!el.getAttribute("aria-label") && el.textContent && el.tagName === "BUTTON") {
+      el.setAttribute("aria-label", el.textContent.trim().replace(/\s+/g, " "));
+    }
+  });
+
+  const versionBadge = document.createElement("div");
+  versionBadge.className = "build-badge";
+  versionBadge.textContent = "v22 MAX";
+  document.body.appendChild(versionBadge);
+
+  function addArenaParticles() {
+    if (document.querySelector(".ambient-particles")) return;
+    const wrap = document.createElement("div");
+    wrap.className = "ambient-particles";
+    for (let i = 0; i < 12; i++) {
+      const dot = document.createElement("i");
+      dot.style.setProperty("--x", `${Math.random() * 100}%`);
+      dot.style.setProperty("--delay", `${Math.random() * 5}s`);
+      dot.style.setProperty("--dur", `${5 + Math.random() * 7}s`);
+      wrap.appendChild(dot);
+    }
+    document.body.appendChild(wrap);
+  }
+
+  addArenaParticles();
 })();

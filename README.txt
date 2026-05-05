@@ -1,4 +1,4 @@
-Creature Evolution Arena v21 - Premium Graphics
+CREATURE EVOLUTION ARENA - VERSIONE v22 MAX
 
 File inclusi:
 - index.html
@@ -9,20 +9,51 @@ File inclusi:
 - manifest.json
 - app-icon.svg
 
-Novità principali:
-- Splash screen premium iniziale.
-- Nuova barra inferiore stile app mobile.
-- Grafica home più cinematografica.
-- Carte più moderne con foil su epiche/leggendarie.
-- HUD partita più brillante.
-- Campi giocatore/nemico più leggibili.
-- Pulsanti e modali più da app.
-- Cache aggiornata a v21.
+Cosa è stato migliorato:
+1. Grafica più premium da mobile game
+   - sfondo più profondo e cinematografico
+   - particelle ambientali leggere
+   - home più curata
+   - dashboard rapida nella home
+   - bottoni più premium
+   - HUD battaglia più leggibile
+   - campi giocatore/nemico più separati
+   - carte più lucide con effetto foil
+   - icona app ridisegnata
 
-Da testare:
-1. Apri index.html o pubblicalo online.
-2. Controlla splash e barra inferiore.
-3. Avvia partita contro Bot.
-4. Controlla mano carte e drag su telefono.
-5. Apri Campagna, Draft e Missioni dalla barra inferiore.
-6. Se hai già provato versioni vecchie online, svuota cache o aggiorna due volte.
+2. Esperienza mobile
+   - barra inferiore stile app
+   - safe area per iPhone
+   - maggiore leggibilità su schermi piccoli
+   - feedback aptico leggero sui pulsanti se il dispositivo lo supporta
+
+3. Gameplay/logica
+   - mazzi elementali resi puri:
+     Fuoco solo Fuoco, Acqua solo Acqua, Foresta solo Foresta, Ombra solo Ombra, Luce solo Luce
+   - mazzo Bilanciato resta misto
+   - aggiunte nuove creature per ogni elemento
+   - aggiunte nuove magie, equipaggiamenti e terreni
+   - bot migliorato: sceglie bersagli più pericolosi invece di attaccare quasi a caso
+   - uso magie del bot più intelligente
+
+4. PWA/cache
+   - service worker aggiornato a v22
+   - versioni CSS/JS aggiornate a v22
+   - manifest aggiornato
+
+Come provarlo:
+1. Apri index.html in locale oppure carica la cartella su Render/Netlify/Vercel/Firebase Hosting.
+2. Se lo provi online, usa HTTPS.
+3. Da telefono controlla soprattutto:
+   - splash iniziale
+   - home
+   - scelta mazzo
+   - partita contro bot
+   - trascinamento carte
+   - fine turno
+   - boss
+   - draft
+   - online con codice stanza
+
+Nota importante:
+Se dopo averlo caricato online vedi ancora la vecchia versione, svuota cache del browser o cambia URL con ?v=22. Il service worker ora usa cache v22.

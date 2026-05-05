@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=21" />
+  <link rel="stylesheet" href="style.css?v=22" />
   <style>
     #menuScreen.menu-screen.hidden, #lobbyScreen.lobby-screen.hidden, #gameScreen.game-screen.hidden { display: none !important; }
   </style>
@@ -54,6 +54,24 @@
           <div>
             <strong id="profileNameText">Profilo giocatore</strong>
             <span id="profileLevelText">Livello 1 · XP 0/100</span>
+          </div>
+        </div>
+
+        <div class="home-dashboard" aria-label="Riepilogo giocatore">
+          <div class="home-stat-card">
+            <b>⚡</b>
+            <span>Partite rapide</span>
+            <strong>Bot / Online</strong>
+          </div>
+          <div class="home-stat-card">
+            <b>🎁</b>
+            <span>Premi</span>
+            <strong>Pacchetti</strong>
+          </div>
+          <div class="home-stat-card">
+            <b>🐉</b>
+            <span>Sfida</span>
+            <strong>Boss</strong>
           </div>
         </div>
 
@@ -477,7 +495,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=21")
+        .register("./service-worker.js?v=22")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -485,6 +503,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=21"></script>
+<script type="module" src="script.js?v=22"></script>
 </body>
 </html>
