@@ -264,14 +264,14 @@ const bossData = {
     power: "Ogni 3 turni cura 2 vita."
   },
   dragon: {
-    name: "Drago Solare",
+    name: "Drakthar",
     avatar: "🐉",
     life: 36,
     deck: "fire",
     power: "Ogni 3 turni infligge 2 danni diretti."
   },
   eclipse: {
-    name: "Signore Eclissi",
+    name: "Necromante del Vuoto",
     avatar: "🌑",
     life: 38,
     deck: "shadow",
@@ -300,8 +300,8 @@ const families = {
     icon: "🔥",
     cards: [
       c("fire_1", "Scintilla", "fire", 1, 2, 3, 1, "common", "Piccola creatura di fuoco.", null, []),
-      c("fire_2", "Lupo Ardente", "fire", 2, 4, 5, 2, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["haste"]),
-      c("fire_3", "Drago Solare", "fire", 3, 7, 8, 4, "legendary", "Quando entra, infligge 2 danni a tutte le creature nemiche.", "fireStorm", ["flying"])
+      c("fire_2", "Fenice Reale", "fire", 2, 4, 5, 2, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["haste"]),
+      c("fire_3", "Drakthar", "fire", 3, 7, 8, 4, "legendary", "Quando entra, infligge 2 danni a tutte le creature nemiche.", "fireStorm", ["flying"])
     ]
   },
 
@@ -310,8 +310,8 @@ const families = {
     icon: "🌊",
     cards: [
       c("water_1", "Goccia Viva", "water", 1, 1, 4, 1, "common", "Creatura resistente con Guardia.", null, ["guard"]),
-      c("water_2", "Serpente Marino", "water", 2, 3, 7, 2, "rare", "Quando entra, cura 2 vita.", "healOwner", ["guard"]),
-      c("water_3", "Titano Abissale", "water", 3, 6, 11, 4, "epic", "Quando entra, pesca una carta.", "drawOne", ["guard"])
+      c("water_2", "Mago del Gelo", "water", 2, 3, 7, 2, "rare", "Quando entra, cura 2 vita.", "healOwner", ["guard"]),
+      c("water_3", "Leviatano degli Abissi", "water", 3, 6, 11, 4, "epic", "Quando entra, pesca una carta.", "drawOne", ["guard"])
     ]
   },
 
@@ -320,8 +320,8 @@ const families = {
     icon: "🌿",
     cards: [
       c("forest_1", "Radice", "forest", 1, 2, 2, 1, "common", "Economica e veloce.", null, []),
-      c("forest_2", "Guardiano Verde", "forest", 2, 5, 4, 2, "rare", "Quando entra, dà +1 ATK a un alleato.", "buffAllyAttack", ["rage"]),
-      c("forest_3", "Antico Verde", "forest", 3, 8, 7, 4, "epic", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["rage"])
+      c("forest_2", "Arciera Elfea", "forest", 2, 5, 4, 2, "rare", "Quando entra, dà +1 ATK a un alleato.", "buffAllyAttack", ["rage"]),
+      c("forest_3", "Guardiano della Foresta", "forest", 3, 8, 7, 4, "epic", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["rage"])
     ]
   },
 
@@ -330,8 +330,8 @@ const families = {
     icon: "🌑",
     cards: [
       c("shadow_1", "Ombra Minore", "shadow", 1, 3, 2, 1, "common", "Avvelena chi combatte contro di lei.", null, ["poison"]),
-      c("shadow_2", "Spettro Nero", "shadow", 2, 5, 5, 3, "rare", "Quando entra, toglie 1 ATK a un nemico.", "weakenEnemy", ["poison"]),
-      c("shadow_3", "Signore Eclissi", "shadow", 3, 9, 6, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "flying"])
+      c("shadow_2", "Stregone del Chaos", "shadow", 2, 5, 5, 3, "rare", "Quando entra, toglie 1 ATK a un nemico.", "weakenEnemy", ["poison"]),
+      c("shadow_3", "Necromante del Vuoto", "shadow", 3, 9, 6, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "flying"])
     ]
   },
 
@@ -340,8 +340,8 @@ const families = {
     icon: "☀️",
     cards: [
       c("light_1", "Lumina", "light", 1, 1, 5, 1, "common", "Base difensiva con Guardia.", null, ["guard"]),
-      c("light_2", "Cavaliere Alba", "light", 2, 4, 6, 3, "rare", "Quando entra, cura il campo di 1.", "healTeam", []),
-      c("light_3", "Arcangelo Aureo", "light", 3, 7, 9, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["flying", "guard"])
+      c("light_2", "Golem di Pietra", "light", 2, 4, 6, 3, "rare", "Quando entra, cura il campo di 1.", "healTeam", []),
+      c("light_3", "Aurelia", "light", 3, 7, 9, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["flying", "guard"])
     ]
   }
 };
@@ -2433,6 +2433,12 @@ function addEnemyFieldCardEvents(cardEl, card, index) {
 function createCardEl(card, extraClass) {
   const el = document.createElement("div");
 
+  const artworkUrl = getCardArtwork(card);
+  if (artworkUrl) {
+    el.style.setProperty("--card-art", `url("${artworkUrl}")`);
+    el.classList.add("has-created-art");
+  }
+
   const realArtwork = getCardArt(card);
   if (realArtwork) {
     el.style.setProperty("--card-art", `url("${realArtwork}")`);
@@ -3094,7 +3100,7 @@ function openCollection(filter = "all") {
     const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
     return `
       <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
-        <div class="mini-card-art">${icon}</div>
+        <div class="mini-card-art" style="${getCardArtwork(card) ? `background-image: linear-gradient(to bottom, transparent, rgba(0,0,0,.62)), url('${getCardArtwork(card)}')` : ''}">${getCardArtwork(card) ? '' : icon}</div>
         <strong>${card.name}</strong>
         <span>${family} · ${type}</span>
         <small>${shortRarity(card.rarity || "common")}</small>

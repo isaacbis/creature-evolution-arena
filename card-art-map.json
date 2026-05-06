@@ -1,11 +1,12 @@
 {
-  "fire_3": "assets/cards/drakthar-drago-infernale.png",
-  "water_3": "assets/cards/leviatano-degli-abissi.png",
-  "light_3": "assets/cards/aurelia-angelo-solare.png",
-  "shadow_3": "assets/cards/necromante-del-vuoto.png",
   "fire_2": "assets/cards/fenice-reale.png",
-  "forest_3": "assets/cards/guardiano-della-foresta.png",
-  "forest_2": "assets/cards/arciera-elfea.png",
+  "fire_3": "assets/cards/drakthar-il-drago-infernale.png",
   "water_2": "assets/cards/mago-del-gelo.png",
-  "shadow_2": "assets/cards/stregone-del-chaos.png"
+  "water_3": "assets/cards/leviatano-degli-abissi.png",
+  "forest_2": "assets/cards/arciera-elfea.png",
+  "forest_3": "assets/cards/guardiano-della-foresta.png",
+  "shadow_2": "assets/cards/stregone-del-chaos.png",
+  "shadow_3": "assets/cards/necromante-del-vuoto.png",
+  "light_2": "assets/cards/golem-di-pietra.png",
+  "light_3": "assets/cards/aurelia-angelo-solare.png"
 }
