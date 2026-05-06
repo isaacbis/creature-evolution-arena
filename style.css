@@ -3,72 +3,26 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-:root {
-  --bg0: #05060b;
-  --bg1: #111523;
-  --bg2: #1a2134;
-
-  --text: #ffffff;
-  --muted: #bfc4d6;
-  --soft: rgba(255,255,255,0.08);
-  --soft2: rgba(255,255,255,0.14);
-  --border: rgba(255,255,255,0.14);
-
-  --gold: #ffd43b;
-  --orange: #ff9f43;
-  --orange2: #ffc078;
-  --green: #51cf66;
-  --red: #ff6b6b;
-  --blue: #59d1ff;
-  --purple: #b197fc;
-
-  --shadow-soft: 0 18px 50px rgba(0,0,0,0.36);
-  --shadow-strong: 0 24px 80px rgba(0,0,0,0.55);
-  --shadow-card: 0 10px 24px rgba(0,0,0,0.32);
-}
-
-html,
-body {
-  margin: 0;
-  width: 100%;
-  min-height: 100%;
-  color: var(--text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(255,159,67,0.26), transparent 28%),
-    radial-gradient(circle at 90% 12%, rgba(89,209,255,0.18), transparent 32%),
-    radial-gradient(circle at 50% 100%, rgba(177,151,252,0.16), transparent 34%),
-    linear-gradient(160deg, var(--bg2), var(--bg0));
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
 body.arena-volcano {
-  background:
-    radial-gradient(circle at 12% 0%, rgba(255,80,0,0.40), transparent 34%),
+  background: radial-gradient(circle at 12% 0%, rgba(255,80,0,0.40), transparent 34%),
     radial-gradient(circle at 85% 10%, rgba(255,180,50,0.20), transparent 30%),
     linear-gradient(160deg, #2a0907, #07050a);
 }
 
 body.arena-forest {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(81,207,102,0.28), transparent 34%),
+  background: radial-gradient(circle at 15% 0%, rgba(81,207,102,0.28), transparent 34%),
     radial-gradient(circle at 90% 20%, rgba(116,192,252,0.14), transparent 32%),
     linear-gradient(160deg, #071f14, #05080a);
 }
 
 body.arena-abyss {
-  background:
-    radial-gradient(circle at 20% 0%, rgba(177,151,252,0.30), transparent 34%),
+  background: radial-gradient(circle at 20% 0%, rgba(177,151,252,0.30), transparent 34%),
     radial-gradient(circle at 90% 10%, rgba(70,20,120,0.28), transparent 35%),
     linear-gradient(160deg, #090414, #030309);
 }
 
 body.arena-beach {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(255,159,67,0.34), transparent 32%),
+  background: radial-gradient(circle at 15% 0%, rgba(255,159,67,0.34), transparent 32%),
     radial-gradient(circle at 90% 10%, rgba(89,209,255,0.25), transparent 35%),
     linear-gradient(160deg, #10202b, #0b0a07);
 }
@@ -79,29 +33,8 @@ select {
   font: inherit;
 }
 
-button {
-  border: 0;
-  cursor: pointer;
-  border-radius: 16px;
-  padding: 12px 15px;
-  background: linear-gradient(145deg, #ffbd57, #ff7b22);
-  color: #1b1207;
-  font-weight: 950;
-  box-shadow:
-    0 12px 26px rgba(0,0,0,0.28),
-    inset 0 1px 0 rgba(255,255,255,0.32);
-  transition:
-    transform 0.14s ease,
-    box-shadow 0.14s ease,
-    opacity 0.14s ease,
-    filter 0.14s ease;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
 button:hover {
-  box-shadow:
-    0 14px 34px rgba(0,0,0,0.36),
+  box-shadow: 0 14px 34px rgba(0,0,0,0.36),
     0 0 20px rgba(255,159,67,0.22),
     inset 0 1px 0 rgba(255,255,255,0.32);
 }
@@ -122,12 +55,10 @@ select {
   border: 1px solid rgba(255,255,255,0.16);
   border-radius: 17px;
   padding: 13px 14px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.045));
+  background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.045));
   color: white;
   outline: none;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.08),
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08),
     0 8px 18px rgba(0,0,0,0.16);
   -webkit-user-select: text;
   user-select: text;
@@ -140,8 +71,7 @@ select option {
 input:focus,
 select:focus {
   border-color: rgba(255,159,67,0.72);
-  box-shadow:
-    0 0 0 3px rgba(255,159,67,0.18),
+  box-shadow: 0 0 0 3px rgba(255,159,67,0.18),
     inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
@@ -156,39 +86,9 @@ input::placeholder {
 .secondary-btn,
 .glass-action,
 .full-glass-btn {
-  background:
-    linear-gradient(145deg, rgba(255,255,255,0.17), rgba(255,255,255,0.07));
+  background: linear-gradient(145deg, rgba(255,255,255,0.17), rgba(255,255,255,0.07));
   color: white;
   border: 1px solid rgba(255,255,255,0.14);
-}
-
-/* =========================
-   MENU PRINCIPALE
-   ========================= */
-
-.screen {
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  overflow-y: auto;
-}
-
-.menu-shell {
-  width: min(780px, 100%);
-}
-
-.hero-panel {
-  position: relative;
-  overflow: hidden;
-  padding: 16px 24px 24px;
-  border-radius: 34px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.055)),
-    rgba(7,9,18,0.76);
-  border: 1px solid rgba(255,255,255,0.15);
-  box-shadow: var(--shadow-strong);
-  backdrop-filter: blur(18px);
 }
 
 .hero-glow {
@@ -244,12 +144,10 @@ input::placeholder {
   font-size: 30px;
   border-radius: 22px;
   margin-top: 2px;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.18), transparent 34%),
+  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.18), transparent 34%),
     linear-gradient(145deg, rgba(255,212,59,0.28), rgba(255,159,67,0.12));
   border: 1px solid rgba(255,255,255,0.16);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.18),
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18),
     0 12px 28px rgba(0,0,0,0.28);
 }
 
@@ -277,20 +175,6 @@ input::placeholder {
   color: white;
   background: rgba(255,255,255,0.11);
   border: 1px solid rgba(255,255,255,0.14);
-}
-
-.profile-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 18px 0 0;
-  padding: 13px;
-  border-radius: 20px;
-  background:
-    linear-gradient(90deg, rgba(255,212,59,0.12), rgba(89,209,255,0.08)),
-    rgba(0,0,0,0.20);
-  border: 1px solid rgba(255,255,255,0.10);
 }
 
 .profile-strip strong,
@@ -348,8 +232,7 @@ input::placeholder {
   place-items: center;
   gap: 3px;
   padding: 10px;
-  background:
-    linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.055));
+  background: linear-gradient(145deg, rgba(255,255,255,0.13), rgba(255,255,255,0.055));
   color: white;
   border: 1px solid rgba(255,255,255,0.12);
   font-size: 22px;
@@ -364,17 +247,8 @@ input::placeholder {
 
 .avatar-btn.selected {
   outline: 3px solid rgba(255,212,59,0.42);
-  background:
-    linear-gradient(145deg, rgba(255,212,59,0.22), rgba(255,255,255,0.08));
+  background: linear-gradient(145deg, rgba(255,212,59,0.22), rgba(255,255,255,0.08));
   box-shadow: 0 0 22px rgba(255,212,59,0.18);
-}
-
-.deck-btn {
-  min-height: 76px;
-  position: relative;
-  overflow: hidden;
-  text-align: left;
-  border: 1px solid rgba(255,255,255,0.18);
 }
 
 .deck-btn b,
@@ -405,14 +279,6 @@ input::placeholder {
 
 .deck-btn:hover::after {
   transform: translateX(120%);
-}
-
-.deck-btn.selected {
-  outline: 3px solid rgba(255,255,255,0.58);
-  box-shadow:
-    0 0 0 5px rgba(255,159,67,0.13),
-    0 14px 30px rgba(0,0,0,0.34),
-    inset 0 1px 0 rgba(255,255,255,0.24);
 }
 
 .deck-btn.fire {
@@ -505,8 +371,7 @@ input::placeholder {
   padding: 22px;
   margin: 22px 0 12px;
   border-radius: 26px;
-  background:
-    radial-gradient(circle at top, rgba(255,212,59,0.22), transparent 50%),
+  background: radial-gradient(circle at top, rgba(255,212,59,0.22), transparent 50%),
     rgba(0,0,0,0.34);
   border: 1px solid rgba(255,255,255,0.14);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.10);
@@ -520,16 +385,6 @@ input::placeholder {
 .full-glass-btn {
   width: 100%;
   margin-top: 10px;
-}
-
-/* =========================
-   GAME APP
-   ========================= */
-
-.game-screen {
-  width: min(1180px, 100%);
-  margin: auto;
-  padding: 10px;
 }
 
 .game-screen,
@@ -550,8 +405,7 @@ input::placeholder {
   margin-bottom: 8px;
   padding: 10px 11px;
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.055)),
+  background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.055)),
     rgba(5,6,11,0.52);
   border: 1px solid rgba(255,255,255,0.11);
   backdrop-filter: blur(14px);
@@ -611,21 +465,13 @@ input::placeholder {
   background: linear-gradient(145deg, #ffd43b, #ff922b);
 }
 
-.battle-hud {
-  display: grid;
-  grid-template-columns: 1fr 1.1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
 .player-bar,
 .turn-panel {
   min-width: 0;
   min-height: 78px;
   border-radius: 22px;
   padding: 9px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.052)),
+  background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.052)),
     rgba(8,10,18,0.60);
   border: 1px solid rgba(255,255,255,0.13);
   box-shadow: 0 12px 30px rgba(0,0,0,0.24);
@@ -665,14 +511,6 @@ input::placeholder {
 
 .my-bar {
   border-color: rgba(89,209,255,0.40);
-}
-
-.turn-panel {
-  text-align: center;
-  display: grid;
-  align-content: center;
-  gap: 3px;
-  border-color: rgba(255,212,59,0.28);
 }
 
 .turn-panel strong {
@@ -720,20 +558,10 @@ input::placeholder {
 .hand-zone,
 .log-wrapper {
   border-radius: 22px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.095), rgba(255,255,255,0.043)),
+  background: linear-gradient(180deg, rgba(255,255,255,0.095), rgba(255,255,255,0.043)),
     rgba(8,10,18,0.52);
   border: 1px solid rgba(255,255,255,0.115);
   box-shadow: 0 12px 30px rgba(0,0,0,0.23);
-}
-
-.terrain-zone {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-color: rgba(255,212,59,0.22);
 }
 
 .terrain-zone span {
@@ -844,32 +672,6 @@ input::placeholder {
   border-radius: 999px;
 }
 
-/* =========================
-   CARTE
-   ========================= */
-
-.card {
-  flex: 0 0 112px;
-  width: 112px;
-  min-height: 142px;
-  border-radius: 17px;
-  padding: 7px;
-  color: #141414;
-  position: relative;
-  overflow: hidden;
-  border: 2px solid rgba(255,255,255,0.46);
-  box-shadow: var(--shadow-card);
-  animation: cardEnter 0.22s ease both;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  touch-action: none;
-  cursor: grab;
-}
-
 .hand .card {
   touch-action: pan-x;
 }
@@ -883,10 +685,6 @@ body.dragging-card .hand .card {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
-}
-
-.card:active {
-  cursor: grabbing;
 }
 
 @keyframes cardEnter {
@@ -935,68 +733,9 @@ body.dragging-card .hand .card {
   animation: attackMove 0.28s ease both;
 }
 
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 12%, rgba(255,255,255,0.72), transparent 20%),
-    radial-gradient(circle at 92% 3%, rgba(255,255,255,0.44), transparent 17%),
-    linear-gradient(180deg, rgba(255,255,255,0.12), transparent 52%);
-  opacity: 0.40;
-  pointer-events: none;
-}
-
 .card > * {
   position: relative;
   z-index: 1;
-}
-
-.creature.fire {
-  background: linear-gradient(145deg, #ffe0b2, #ff922b 47%, #b52727);
-}
-
-.creature.water {
-  background: linear-gradient(145deg, #d0ebff, #4dabf7 48%, #1554a2);
-}
-
-.creature.forest {
-  background: linear-gradient(145deg, #d8f5a2, #69db7c 48%, #287a3a);
-}
-
-.creature.shadow {
-  background: linear-gradient(145deg, #e5dbff, #9775fa 48%, #32105d);
-}
-
-.creature.light {
-  background: linear-gradient(145deg, #fff9db, #ffd43b 48%, #e67700);
-}
-
-.spell-card {
-  background: linear-gradient(145deg, #f8f9fa, #ced4da 48%, #747b84);
-}
-
-.equipment-card {
-  background: linear-gradient(145deg, #fff4e6, #ffa94d 48%, #8d5524);
-}
-
-.terrain-card {
-  background: linear-gradient(145deg, #e7f5ff, #91a7ff 48%, #364fc7);
-}
-
-.card.rare {
-  border-color: #74c0fc;
-}
-
-.card.epic {
-  border-color: #b197fc;
-}
-
-.card.legendary {
-  border-color: #ffd43b;
-  box-shadow:
-    0 0 24px rgba(255,212,59,0.45),
-    var(--shadow-card);
 }
 
 .card.playable {
@@ -1024,28 +763,6 @@ body.dragging-card .hand .card {
   font-size: 24px;
   line-height: 1;
   filter: drop-shadow(0 3px 5px rgba(0,0,0,0.23));
-}
-
-.card-cost {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.25), transparent 30%),
-    #10121a;
-  color: white;
-  border: 2px solid rgba(255,255,255,0.88);
-  font-weight: 1000;
-  font-size: 12px;
-}
-
-.card-name {
-  font-size: 11px;
-  font-weight: 1000;
-  line-height: 1.05;
-  margin-top: 5px;
 }
 
 .card-meta {
@@ -1083,15 +800,6 @@ body.dragging-card .hand .card {
   margin-top: 4px;
 }
 
-.ability {
-  font-size: 7.4px;
-  font-weight: 1000;
-  padding: 2px 4px;
-  border-radius: 8px;
-  color: white;
-  background: rgba(0,0,0,0.32);
-}
-
 .card-desc {
   margin-top: 5px;
   font-size: 8.8px;
@@ -1101,34 +809,11 @@ body.dragging-card .hand .card {
   min-height: 26px;
 }
 
-.hp-bar {
-  height: 5px;
-  background: rgba(0,0,0,0.24);
-  border-radius: 999px;
-  overflow: hidden;
-  margin-top: 5px;
-}
-
-.hp-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #51cf66, #ffd43b);
-  width: 100%;
-}
-
 .card-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
   margin-top: 5px;
-}
-
-.card-stat {
-  background: rgba(255,255,255,0.60);
-  border-radius: 10px;
-  padding: 4px;
-  text-align: center;
-  font-weight: 1000;
-  font-size: 11px;
 }
 
 .card-stat small {
@@ -1152,25 +837,6 @@ body.dragging-card .hand .card {
 .poisoned {
   outline: 2px solid #37b24d;
 }
-
-.empty-field {
-  min-width: 132px;
-  height: 98px;
-  border-radius: 16px;
-  border: 1px dashed rgba(255,255,255,0.22);
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font-size: 12px;
-  padding: 10px;
-  text-align: center;
-  flex-shrink: 0;
-  background: rgba(0,0,0,0.12);
-}
-
-/* =========================
-   LOG
-   ========================= */
 
 .log-wrapper.collapsed .battle-log {
   display: none;
@@ -1197,10 +863,6 @@ body.dragging-card .hand .card {
   color: var(--orange);
 }
 
-/* =========================
-   DRAG / DROP / TARGET
-   ========================= */
-
 body.dragging-card,
 body.dragging-card * {
   -webkit-user-select: none !important;
@@ -1220,16 +882,14 @@ body.dragging-card * {
   pointer-events: none;
   transform: translate(-50%, -50%) scale(1.06);
   opacity: 0.92;
-  box-shadow:
-    0 0 0 3px rgba(255,255,255,0.32),
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.32),
     0 18px 40px rgba(0,0,0,0.48);
 }
 
 .compact-field.drop-zone-active {
   outline: 2px dashed rgba(255, 212, 59, 0.85);
   outline-offset: -4px;
-  background:
-    radial-gradient(circle at center, rgba(255, 212, 59, 0.13), transparent 62%),
+  background: radial-gradient(circle at center, rgba(255, 212, 59, 0.13), transparent 62%),
     rgba(255,255,255,0.06);
 }
 
@@ -1238,8 +898,7 @@ body.dragging-card * {
 .card.equipment-target {
   outline: 3px solid rgba(255, 212, 59, 0.95);
   outline-offset: 2px;
-  box-shadow:
-    0 0 0 4px rgba(255, 212, 59, 0.18),
+  box-shadow: 0 0 0 4px rgba(255, 212, 59, 0.18),
     0 0 22px rgba(255, 212, 59, 0.5),
     var(--shadow-card);
 }
@@ -1247,8 +906,7 @@ body.dragging-card * {
 .card.selected-attacker {
   outline: 3px solid rgba(81, 207, 102, 1);
   outline-offset: 2px;
-  box-shadow:
-    0 0 0 5px rgba(81, 207, 102, 0.18),
+  box-shadow: 0 0 0 5px rgba(81, 207, 102, 0.18),
     0 0 24px rgba(81, 207, 102, 0.6),
     var(--shadow-card);
 }
@@ -1261,8 +919,7 @@ body.dragging-card * {
 
 .player-bar.enemy-bar.targetable {
   cursor: crosshair;
-  box-shadow:
-    0 0 0 3px rgba(255, 107, 107, 0.2),
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2),
     0 0 24px rgba(255, 107, 107, 0.35),
     inset 0 0 0 1px rgba(255, 107, 107, 0.25);
 }
@@ -1271,10 +928,6 @@ body.dragging-card * {
   color: var(--green) !important;
   font-weight: 900;
 }
-
-/* =========================
-   DANNI
-   ========================= */
 
 .damage-popup {
   position: fixed;
@@ -1316,40 +969,6 @@ body.dragging-card * {
     opacity: 0;
     transform: translate(-50%, -145%) scale(0.82) rotate(0);
   }
-}
-
-/* =========================
-   MODALI
-   ========================= */
-
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle at top, rgba(255,159,67,0.13), transparent 32%),
-    rgba(0,0,0,0.78);
-  padding: 18px;
-  overflow: hidden;
-  backdrop-filter: blur(7px);
-}
-
-.modal-card {
-  width: min(460px, 100%);
-  max-width: 94vw;
-  max-height: 88dvh;
-  overflow-y: auto;
-  background:
-    radial-gradient(circle at top, rgba(255,212,59,0.16), transparent 40%),
-    linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05)),
-    #171a25;
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 30px;
-  padding: 22px;
-  text-align: center;
-  box-shadow: 0 26px 80px rgba(0,0,0,0.58);
 }
 
 .result-icon {
@@ -1488,19 +1107,6 @@ body.dragging-card * {
   border: 1px solid rgba(255,255,255,0.12);
 }
 
-.pack-card {
-  padding: 12px;
-  border-radius: 16px;
-  background: linear-gradient(145deg, rgba(255,212,59,0.18), rgba(255,255,255,0.08));
-  border: 1px solid rgba(255,255,255,0.12);
-  color: white;
-  font-weight: 900;
-}
-
-/* =========================
-   STEP 2 - EFFETTI VISIVI
-   ========================= */
-
 .fx-flash {
   position: fixed;
   inset: 0;
@@ -1511,44 +1117,37 @@ body.dragging-card * {
 }
 
 .fx-flash.summon {
-  background:
-    radial-gradient(circle at center, rgba(81,207,102,0.30), transparent 38%),
+  background: radial-gradient(circle at center, rgba(81,207,102,0.30), transparent 38%),
     rgba(81,207,102,0.08);
 }
 
 .fx-flash.evolve {
-  background:
-    radial-gradient(circle at center, rgba(255,212,59,0.42), transparent 42%),
+  background: radial-gradient(circle at center, rgba(255,212,59,0.42), transparent 42%),
     rgba(255,212,59,0.10);
 }
 
 .fx-flash.attack {
-  background:
-    radial-gradient(circle at center, rgba(255,107,107,0.28), transparent 38%),
+  background: radial-gradient(circle at center, rgba(255,107,107,0.28), transparent 38%),
     rgba(255,107,107,0.08);
 }
 
 .fx-flash.terrain {
-  background:
-    radial-gradient(circle at center, rgba(89,209,255,0.32), transparent 42%),
+  background: radial-gradient(circle at center, rgba(89,209,255,0.32), transparent 42%),
     rgba(89,209,255,0.08);
 }
 
 .fx-flash.equipment {
-  background:
-    radial-gradient(circle at center, rgba(177,151,252,0.32), transparent 42%),
+  background: radial-gradient(circle at center, rgba(177,151,252,0.32), transparent 42%),
     rgba(177,151,252,0.08);
 }
 
 .fx-flash.win {
-  background:
-    radial-gradient(circle at center, rgba(255,212,59,0.48), transparent 44%),
+  background: radial-gradient(circle at center, rgba(255,212,59,0.48), transparent 44%),
     rgba(255,212,59,0.12);
 }
 
 .fx-flash.lose {
-  background:
-    radial-gradient(circle at center, rgba(255,107,107,0.38), transparent 44%),
+  background: radial-gradient(circle at center, rgba(255,107,107,0.38), transparent 44%),
     rgba(255,107,107,0.10);
 }
 
@@ -1674,8 +1273,7 @@ body.screen-shake {
   letter-spacing: -0.06em;
   text-align: center;
   color: white;
-  text-shadow:
-    0 0 18px rgba(255,212,59,0.52),
+  text-shadow: 0 0 18px rgba(255,212,59,0.52),
     0 10px 30px rgba(0,0,0,0.72);
   animation: eventTextPop 0.85s ease forwards;
 }
@@ -1729,24 +1327,20 @@ body.screen-shake {
 }
 
 .card.fx-card-summon {
-  animation:
-    cardEnter 0.22s ease both,
+  animation: cardEnter 0.22s ease both,
     cardSummonPulse 0.75s ease both !important;
 }
 
 .card.fx-card-evolve {
-  animation:
-    cardEvolvePulse 0.9s ease both !important;
+  animation: cardEvolvePulse 0.9s ease both !important;
 }
 
 .card.fx-card-equip {
-  animation:
-    cardEquipPulse 0.75s ease both !important;
+  animation: cardEquipPulse 0.75s ease both !important;
 }
 
 .card.fx-card-terrain {
-  animation:
-    cardTerrainPulse 0.75s ease both !important;
+  animation: cardTerrainPulse 0.75s ease both !important;
 }
 
 @keyframes cardSummonPulse {
@@ -1872,518 +1466,6 @@ body.screen-shake {
   }
 }
 
-/* =========================
-   MOBILE MENU
-   ========================= */
-
-@media (max-width: 700px) {
-  html,
-  body {
-    min-height: 100%;
-    height: auto;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  .screen {
-    min-height: 100dvh;
-    height: auto;
-    align-items: start;
-    place-items: start center;
-    padding: 10px;
-    overflow-y: auto;
-  }
-
-  .hero-panel {
-    width: 100%;
-    padding: 10px 14px 15px;
-    border-radius: 26px;
-  }
-
-  .hero-top {
-    align-items: flex-start;
-  }
-
-  .game-logo {
-    gap: 9px;
-    align-items: flex-start;
-  }
-
-  .logo-mark {
-    width: 46px;
-    height: 46px;
-    font-size: 23px;
-    border-radius: 17px;
-    margin-top: 1px;
-  }
-
-  .game-logo h1 {
-    font-size: 34px;
-    margin: -3px 0 0;
-    line-height: 0.76;
-  }
-
-  .game-logo p {
-    font-size: 9px;
-    margin-top: 5px;
-  }
-
-  .icon-pill {
-    min-height: 36px;
-    font-size: 11px;
-    padding: 8px 10px;
-  }
-
-  .profile-strip {
-    margin-top: 12px;
-    padding: 10px;
-    border-radius: 17px;
-  }
-
-  .profile-strip strong {
-    font-size: 13px;
-  }
-
-  .profile-strip span {
-    font-size: 11px;
-  }
-
-  .input-label,
-  .select-label {
-    margin: 12px 0 9px;
-    font-size: 12px;
-  }
-
-  .section-row {
-    margin: 14px 0 8px;
-  }
-
-  .section-row h2 {
-    font-size: 15px;
-  }
-
-  .section-row span {
-    font-size: 10px;
-  }
-
-  .avatar-grid,
-  .deck-grid,
-  .custom-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 7px;
-  }
-
-  .avatar-btn {
-    min-height: 46px;
-    font-size: 18px;
-    border-radius: 14px;
-  }
-
-  .avatar-btn small {
-    font-size: 9px;
-  }
-
-  .deck-btn {
-    min-height: 56px;
-    font-size: 13px;
-    padding: 8px;
-    border-radius: 16px;
-  }
-
-  .deck-btn b {
-    font-size: 13px;
-  }
-
-  .deck-btn small {
-    font-size: 9px;
-  }
-
-  .main-actions {
-    margin-top: 9px;
-    gap: 7px;
-  }
-
-  .main-actions button {
-    min-height: 47px;
-    padding: 10px;
-    font-size: 13px;
-  }
-
-  .join-box {
-    grid-template-columns: 1fr;
-    gap: 7px;
-    margin-top: 8px;
-    padding: 8px;
-  }
-
-  .bottom-menu {
-    gap: 7px;
-  }
-
-  .bottom-menu button {
-    font-size: 11px;
-  }
-
-  .code-box {
-    font-size: 34px;
-    padding: 14px;
-  }
-}
-
-/* =========================
-   MOBILE GAME
-   ========================= */
-
-@media (max-width: 700px) {
-  .game-screen:not(.hidden) {
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: 6px;
-  }
-
-  body:has(.game-screen:not(.hidden)) {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  body:has(.screen:not(.hidden)) {
-    height: auto;
-    overflow-y: auto;
-  }
-
-  .app-topbar {
-    flex: 0 0 auto;
-    margin-bottom: 5px;
-    padding: 7px 8px;
-    border-radius: 18px;
-  }
-
-  .mini-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 12px;
-  }
-
-  .app-topbar h1 {
-    font-size: 16px;
-  }
-
-  .app-topbar p {
-    font-size: 10px;
-  }
-
-  .round-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 11px;
-    font-size: 13px;
-  }
-
-  .top-actions {
-    gap: 5px;
-  }
-
-  .battle-hud {
-    flex: 0 0 auto;
-    grid-template-columns: 0.9fr 1.22fr 0.9fr;
-    gap: 5px;
-    margin-bottom: 5px;
-  }
-
-  .player-bar,
-  .turn-panel {
-    min-height: 58px;
-    padding: 5px;
-    border-radius: 15px;
-    font-size: 10px;
-  }
-
-  .player-bar {
-    display: grid;
-    gap: 2px;
-  }
-
-  .player-bar strong {
-    font-size: 10px;
-  }
-
-  .player-bar span,
-  .turn-panel span {
-    font-size: 9px;
-  }
-
-  .life-energy {
-    text-align: left;
-  }
-
-  .turn-panel strong {
-    font-size: 11px;
-  }
-
-  #message,
-  #roomInfoText {
-    font-size: 9px;
-    line-height: 1.1;
-  }
-
-  .battle-board {
-    flex: 1;
-    min-height: 0;
-    display: grid;
-    grid-template-rows: auto auto auto 1fr auto;
-    gap: 5px;
-    overflow: hidden;
-  }
-
-  .terrain-zone {
-    padding: 5px 7px;
-    border-radius: 14px;
-  }
-
-  .terrain-zone span,
-  .terrain-zone strong {
-    font-size: 9px;
-  }
-
-  .field-zone,
-  .hand-zone,
-  .log-wrapper {
-    padding: 5px;
-    border-radius: 15px;
-    min-height: 0;
-  }
-
-  .zone-title {
-    gap: 4px;
-    margin-bottom: 3px;
-  }
-
-  .zone-title h3 {
-    font-size: 11px;
-    max-width: 55%;
-  }
-
-  .zone-title span {
-    font-size: 9px;
-  }
-
-  .end-turn-btn {
-    padding: 6px 8px;
-    font-size: 10px;
-    min-width: 72px;
-  }
-
-  .compact-field {
-    min-height: 0;
-    height: 106px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 2px;
-    align-items: flex-start;
-    overscroll-behavior-x: contain;
-  }
-
-  .hand-zone {
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .hand {
-    min-height: 0;
-    height: 112px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 3px;
-    overscroll-behavior-x: contain;
-  }
-
-  .log-wrapper {
-    flex: 0 0 auto;
-  }
-
-  .log-wrapper.collapsed {
-    padding-top: 4px;
-    padding-bottom: 4px;
-  }
-
-  .battle-log {
-    max-height: 70px;
-  }
-
-  .card {
-  flex: 0 0 68px;
-  width: 68px;
-  min-height: 84px;
-}
-
-  .card-icon {
-    font-size: 15px;
-  }
-
-  .card-cost {
-    width: 18px;
-    height: 18px;
-    font-size: 9px;
-    border-width: 1.5px;
-  }
-
-  .card-name {
-    font-size: 8.2px;
-    margin-top: 3px;
-  }
-
-  .badge {
-    font-size: 5.8px;
-    padding: 1px 2px;
-  }
-
-  .ability-row,
-  .card-desc {
-    display: none;
-  }
-
-  .hp-bar {
-    height: 3px;
-    margin-top: 3px;
-  }
-
-  .card-stats {
-    gap: 3px;
-    margin-top: 3px;
-  }
-
-  .card-stat {
-    padding: 2px;
-    font-size: 8px;
-    border-radius: 6px;
-  }
-
-  .card-stat small {
-    font-size: 5px;
-  }
-
-  .empty-field {
-    height: 88px;
-    min-width: 82px;
-    font-size: 8px;
-    border-radius: 11px;
-  }
-
-  .modal-card {
-    padding: 16px;
-    border-radius: 24px;
-  }
-
-  .modal-card h2 {
-    font-size: 24px;
-  }
-
-  .result-icon {
-    font-size: 42px;
-  }
-
-  .detail-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .boss-grid,
-  .draft-grid,
-  .pack-grid,
-  .quick-chat-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 380px) {
-  .game-logo h1 {
-    font-size: 30px;
-  }
-
-  .game-screen {
-    padding: 5px;
-  }
-
-  .app-topbar h1 {
-    font-size: 15px;
-  }
-
-  .round-btn {
-    width: 30px;
-    height: 30px;
-  }
-
-  .player-bar,
-  .turn-panel {
-    min-height: 54px;
-    font-size: 9px;
-    padding: 4px;
-  }
-
-  .compact-field {
-    height: 100px;
-  }
-
-  .hand {
-    height: 106px;
-  }
-
-  .card {
-    flex-basis: 72px;
-    width: 72px;
-    min-height: 90px;
-    padding: 4px;
-  }
-
-  .card-icon {
-    font-size: 14px;
-  }
-
-  .card-cost {
-    width: 17px;
-    height: 17px;
-    font-size: 8.5px;
-  }
-
-  .card-name {
-    font-size: 7.8px;
-  }
-
-  .badge {
-    font-size: 5.3px;
-  }
-
-  .card-stat {
-    font-size: 7.5px;
-  }
-}
-
-/* =========================
-   ACCESSIBILITÀ ANIMAZIONI
-   ========================= */
-
-@media (prefers-reduced-motion: reduce) {
-  .fx-flash,
-  .fx-particle,
-  .fx-event-text,
-  .damage-popup,
-  .card.fx-card-summon,
-  .card.fx-card-evolve,
-  .card.fx-card-equip,
-  .card.fx-card-terrain,
-  body.screen-shake,
-  .modal-card.victory-pop,
-  .modal-card.defeat-pop {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
-
-/* =========================
-   FIX HOME MOBILE v11
-   ========================= */
 #menuScreen.menu-screen {
   min-height: auto !important;
   height: auto !important;
@@ -2433,13 +1515,6 @@ body.screen-shake {
   margin-top: -6px !important;
 }
 
-
-/* =========================
-   FIX CAMBIO SCHERMATA v12
-   =========================
-   Il fix grafico della home usava #menuScreen display:block!important.
-   Questa regola fa vincere .hidden quando si clicca Gioca/Online.
-*/
 #menuScreen.menu-screen.hidden,
 #lobbyScreen.lobby-screen.hidden,
 #gameScreen.game-screen.hidden {
@@ -2450,71 +1525,22 @@ body.screen-shake {
   display: block !important;
 }
 
-/* =========================
-   V21 - SALTO QUALITÀ GRAFICO
-   ========================= */
-:root {
-  --premium-bg: #07040f;
-  --premium-panel: rgba(12, 15, 28, 0.76);
-  --premium-panel-strong: rgba(13, 16, 31, 0.92);
-  --premium-line: rgba(255, 255, 255, 0.16);
-  --premium-gold: #f5c76b;
-  --premium-gold-2: #fff2b0;
-  --premium-cyan: #6ee7ff;
-  --premium-pink: #ff72c8;
-  --premium-violet: #9b7cff;
-  --premium-shadow: 0 24px 70px rgba(0,0,0,.55);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
-
 html,
 body {
-  background:
-    radial-gradient(circle at 50% -8%, rgba(245,199,107,.18), transparent 31%),
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-user-select: none;
+  user-select: none;
+  background: radial-gradient(circle at 50% -8%, rgba(245,199,107,.18), transparent 31%),
     radial-gradient(circle at 8% 20%, rgba(110,231,255,.13), transparent 28%),
     radial-gradient(circle at 94% 38%, rgba(255,114,200,.12), transparent 28%),
     radial-gradient(circle at 50% 110%, rgba(155,124,255,.16), transparent 35%),
     linear-gradient(160deg, #14172b 0%, #07040f 62%, #030207 100%) !important;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: radial-gradient(circle at 50% 10%, black 0%, transparent 68%);
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 28% 18%, rgba(245,199,107,.08), transparent 16%),
-    radial-gradient(circle at 72% 32%, rgba(110,231,255,.07), transparent 18%),
-    linear-gradient(180deg, transparent 0%, rgba(0,0,0,.26) 100%);
-}
-
-.splash-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 16px;
-  background:
-    radial-gradient(circle at 50% 28%, rgba(245,199,107,.20), transparent 28%),
-    radial-gradient(circle at 50% 68%, rgba(110,231,255,.10), transparent 28%),
-    #07040f;
-  transition: opacity .55s ease, visibility .55s ease, transform .55s ease;
 }
 
 .splash-screen.hide {
@@ -2527,8 +1553,7 @@ body::after {
   width: 160px;
   height: 160px;
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 30% 22%, #fff7d6, transparent 24%),
+  background: radial-gradient(circle at 30% 22%, #fff7d6, transparent 24%),
     conic-gradient(from 180deg, #f5c76b, #ff8a3d, #9b7cff, #6ee7ff, #f5c76b);
   box-shadow: 0 0 70px rgba(245,199,107,.42), inset 0 0 34px rgba(255,255,255,.18);
   animation: splashOrb 2.8s ease-in-out infinite;
@@ -2541,19 +1566,17 @@ body::after {
   margin-top: -56px;
 }
 
-.splash-card-stack span {
-  position: absolute;
-  width: 72px;
-  height: 98px;
-  border-radius: 18px;
-  background: linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.04)), linear-gradient(145deg, #f5c76b, #9b7cff);
-  border: 1px solid rgba(255,255,255,.35);
-  box-shadow: 0 18px 34px rgba(0,0,0,.42);
+.splash-card-stack span:nth-child(1) {
+  transform: rotate(-13deg) translateX(-20px);
 }
 
-.splash-card-stack span:nth-child(1) { transform: rotate(-13deg) translateX(-20px); }
-.splash-card-stack span:nth-child(2) { transform: rotate(2deg); }
-.splash-card-stack span:nth-child(3) { transform: rotate(14deg) translateX(20px); }
+.splash-card-stack span:nth-child(2) {
+  transform: rotate(2deg);
+}
+
+.splash-card-stack span:nth-child(3) {
+  transform: rotate(14deg) translateX(20px);
+}
 
 .splash-screen h1 {
   margin: 108px 0 0;
@@ -2578,10 +1601,25 @@ body::after {
   50% { transform: translateY(-8px) scale(1.035); filter: hue-rotate(18deg); }
 }
 
-.screen { padding-bottom: calc(86px + var(--safe-bottom)); }
-.game-screen { padding-bottom: calc(86px + var(--safe-bottom)); }
+.screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow-y: auto;
+  padding-bottom: calc(86px + var(--safe-bottom));
+}
 
-.menu-shell { width: min(860px, 100%); }
+.game-screen {
+  width: min(1180px, 100%);
+  margin: auto;
+  padding: 10px;
+  padding-bottom: calc(86px + var(--safe-bottom));
+}
+
+.menu-shell {
+  width: min(860px, 100%);
+}
 
 .hero-panel,
 .modal-card,
@@ -2592,8 +1630,7 @@ body::after {
 .field-zone,
 .hand-zone,
 .log-wrapper {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.045)),
+  background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.045)),
     var(--premium-panel) !important;
   border: 1px solid var(--premium-line) !important;
   box-shadow: var(--premium-shadow), inset 0 1px 0 rgba(255,255,255,.10) !important;
@@ -2601,19 +1638,12 @@ body::after {
   backdrop-filter: blur(22px) saturate(1.18);
 }
 
-.hero-panel {
-  padding: 20px 22px 22px !important;
-  border-radius: 34px !important;
-  overflow: hidden;
-}
-
 .hero-panel::before {
   content: "";
   position: absolute;
   inset: -1px;
   pointer-events: none;
-  background:
-    radial-gradient(circle at 22% 8%, rgba(245,199,107,.22), transparent 30%),
+  background: radial-gradient(circle at 22% 8%, rgba(245,199,107,.22), transparent 30%),
     radial-gradient(circle at 82% 4%, rgba(110,231,255,.16), transparent 28%),
     linear-gradient(120deg, rgba(255,255,255,.15), transparent 22%, transparent 78%, rgba(255,255,255,.08));
   opacity: .82;
@@ -2621,59 +1651,28 @@ body::after {
 
 .hero-glow,
 .hero-glow-one,
-.hero-glow-two { display: block !important; opacity: 1 !important; visibility: visible !important; }
-
-.logo-mark,
-.mini-logo {
-  background:
-    radial-gradient(circle at 28% 18%, rgba(255,255,255,.35), transparent 26%),
-    linear-gradient(145deg, rgba(245,199,107,.35), rgba(155,124,255,.18)) !important;
-  border: 1px solid rgba(255,255,255,.24) !important;
-  box-shadow: 0 0 32px rgba(245,199,107,.18), inset 0 1px 0 rgba(255,255,255,.22) !important;
-}
-
-.game-logo h1,
-.app-topbar h1,
-.modal-card h2 {
-  background: linear-gradient(120deg, #fff 8%, var(--premium-gold-2) 34%, #ffffff 58%, #bfefff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.hero-glow-two {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .profile-strip {
-  background:
-    linear-gradient(90deg, rgba(245,199,107,.18), rgba(110,231,255,.10)),
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 13px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, rgba(245,199,107,.18), rgba(110,231,255,.10)),
     rgba(0,0,0,.25) !important;
   border: 1px solid rgba(245,199,107,.24) !important;
 }
 
-button {
-  position: relative;
-  overflow: hidden;
-}
-
-button::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(110deg, transparent 0%, rgba(255,255,255,.34) 45%, transparent 70%);
-  transform: translateX(-130%);
-  transition: transform .55s ease;
-}
-
 button:hover::after,
-button:focus-visible::after { transform: translateX(130%); }
-
-.primary-action,
-.end-turn-btn,
-.round-btn.accent {
-  background:
-    radial-gradient(circle at 28% 18%, rgba(255,255,255,.35), transparent 24%),
-    linear-gradient(145deg, #fff0a6, #f5c76b 45%, #ff8a3d 100%) !important;
-  color: #1c1206 !important;
-  box-shadow: 0 16px 36px rgba(245,199,107,.22), 0 10px 28px rgba(0,0,0,.34) !important;
+button:focus-visible::after {
+  transform: translateX(130%);
 }
 
 .glass-action,
@@ -2685,8 +1684,7 @@ button:focus-visible::after { transform: translateX(130%); }
 .boss-btn,
 .draft-choice,
 .quick-chat-msg {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.055)),
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.055)),
     rgba(255,255,255,.045) !important;
   color: #fff !important;
   border: 1px solid rgba(255,255,255,.14) !important;
@@ -2714,30 +1712,16 @@ button:focus-visible::after { transform: translateX(130%); }
   filter: brightness(1.06) saturate(1.08);
 }
 
-.battle-hud { gap: 10px; }
-.player-bar.enemy-bar { box-shadow: 0 0 0 1px rgba(255,107,107,.18), var(--premium-shadow) !important; }
-.player-bar.my-bar { box-shadow: 0 0 0 1px rgba(110,231,255,.18), var(--premium-shadow) !important; }
-.turn-panel { box-shadow: 0 0 0 1px rgba(245,199,107,.20), var(--premium-shadow) !important; }
-
 .terrain-zone {
-  background:
-    radial-gradient(circle at 50% 0%, rgba(245,199,107,.14), transparent 50%),
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-color: rgba(255,212,59,0.22);
+  background: radial-gradient(circle at 50% 0%, rgba(245,199,107,.14), transparent 50%),
     linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.045)),
     rgba(11,13,24,.78) !important;
-}
-
-.enemy-zone {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(255,107,107,.10), transparent 45%),
-    linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.045)),
-    rgba(11,13,24,.72) !important;
-}
-
-.player-zone {
-  background:
-    radial-gradient(circle at 85% 0%, rgba(110,231,255,.10), transparent 45%),
-    linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.045)),
-    rgba(11,13,24,.72) !important;
 }
 
 .zone-title h3,
@@ -2745,41 +1729,30 @@ button:focus-visible::after { transform: translateX(130%); }
   letter-spacing: -.03em;
 }
 
-.card {
-  border-radius: 19px !important;
-  border: 1px solid rgba(255,255,255,.52) !important;
-  box-shadow: 0 16px 34px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.20) !important;
-  transform-style: preserve-3d;
-  transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+.card:hover {
+  transform: translateY(-4px) rotateX(2deg);
 }
 
-.card:hover { transform: translateY(-4px) rotateX(2deg); }
-.card:active { transform: translateY(-1px) scale(.98); }
+.card:active {
+  cursor: grabbing;
+  transform: translateY(-1px) scale(.98);
+}
 
 .card::before {
-  opacity: .58 !important;
-  background:
-    radial-gradient(circle at 18% 9%, rgba(255,255,255,.74), transparent 18%),
-    linear-gradient(120deg, rgba(255,255,255,.20), transparent 30%, transparent 70%, rgba(255,255,255,.12)),
-    repeating-linear-gradient(135deg, rgba(255,255,255,.055) 0 1px, transparent 1px 8px) !important;
-}
-
-.card::after {
   content: "";
   position: absolute;
-  inset: 7px;
-  border-radius: 14px;
+  inset: 0;
   pointer-events: none;
-  border: 1px solid rgba(255,255,255,.22);
-  box-shadow: inset 0 0 22px rgba(255,255,255,.08);
-  opacity: .8;
+  opacity: .58 !important;
+  background: radial-gradient(circle at 18% 9%, rgba(255,255,255,.74), transparent 18%),
+    linear-gradient(120deg, rgba(255,255,255,.20), transparent 30%, transparent 70%, rgba(255,255,255,.12)),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.055) 0 1px, transparent 1px 8px) !important;
 }
 
 .card.epic::before,
 .card.legendary::before {
   animation: cardFoilSweep 3.4s linear infinite;
-  background:
-    linear-gradient(115deg, transparent 0%, rgba(255,255,255,.05) 28%, rgba(255,255,255,.62) 47%, rgba(255,255,255,.08) 58%, transparent 80%),
+  background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,.05) 28%, rgba(255,255,255,.62) 47%, rgba(255,255,255,.08) 58%, transparent 80%),
     repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 1px, transparent 1px 9px) !important;
   background-size: 220% 100%, auto !important;
 }
@@ -2787,14 +1760,6 @@ button:focus-visible::after { transform: translateX(130%); }
 @keyframes cardFoilSweep {
   from { background-position: 220% 0, 0 0; }
   to { background-position: -120% 0, 0 0; }
-}
-
-.card.legendary {
-  border-color: rgba(245,199,107,.95) !important;
-  box-shadow:
-    0 0 0 1px rgba(245,199,107,.34),
-    0 0 34px rgba(245,199,107,.44),
-    0 20px 40px rgba(0,0,0,.45) !important;
 }
 
 .card.epic {
@@ -2806,26 +1771,45 @@ button:focus-visible::after { transform: translateX(130%); }
   border-color: rgba(110,231,255,.84) !important;
 }
 
-.creature.fire { background: linear-gradient(160deg, #fff0c7 0%, #ff9f43 38%, #c92a2a 100%) !important; }
-.creature.water { background: linear-gradient(160deg, #e3f7ff 0%, #4dabf7 42%, #123f95 100%) !important; }
-.creature.forest { background: linear-gradient(160deg, #e7ffd4 0%, #69db7c 42%, #13652a 100%) !important; }
-.creature.shadow { background: linear-gradient(160deg, #f0e7ff 0%, #9b7cff 38%, #21023f 100%) !important; color: #fff !important; }
-.creature.light { background: linear-gradient(160deg, #fffbe2 0%, #ffe066 42%, #ff922b 100%) !important; }
-.spell-card { background: linear-gradient(160deg, #ffffff 0%, #d4d9e5 42%, #536071 100%) !important; }
-.equipment-card { background: linear-gradient(160deg, #fff4df 0%, #ffb15e 42%, #7a3f14 100%) !important; }
-.terrain-card { background: linear-gradient(160deg, #e8fbff 0%, #91a7ff 42%, #29348d 100%) !important; }
-
-.creature.shadow .card-desc,
-.creature.shadow .card-name { color: #fff !important; text-shadow: 0 2px 6px rgba(0,0,0,.45); }
-
-.card-cost {
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,.45), transparent 28%),
-    linear-gradient(145deg, #10131f, #2d3348) !important;
-  box-shadow: 0 0 14px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.22) !important;
+.creature.fire {
+  background: linear-gradient(160deg, #fff0c7 0%, #ff9f43 38%, #c92a2a 100%) !important;
 }
 
-.card-name { letter-spacing: -.02em; }
+.creature.water {
+  background: linear-gradient(160deg, #e3f7ff 0%, #4dabf7 42%, #123f95 100%) !important;
+}
+
+.creature.forest {
+  background: linear-gradient(160deg, #e7ffd4 0%, #69db7c 42%, #13652a 100%) !important;
+}
+
+.creature.shadow {
+  background: linear-gradient(160deg, #f0e7ff 0%, #9b7cff 38%, #21023f 100%) !important;
+  color: #fff !important;
+}
+
+.creature.light {
+  background: linear-gradient(160deg, #fffbe2 0%, #ffe066 42%, #ff922b 100%) !important;
+}
+
+.spell-card {
+  background: linear-gradient(160deg, #ffffff 0%, #d4d9e5 42%, #536071 100%) !important;
+}
+
+.equipment-card {
+  background: linear-gradient(160deg, #fff4df 0%, #ffb15e 42%, #7a3f14 100%) !important;
+}
+
+.terrain-card {
+  background: linear-gradient(160deg, #e8fbff 0%, #91a7ff 42%, #29348d 100%) !important;
+}
+
+.creature.shadow .card-desc,
+.creature.shadow .card-name {
+  color: #fff !important;
+  text-shadow: 0 2px 6px rgba(0,0,0,.45);
+}
+
 .badge,
 .ability {
   -webkit-backdrop-filter: blur(8px);
@@ -2834,57 +1818,42 @@ button:focus-visible::after { transform: translateX(130%); }
   border: 1px solid rgba(255,255,255,.16);
 }
 
-.hp-bar { box-shadow: inset 0 1px 3px rgba(0,0,0,.34); }
-.hp-fill { background: linear-gradient(90deg, #38d75d, #ffe066, #ff922b) !important; box-shadow: 0 0 10px rgba(81,207,102,.4); }
-.card-stat { background: rgba(255,255,255,.68) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.45); }
+.hp-bar {
+  height: 5px;
+  background: rgba(0,0,0,0.24);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 5px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.34);
+}
 
 .empty-field {
-  background:
-    radial-gradient(circle at center, rgba(255,255,255,.06), transparent 55%),
+  min-width: 132px;
+  height: 98px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 10px;
+  text-align: center;
+  flex-shrink: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,.06), transparent 55%),
     rgba(0,0,0,.16) !important;
   border: 1px dashed rgba(255,255,255,.28) !important;
 }
 
 .modal {
-  background:
-    radial-gradient(circle at 50% 20%, rgba(245,199,107,.16), transparent 30%),
-    rgba(0,0,0,.78) !important;
-}
-
-.modal-card {
-  border-radius: 32px !important;
-}
-
-.pack-card {
-  background:
-    radial-gradient(circle at top, rgba(245,199,107,.22), transparent 45%),
-    linear-gradient(180deg, rgba(255,255,255,.15), rgba(255,255,255,.06)),
-    rgba(11,13,24,.82) !important;
-  min-height: 108px;
+  position: fixed;
+  inset: 0;
+  z-index: 30;
   display: grid;
   place-items: center;
-  box-shadow: 0 18px 38px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.12);
-}
-
-.app-bottom-nav {
-  position: fixed;
-  left: max(10px, env(safe-area-inset-left, 0px));
-  right: max(10px, env(safe-area-inset-right, 0px));
-  bottom: calc(10px + var(--safe-bottom));
-  z-index: 80;
-  height: 66px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  padding: 7px;
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.055)),
-    rgba(7,8,18,.82);
-  border: 1px solid rgba(255,255,255,.16);
-  box-shadow: 0 18px 50px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.12);
-  -webkit-backdrop-filter: blur(22px) saturate(1.25);
-  backdrop-filter: blur(22px) saturate(1.25);
+  padding: 18px;
+  overflow: hidden;
+  backdrop-filter: blur(7px);
+  background: radial-gradient(circle at 50% 20%, rgba(245,199,107,.16), transparent 30%),
+    rgba(0,0,0,.78) !important;
 }
 
 .app-bottom-nav button {
@@ -2921,37 +1890,42 @@ button:focus-visible::after { transform: translateX(130%); }
 }
 
 @media (min-width: 900px) {
-  .app-bottom-nav {
-    left: 50%;
-    right: auto;
-    width: 520px;
-    transform: translateX(-50%);
-  }
+.app-bottom-nav {
+  left: 50%;
+  right: auto;
+  width: 520px;
+  transform: translateX(-50%);
+}
 }
 
-@media (max-width: 700px) {
-  .screen { padding: 8px 8px calc(86px + var(--safe-bottom)) !important; }
-  .hero-panel { padding: 12px 13px 16px !important; border-radius: 28px !important; }
-  .game-logo h1 { font-size: 36px !important; line-height: .78 !important; }
-  .logo-mark { width: 50px !important; height: 50px !important; }
-  .game-screen:not(.hidden) {
-    padding: 6px 6px calc(78px + var(--safe-bottom)) !important;
-  }
-  .battle-board { gap: 6px !important; }
-  .card { border-radius: 13px !important; }
-  .card::after { inset: 4px; border-radius: 10px; }
-  .app-bottom-nav { height: 62px; border-radius: 22px; }
-}
-
-@media (max-width: 380px) {
-  .app-bottom-nav button span { font-size: 8px; }
-  .app-bottom-nav { gap: 4px; padding: 6px; }
-}
-
-/* =========================================================
-   V22 MAX POLISH - salto qualità grafico/mobile game
-   ========================================================= */
 :root {
+  --bg0: #05060b;
+  --bg1: #111523;
+  --bg2: #1a2134;
+  --text: #ffffff;
+  --muted: #bfc4d6;
+  --soft: rgba(255,255,255,0.08);
+  --soft2: rgba(255,255,255,0.14);
+  --border: rgba(255,255,255,0.14);
+  --gold: #ffd43b;
+  --orange: #ff9f43;
+  --orange2: #ffc078;
+  --green: #51cf66;
+  --red: #ff6b6b;
+  --blue: #59d1ff;
+  --purple: #b197fc;
+  --shadow-soft: 0 18px 50px rgba(0,0,0,0.36);
+  --shadow-strong: 0 24px 80px rgba(0,0,0,0.55);
+  --shadow-card: 0 10px 24px rgba(0,0,0,0.32);
+  --premium-bg: #07040f;
+  --premium-panel: rgba(12, 15, 28, 0.76);
+  --premium-panel-strong: rgba(13, 16, 31, 0.92);
+  --premium-line: rgba(255, 255, 255, 0.16);
+  --premium-cyan: #6ee7ff;
+  --premium-pink: #ff72c8;
+  --premium-violet: #9b7cff;
+  --premium-shadow: 0 24px 70px rgba(0,0,0,.55);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
   --premium-gold: #f5c76b;
   --premium-gold-2: #fff1b8;
   --ink: #070813;
@@ -2974,17 +1948,27 @@ body::after {
 }
 
 body::before {
-  background:
-    linear-gradient(120deg, rgba(255,255,255,.035) 0 1px, transparent 1px 34px),
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size: 42px 42px;
+  background: linear-gradient(120deg, rgba(255,255,255,.035) 0 1px, transparent 1px 34px),
     linear-gradient(30deg, rgba(255,255,255,.026) 0 1px, transparent 1px 42px),
     radial-gradient(circle at 50% -10%, rgba(245,199,107,.16), transparent 38%);
   mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.08));
 }
 
 body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
   z-index: -1;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 159, 67, .12), transparent 26%),
+  background: radial-gradient(circle at 20% 20%, rgba(255, 159, 67, .12), transparent 26%),
     radial-gradient(circle at 80% 18%, rgba(89, 209, 255, .10), transparent 28%),
     radial-gradient(circle at 50% 84%, rgba(177, 151, 252, .10), transparent 30%);
   filter: saturate(1.2);
@@ -3035,15 +2019,19 @@ body::after {
 }
 
 .hero-panel {
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(18px);
+  padding: 20px 22px 22px !important;
+  border-radius: 34px !important;
+  overflow: hidden;
   isolation: isolate;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.145), rgba(255,255,255,.052)),
+  background: linear-gradient(180deg, rgba(255,255,255,.145), rgba(255,255,255,.052)),
     radial-gradient(circle at 12% 0%, rgba(245,199,107,.17), transparent 34%),
     radial-gradient(circle at 88% 14%, rgba(89,209,255,.10), transparent 36%),
     rgba(7,9,18,.82) !important;
   border-color: rgba(245,199,107,.22) !important;
-  box-shadow:
-    0 30px 95px rgba(0,0,0,.62),
+  box-shadow: 0 30px 95px rgba(0,0,0,.62),
     inset 0 1px 0 rgba(255,255,255,.16),
     inset 0 0 0 1px rgba(255,255,255,.045) !important;
 }
@@ -3070,11 +2058,10 @@ body::after {
 
 .logo-mark,
 .mini-logo {
-  background:
-    radial-gradient(circle at 35% 25%, rgba(255,255,255,.34), transparent 30%),
+  border: 1px solid rgba(255,255,255,.24) !important;
+  background: radial-gradient(circle at 35% 25%, rgba(255,255,255,.34), transparent 30%),
     conic-gradient(from 210deg, #fff3bf, #ff922b, #8b5cf6, #4dabf7, #fff3bf) !important;
-  box-shadow:
-    0 12px 34px rgba(255,159,67,.26),
+  box-shadow: 0 12px 34px rgba(255,159,67,.26),
     inset 0 1px 0 rgba(255,255,255,.35) !important;
 }
 
@@ -3103,8 +2090,7 @@ body::after {
   min-width: 0;
   padding: 10px 8px;
   border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.045)),
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.045)),
     rgba(0,0,0,.20);
   border: 1px solid rgba(255,255,255,.11);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 22px rgba(0,0,0,.18);
@@ -3116,11 +2102,43 @@ body::after {
   display: block;
 }
 
-.home-stat-card b { font-size: 20px; line-height: 1; }
-.home-stat-card span { margin-top: 6px; color: rgba(255,255,255,.56); font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
-.home-stat-card strong { margin-top: 2px; color: white; font-size: 11px; line-height: 1.05; }
+.home-stat-card b {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.home-stat-card span {
+  margin-top: 6px;
+  color: rgba(255,255,255,.56);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.home-stat-card strong {
+  margin-top: 2px;
+  color: white;
+  font-size: 11px;
+  line-height: 1.05;
+}
 
 button {
+  border: 0;
+  cursor: pointer;
+  border-radius: 16px;
+  padding: 12px 15px;
+  background: linear-gradient(145deg, #ffbd57, #ff7b22);
+  color: #1b1207;
+  font-weight: 950;
+  box-shadow: 0 12px 26px rgba(0,0,0,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.32);
+  transition: transform 0.14s ease,
+    box-shadow 0.14s ease,
+    opacity 0.14s ease,
+    filter 0.14s ease;
+  -webkit-user-select: none;
+  user-select: none;
   position: relative;
   overflow: hidden;
 }
@@ -3143,14 +2161,19 @@ button:hover::after {
 .primary-action,
 .end-turn-btn,
 .round-btn.accent {
-  background:
-    radial-gradient(circle at 30% 18%, rgba(255,255,255,.36), transparent 30%),
+  box-shadow: 0 16px 36px rgba(245,199,107,.22), 0 10px 28px rgba(0,0,0,.34) !important;
+  background: radial-gradient(circle at 30% 18%, rgba(255,255,255,.36), transparent 30%),
     linear-gradient(145deg, #fff1a8, #f5c76b 44%, #ff8a2a) !important;
   color: #241505 !important;
   border: 1px solid rgba(255,255,255,.24) !important;
 }
 
 .deck-btn {
+  min-height: 76px;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  border: 1px solid rgba(255,255,255,0.18);
   transform: translateZ(0);
   box-shadow: 0 18px 36px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.18);
 }
@@ -3158,32 +2181,40 @@ button:hover::after {
 .deck-btn.selected {
   outline: none !important;
   border-color: rgba(255,255,255,.44) !important;
-  box-shadow:
-    0 0 0 2px rgba(245,199,107,.55),
+  box-shadow: 0 0 0 2px rgba(245,199,107,.55),
     0 0 0 6px rgba(245,199,107,.12),
     0 18px 38px rgba(0,0,0,.40),
     inset 0 1px 0 rgba(255,255,255,.22) !important;
 }
 
 .battle-hud {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1fr;
+  margin-bottom: 8px;
+  gap: 10px;
   position: relative;
 }
 
 .turn-panel {
-  background:
-    radial-gradient(circle at 50% 0%, rgba(245,199,107,.18), transparent 52%),
+  text-align: center;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  border-color: rgba(255,212,59,0.28);
+  box-shadow: 0 0 0 1px rgba(245,199,107,.20), var(--premium-shadow) !important;
+  background: radial-gradient(circle at 50% 0%, rgba(245,199,107,.18), transparent 52%),
     rgba(8,10,18,.70) !important;
 }
 
 .player-bar.my-bar {
-  background:
-    linear-gradient(180deg, rgba(89,209,255,.13), rgba(255,255,255,.045)),
+  box-shadow: 0 0 0 1px rgba(110,231,255,.18), var(--premium-shadow) !important;
+  background: linear-gradient(180deg, rgba(89,209,255,.13), rgba(255,255,255,.045)),
     rgba(8,10,18,.68) !important;
 }
 
 .player-bar.enemy-bar {
-  background:
-    linear-gradient(180deg, rgba(255,107,107,.13), rgba(255,255,255,.045)),
+  box-shadow: 0 0 0 1px rgba(255,107,107,.18), var(--premium-shadow) !important;
+  background: linear-gradient(180deg, rgba(255,107,107,.13), rgba(255,255,255,.045)),
     rgba(8,10,18,.68) !important;
 }
 
@@ -3202,20 +2233,55 @@ button:hover::after {
   pointer-events: none;
 }
 
-.enemy-zone { border-color: rgba(255,107,107,.18) !important; }
-.player-zone { border-color: rgba(89,209,255,.20) !important; }
-.hand-zone { border-color: rgba(245,199,107,.18) !important; }
+.enemy-zone {
+  background: radial-gradient(circle at 15% 0%, rgba(255,107,107,.10), transparent 45%),
+    linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.045)),
+    rgba(11,13,24,.72) !important;
+  border-color: rgba(255,107,107,.18) !important;
+}
+
+.player-zone {
+  background: radial-gradient(circle at 85% 0%, rgba(110,231,255,.10), transparent 45%),
+    linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.045)),
+    rgba(11,13,24,.72) !important;
+  border-color: rgba(89,209,255,.20) !important;
+}
+
+.hand-zone {
+  border-color: rgba(245,199,107,.18) !important;
+}
 
 .card {
+  flex: 0 0 112px;
+  width: 112px;
+  min-height: 142px;
+  padding: 7px;
+  color: #141414;
+  position: relative;
+  overflow: hidden;
+  animation: cardEnter 0.22s ease both;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+  cursor: grab;
+  border-radius: 19px !important;
+  border: 1px solid rgba(255,255,255,.52) !important;
+  transform-style: preserve-3d;
+  transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
   border-width: 1px !important;
   border-color: rgba(255,255,255,.55) !important;
-  box-shadow:
-    0 16px 28px rgba(0,0,0,.38),
+  box-shadow: 0 16px 28px rgba(0,0,0,.38),
     inset 0 1px 0 rgba(255,255,255,.34),
     inset 0 -1px 0 rgba(0,0,0,.12) !important;
 }
 
 .card::after {
+  box-shadow: inset 0 0 22px rgba(255,255,255,.08);
+  opacity: .8;
   content: "";
   position: absolute;
   inset: 5px;
@@ -3231,8 +2297,8 @@ button:hover::after {
 }
 
 .card.legendary {
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.30),
+  border-color: rgba(245,199,107,.95) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.30),
     0 0 26px rgba(245,199,107,.42),
     0 18px 38px rgba(0,0,0,.44),
     inset 0 1px 0 rgba(255,255,255,.42) !important;
@@ -3244,52 +2310,105 @@ button:hover::after {
 }
 
 .card-cost {
-  background:
-    radial-gradient(circle at 35% 22%, rgba(255,255,255,.32), transparent 30%),
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: white;
+  border: 2px solid rgba(255,255,255,0.88);
+  font-weight: 1000;
+  font-size: 12px;
+  box-shadow: 0 0 14px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.22) !important;
+  background: radial-gradient(circle at 35% 22%, rgba(255,255,255,.32), transparent 30%),
     linear-gradient(145deg, #20243a, #070813) !important;
-  box-shadow: 0 7px 14px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.18);
 }
 
 .card-name {
+  font-size: 11px;
+  font-weight: 1000;
+  line-height: 1.05;
+  margin-top: 5px;
   letter-spacing: -.035em;
   text-shadow: 0 1px 0 rgba(255,255,255,.18);
 }
 
 .ability {
+  font-size: 7.4px;
+  font-weight: 1000;
+  padding: 2px 4px;
+  border-radius: 8px;
+  color: white;
   border: 1px solid rgba(255,255,255,.18);
   background: rgba(0,0,0,.38) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
 }
 
 .hp-fill {
+  height: 100%;
+  width: 100%;
   background: linear-gradient(90deg, #2fdf84, #b7f36b 48%, #f5c76b) !important;
   box-shadow: 0 0 10px rgba(81,207,102,.36);
 }
 
 .card-stat {
+  border-radius: 10px;
+  padding: 4px;
+  text-align: center;
+  font-weight: 1000;
+  font-size: 11px;
   background: rgba(255,255,255,.66) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.46);
 }
 
 .modal-card {
+  width: min(460px, 100%);
+  max-width: 94vw;
+  max-height: 88dvh;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.14);
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 26px 80px rgba(0,0,0,0.58);
+  border-radius: 32px !important;
   border-color: rgba(245,199,107,.20) !important;
-  background:
-    radial-gradient(circle at 50% -4%, rgba(245,199,107,.19), transparent 35%),
+  background: radial-gradient(circle at 50% -4%, rgba(245,199,107,.19), transparent 35%),
     linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.055)),
     rgba(13,16,31,.94) !important;
 }
 
 .pack-card {
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: white;
+  font-weight: 900;
   min-height: 112px;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(245,199,107,.22), transparent 52%),
+  background: radial-gradient(circle at 50% 0%, rgba(245,199,107,.22), transparent 52%),
     linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,.06)) !important;
   box-shadow: 0 14px 26px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.14);
 }
 
 .app-bottom-nav {
+  position: fixed;
+  left: max(10px, env(safe-area-inset-left, 0px));
+  right: max(10px, env(safe-area-inset-right, 0px));
+  bottom: calc(10px + var(--safe-bottom));
+  z-index: 80;
+  height: 66px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 7px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.055)),
+    rgba(7,8,18,.82);
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 18px 50px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  backdrop-filter: blur(22px) saturate(1.25);
   border-color: rgba(245,199,107,.24) !important;
 }
 
@@ -3298,135 +2417,130 @@ button:hover::after {
 }
 
 .splash-screen {
-  background:
-    radial-gradient(circle at 50% 28%, rgba(245,199,107,.24), transparent 24%),
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 16px;
+  transition: opacity .55s ease, visibility .55s ease, transform .55s ease;
+  background: radial-gradient(circle at 50% 28%, rgba(245,199,107,.24), transparent 24%),
     radial-gradient(circle at 22% 10%, rgba(89,209,255,.13), transparent 32%),
     linear-gradient(160deg, #11172b, #03040a) !important;
 }
 
 .splash-card-stack span {
+  position: absolute;
+  width: 72px;
+  height: 98px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.04)), linear-gradient(145deg, #f5c76b, #9b7cff);
+  border: 1px solid rgba(255,255,255,.35);
   box-shadow: 0 18px 40px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.30);
 }
 
-@media (max-width: 700px) {
-  .home-dashboard { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-  .home-stat-card { padding: 8px 6px; border-radius: 15px; }
-  .home-stat-card b { font-size: 17px; }
-  .home-stat-card span { font-size: 7.8px; }
-  .home-stat-card strong { font-size: 9.5px; }
-  .build-badge { display: none; }
-
-  .battle-hud {
-    grid-template-columns: 1fr;
-  }
-
-  .turn-panel {
-    order: -1;
-    min-height: 48px !important;
-  }
-
-  .player-bar {
-    min-height: 48px !important;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-  }
-
-  .battle-board {
-    grid-template-rows: auto minmax(94px, 1fr) minmax(94px, 1fr) minmax(112px, 1.08fr) auto !important;
-  }
-
-  .zone-title h3 { max-width: 70% !important; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .ambient-particles,
-  .build-badge { display: none !important; }
-  .card.legendary,
-  .card.epic { animation: cardEnter .01ms ease both !important; }
+.fx-flash,
+  .fx-particle,
+  .fx-event-text,
+  .damage-popup,
+  .card.fx-card-summon,
+  .card.fx-card-evolve,
+  .card.fx-card-equip,
+  .card.fx-card-terrain,
+  body.screen-shake,
+  .modal-card.victory-pop,
+  .modal-card.defeat-pop {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
 }
 
-/* =========================================================
-   V53 - Campi di gioco più grandi nel gameplay mobile
-   ========================================================= */
-@media (max-width: 700px) {
-  #gameScreen .battle-board {
-    grid-template-rows:
-      auto
-      minmax(128px, 1.35fr)
-      minmax(128px, 1.35fr)
-      minmax(108px, .9fr)
-      auto !important;
-    gap: 6px !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 128px !important;
-    padding: 7px !important;
-    border-radius: 17px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 100px !important;
-    height: 100px !important;
-    max-height: 100px !important;
-    gap: 7px !important;
-    padding: 2px 2px 5px !important;
-    align-items: flex-start !important;
-  }
-
-  #gameScreen .empty-field {
-    min-width: 112px !important;
-    height: 92px !important;
-    font-size: 10px !important;
-  }
-
-  #gameScreen .zone-title {
-    margin-bottom: 5px !important;
-  }
+.ambient-particles,
+  .build-badge {
+  display: none !important;
 }
 
-@media (max-width: 380px) {
-  #gameScreen .battle-board {
-    grid-template-rows:
-      auto
-      minmax(118px, 1.3fr)
-      minmax(118px, 1.3fr)
-      minmax(102px, .85fr)
-      auto !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 118px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 91px !important;
-    height: 91px !important;
-    max-height: 91px !important;
-  }
+.card.legendary,
+  .card.epic {
+  animation: cardEnter .01ms ease both !important;
+}
 }
 
+.deck-btn.dragon {
+  background: linear-gradient(145deg, #ffb703, #fb5607 48%, #8b1e1e) !important;
+  color: white;
+}
 
-/* =========================================================
-   V54 - Nuovi mazzi + campi un po' più stretti
-   ========================================================= */
-.deck-btn.dragon { background: linear-gradient(145deg, #ffb703, #fb5607 48%, #8b1e1e) !important; color: white; }
-.deck-btn.undead { background: linear-gradient(145deg, #ced4da, #495057 48%, #111217) !important; color: white; }
-.deck-btn.mechanic { background: linear-gradient(145deg, #dbe4ff, #748ffc 48%, #343a40) !important; color: white; }
-.deck-btn.beast { background: linear-gradient(145deg, #d8f5a2, #82c91e 48%, #3b5b1f) !important; color: white; }
-.deck-btn.mage { background: linear-gradient(145deg, #e5dbff, #845ef7 48%, #3b0a75) !important; color: white; }
-.deck-btn.pirate { background: linear-gradient(145deg, #ffe8cc, #f08c00 48%, #4f2b10) !important; color: white; }
-.deck-btn.demon { background: linear-gradient(145deg, #ffc9c9, #e03131 48%, #3b0505) !important; color: white; }
-.deck-btn.ice { background: linear-gradient(145deg, #e7f5ff, #74c0fc 48%, #1864ab) !important; color: white; }
+.deck-btn.undead {
+  background: linear-gradient(145deg, #ced4da, #495057 48%, #111217) !important;
+  color: white;
+}
 
-.creature.dragon { background: linear-gradient(160deg, #fff0c2 0%, #ff922b 42%, #8b1e1e 100%) !important; }
-.creature.undead { background: linear-gradient(160deg, #f1f3f5 0%, #868e96 42%, #15161c 100%) !important; color: #fff !important; }
-.creature.mechanic { background: linear-gradient(160deg, #edf2ff 0%, #748ffc 42%, #343a40 100%) !important; }
-.creature.beast { background: linear-gradient(160deg, #ebfbee 0%, #82c91e 42%, #2b4b16 100%) !important; }
-.creature.mage { background: linear-gradient(160deg, #f3f0ff 0%, #9775fa 42%, #32105d 100%) !important; color: #fff !important; }
-.creature.pirate { background: linear-gradient(160deg, #fff4e6 0%, #ffa94d 42%, #5c3210 100%) !important; }
-.creature.demon { background: linear-gradient(160deg, #ffe3e3 0%, #ff6b6b 42%, #3b0505 100%) !important; color: #fff !important; }
-.creature.ice { background: linear-gradient(160deg, #e7f5ff 0%, #74c0fc 42%, #1c4f8f 100%) !important; }
+.deck-btn.mechanic {
+  background: linear-gradient(145deg, #dbe4ff, #748ffc 48%, #343a40) !important;
+  color: white;
+}
+
+.deck-btn.beast {
+  background: linear-gradient(145deg, #d8f5a2, #82c91e 48%, #3b5b1f) !important;
+  color: white;
+}
+
+.deck-btn.mage {
+  background: linear-gradient(145deg, #e5dbff, #845ef7 48%, #3b0a75) !important;
+  color: white;
+}
+
+.deck-btn.pirate {
+  background: linear-gradient(145deg, #ffe8cc, #f08c00 48%, #4f2b10) !important;
+  color: white;
+}
+
+.deck-btn.demon {
+  background: linear-gradient(145deg, #ffc9c9, #e03131 48%, #3b0505) !important;
+  color: white;
+}
+
+.deck-btn.ice {
+  background: linear-gradient(145deg, #e7f5ff, #74c0fc 48%, #1864ab) !important;
+  color: white;
+}
+
+.creature.dragon {
+  background: linear-gradient(160deg, #fff0c2 0%, #ff922b 42%, #8b1e1e 100%) !important;
+}
+
+.creature.undead {
+  background: linear-gradient(160deg, #f1f3f5 0%, #868e96 42%, #15161c 100%) !important;
+  color: #fff !important;
+}
+
+.creature.mechanic {
+  background: linear-gradient(160deg, #edf2ff 0%, #748ffc 42%, #343a40 100%) !important;
+}
+
+.creature.beast {
+  background: linear-gradient(160deg, #ebfbee 0%, #82c91e 42%, #2b4b16 100%) !important;
+}
+
+.creature.mage {
+  background: linear-gradient(160deg, #f3f0ff 0%, #9775fa 42%, #32105d 100%) !important;
+  color: #fff !important;
+}
+
+.creature.pirate {
+  background: linear-gradient(160deg, #fff4e6 0%, #ffa94d 42%, #5c3210 100%) !important;
+}
+
+.creature.demon {
+  background: linear-gradient(160deg, #ffe3e3 0%, #ff6b6b 42%, #3b0505 100%) !important;
+  color: #fff !important;
+}
+
+.creature.ice {
+  background: linear-gradient(160deg, #e7f5ff 0%, #74c0fc 42%, #1c4f8f 100%) !important;
+}
 
 .creature.undead .card-name,
 .creature.undead .card-desc,
@@ -3439,439 +2553,919 @@ button:hover::after {
 }
 
 @media (max-width: 700px) {
-  /* QUI puoi stringere/allargare i campi:
-     - minmax(116px...) = altezza dei due campi di gioco
-     - .field-zone min-height = altezza del contenitore campo
-     - .compact-field height = altezza interna dove stanno le carte
-  */
-  #gameScreen .battle-board {
-    grid-template-rows:
-      auto
-      minmax(116px, 1.22fr)
-      minmax(116px, 1.22fr)
-      minmax(108px, .9fr)
-      auto !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 116px !important;
-    padding: 6px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 88px !important;
-    height: 88px !important;
-    max-height: 88px !important;
-  }
-
-  #gameScreen .empty-field {
-    height: 80px !important;
-  }
+html,
+  body {
+  min-height: 100%;
+  height: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-@media (max-width: 380px) {
-  #gameScreen .battle-board {
-    grid-template-rows:
-      auto
-      minmax(106px, 1.16fr)
-      minmax(106px, 1.16fr)
-      minmax(102px, .85fr)
-      auto !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 106px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 80px !important;
-    height: 80px !important;
-    max-height: 80px !important;
-  }
+.hero-top {
+  align-items: flex-start;
 }
 
-
-/* =========================================================
-   V55 - Campi più compatti su telefono
-   ========================================================= */
-@media (max-width: 700px) {
-  #gameScreen .battle-board {
-    grid-template-rows:
-      auto
-      minmax(92px, 1fr)
-      minmax(92px, 1fr)
-      minmax(118px, .9fr)
-      auto !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 92px !important;
-    padding: 4px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 64px !important;
-    height: 64px !important;
-    max-height: 64px !important;
-  }
-
-  #gameScreen .empty-field {
-    height: 58px !important;
-  }
+.game-logo {
+  gap: 9px;
+  align-items: flex-start;
 }
 
-@media (max-width: 380px) {
-  #gameScreen .battle-board {
-    grid-template-rows:
-      auto
-      minmax(84px, .95fr)
-      minmax(84px, .95fr)
-      minmax(112px, .9fr)
-      auto !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 84px !important;
-    padding: 4px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 58px !important;
-    height: 58px !important;
-    max-height: 58px !important;
-  }
+.game-logo p {
+  font-size: 9px;
+  margin-top: 5px;
 }
 
+.icon-pill {
+  min-height: 36px;
+  font-size: 11px;
+  padding: 8px 10px;
+}
 
-/* =========================================================
-   V56 - Tolto spazio vuoto sotto + campi davvero compatti mobile
-   ========================================================= */
-@media (max-width: 700px) {
-  body:has(#gameScreen.game-screen:not(.hidden)) {
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-    overflow: hidden !important;
-  }
+.profile-strip {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 17px;
+}
 
-  #gameScreen.game-screen:not(.hidden) {
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-    min-height: 100dvh !important;
-    padding: 4px 5px calc(4px + env(safe-area-inset-bottom, 0px)) !important;
-    margin: 0 auto !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
+.profile-strip strong {
+  font-size: 13px;
+}
 
-  #gameScreen .app-topbar {
-    flex: 0 0 32px !important;
-    min-height: 32px !important;
-    height: 32px !important;
-    margin-bottom: 3px !important;
-    padding: 4px 6px !important;
-    border-radius: 13px !important;
-  }
+.profile-strip span {
+  font-size: 11px;
+}
 
-  #gameScreen .mini-logo {
-    width: 24px !important;
-    height: 24px !important;
-    border-radius: 9px !important;
-    font-size: 12px !important;
-  }
+.input-label,
+  .select-label {
+  margin: 12px 0 9px;
+  font-size: 12px;
+}
 
-  #gameScreen .app-topbar h1 {
-    font-size: 13px !important;
-  }
+.section-row {
+  margin: 14px 0 8px;
+}
 
-  #gameScreen .app-topbar p {
-    font-size: 8px !important;
-    margin-top: 0 !important;
-  }
+.section-row h2 {
+  font-size: 15px;
+}
 
-  #gameScreen .round-btn {
-    width: 25px !important;
-    height: 25px !important;
-    border-radius: 9px !important;
-    font-size: 11px !important;
-  }
+.section-row span {
+  font-size: 10px;
+}
 
-  #gameScreen .battle-hud {
-    flex: 0 0 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
-    margin: 0 0 3px !important;
-    gap: 3px !important;
-    display: grid !important;
-    grid-template-columns: 1fr .82fr 1fr !important;
-    align-items: stretch !important;
-  }
+.avatar-grid,
+  .deck-grid,
+  .custom-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
 
-  #gameScreen .player-bar,
+.avatar-btn {
+  min-height: 46px;
+  font-size: 18px;
+  border-radius: 14px;
+}
+
+.avatar-btn small {
+  font-size: 9px;
+}
+
+.deck-btn {
+  min-height: 56px;
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 16px;
+}
+
+.deck-btn b {
+  font-size: 13px;
+}
+
+.deck-btn small {
+  font-size: 9px;
+}
+
+.main-actions {
+  margin-top: 9px;
+  gap: 7px;
+}
+
+.main-actions button {
+  min-height: 47px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.join-box {
+  grid-template-columns: 1fr;
+  gap: 7px;
+  margin-top: 8px;
+  padding: 8px;
+}
+
+.bottom-menu {
+  gap: 7px;
+}
+
+.bottom-menu button {
+  font-size: 11px;
+}
+
+.code-box {
+  font-size: 34px;
+  padding: 14px;
+}
+
+body:has(.game-screen:not(.hidden)) {
+  height: 100%;
+  overflow: hidden;
+}
+
+body:has(.screen:not(.hidden)) {
+  height: auto;
+  overflow-y: auto;
+}
+
+.app-topbar {
+  flex: 0 0 auto;
+  margin-bottom: 5px;
+  padding: 7px 8px;
+  border-radius: 18px;
+}
+
+.mini-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+}
+
+.app-topbar h1 {
+  font-size: 16px;
+}
+
+.app-topbar p {
+  font-size: 10px;
+}
+
+.round-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+
+.top-actions {
+  gap: 5px;
+}
+
+.player-bar,
+  .turn-panel {
+  min-height: 58px;
+  padding: 5px;
+  border-radius: 15px;
+  font-size: 10px;
+}
+
+.player-bar strong {
+  font-size: 10px;
+}
+
+.player-bar span,
+  .turn-panel span {
+  font-size: 9px;
+}
+
+.life-energy {
+  text-align: left;
+}
+
+.turn-panel strong {
+  font-size: 11px;
+}
+
+#message,
+  #roomInfoText {
+  font-size: 9px;
+  line-height: 1.1;
+}
+
+.terrain-zone {
+  padding: 5px 7px;
+  border-radius: 14px;
+}
+
+.terrain-zone span,
+  .terrain-zone strong {
+  font-size: 9px;
+}
+
+.field-zone,
+  .hand-zone,
+  .log-wrapper {
+  padding: 5px;
+  border-radius: 15px;
+  min-height: 0;
+}
+
+.zone-title {
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.zone-title span {
+  font-size: 9px;
+}
+
+.end-turn-btn {
+  padding: 6px 8px;
+  font-size: 10px;
+  min-width: 72px;
+}
+
+.compact-field {
+  min-height: 0;
+  height: 106px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  align-items: flex-start;
+  overscroll-behavior-x: contain;
+}
+
+.hand-zone {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hand {
+  min-height: 0;
+  height: 112px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 3px;
+  overscroll-behavior-x: contain;
+}
+
+.log-wrapper {
+  flex: 0 0 auto;
+}
+
+.log-wrapper.collapsed {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.battle-log {
+  max-height: 70px;
+}
+
+.card-icon {
+  font-size: 15px;
+}
+
+.card-cost {
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+  border-width: 1.5px;
+}
+
+.card-name {
+  font-size: 8.2px;
+  margin-top: 3px;
+}
+
+.badge {
+  font-size: 5.8px;
+  padding: 1px 2px;
+}
+
+.ability-row,
+  .card-desc {
+  display: none;
+}
+
+.hp-bar {
+  height: 3px;
+  margin-top: 3px;
+}
+
+.card-stats {
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.card-stat {
+  padding: 2px;
+  font-size: 8px;
+  border-radius: 6px;
+}
+
+.card-stat small {
+  font-size: 5px;
+}
+
+.empty-field {
+  height: 88px;
+  min-width: 82px;
+  font-size: 8px;
+  border-radius: 11px;
+}
+
+.modal-card {
+  padding: 16px;
+  border-radius: 24px;
+}
+
+.modal-card h2 {
+  font-size: 24px;
+}
+
+.result-icon {
+  font-size: 42px;
+}
+
+.detail-stats {
+  grid-template-columns: 1fr;
+}
+
+.boss-grid,
+  .draft-grid,
+  .pack-grid,
+  .quick-chat-grid {
+  grid-template-columns: 1fr;
+}
+
+.screen {
+  min-height: 100dvh;
+  height: auto;
+  align-items: start;
+  place-items: start center;
+  overflow-y: auto;
+  padding: 8px 8px calc(86px + var(--safe-bottom)) !important;
+}
+
+.hero-panel {
+  width: 100%;
+  padding: 12px 13px 16px !important;
+  border-radius: 28px !important;
+}
+
+.game-logo h1 {
+  margin: -3px 0 0;
+  font-size: 36px !important;
+  line-height: .78 !important;
+}
+
+.logo-mark {
+  font-size: 23px;
+  border-radius: 17px;
+  margin-top: 1px;
+  width: 50px !important;
+  height: 50px !important;
+}
+
+.game-screen:not(.hidden) {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 6px calc(78px + var(--safe-bottom)) !important;
+}
+
+.card {
+  flex: 0 0 78px;
+  width: 78px;
+  min-height: 96px;
+  padding: 4px;
+  border-radius: 13px !important;
+}
+
+.card::after {
+  inset: 4px;
+  border-radius: 10px;
+}
+
+.app-bottom-nav {
+  height: 62px;
+  border-radius: 22px;
+}
+
+.home-dashboard {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.home-stat-card {
+  padding: 8px 6px;
+  border-radius: 15px;
+}
+
+.home-stat-card b {
+  font-size: 17px;
+}
+
+.home-stat-card span {
+  font-size: 7.8px;
+}
+
+.home-stat-card strong {
+  font-size: 9.5px;
+}
+
+.build-badge {
+  display: none;
+}
+
+.battle-hud {
+  flex: 0 0 auto;
+  gap: 5px;
+  margin-bottom: 5px;
+  grid-template-columns: 1fr;
+}
+
+.turn-panel {
+  order: -1;
+  min-height: 48px !important;
+}
+
+.player-bar {
+  display: grid;
+  gap: 2px;
+  min-height: 48px !important;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+}
+
+.battle-board {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  overflow: hidden;
+  gap: 6px !important;
+  grid-template-rows: auto minmax(94px, 1fr) minmax(94px, 1fr) minmax(112px, 1.08fr) auto !important;
+}
+
+.zone-title h3 {
+  font-size: 11px;
+  max-width: 70% !important;
+}
+
+body:has(#gameScreen.game-screen:not(.hidden)) {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+#gameScreen.game-screen:not(.hidden) {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 100dvh !important;
+  padding: 4px 5px calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+  margin: 0 auto !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#gameScreen .app-topbar {
+  flex: 0 0 32px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  margin-bottom: 3px !important;
+  padding: 4px 6px !important;
+  border-radius: 13px !important;
+}
+
+#gameScreen .mini-logo {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 9px !important;
+  font-size: 12px !important;
+}
+
+#gameScreen .app-topbar h1 {
+  font-size: 13px !important;
+}
+
+#gameScreen .app-topbar p {
+  font-size: 8px !important;
+  margin-top: 0 !important;
+}
+
+#gameScreen .round-btn {
+  width: 25px !important;
+  height: 25px !important;
+  border-radius: 9px !important;
+  font-size: 11px !important;
+}
+
+#gameScreen .battle-hud {
+  flex: 0 0 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  margin: 0 0 3px !important;
+  gap: 3px !important;
+  display: grid !important;
+  grid-template-columns: 1fr .82fr 1fr !important;
+  align-items: stretch !important;
+}
+
+#gameScreen .player-bar,
   #gameScreen .turn-panel {
-    min-height: 36px !important;
-    height: 36px !important;
-    padding: 3px 5px !important;
-    border-radius: 12px !important;
-  }
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 3px 5px !important;
+  border-radius: 12px !important;
+}
 
-  #gameScreen .turn-panel {
-    grid-column: auto !important;
-    order: 2 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-  }
+#gameScreen .turn-panel {
+  grid-column: auto !important;
+  order: 2 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
 
-  #gameScreen .enemy-bar { order: 1 !important; }
-  #gameScreen .my-bar { order: 3 !important; }
+#gameScreen .enemy-bar {
+  order: 1 !important;
+}
 
-  #gameScreen .turn-panel strong {
-    font-size: 9px !important;
-    line-height: 1 !important;
-  }
+#gameScreen .my-bar {
+  order: 3 !important;
+}
 
-  #gameScreen .turn-panel #message,
+#gameScreen .turn-panel strong {
+  font-size: 9px !important;
+  line-height: 1 !important;
+}
+
+#gameScreen .turn-panel #message,
   #gameScreen .turn-panel #roomInfoText,
   #gameScreen .turn-panel .timer-text,
   #gameScreen .turn-panel .tiny-btn {
-    display: none !important;
-  }
+  display: none !important;
+}
 
-  #gameScreen .player-bar strong {
-    font-size: 8.5px !important;
-    line-height: 1 !important;
-  }
+#gameScreen .player-bar strong {
+  font-size: 8.5px !important;
+  line-height: 1 !important;
+}
 
-  #gameScreen .player-bar > div:first-child span,
+#gameScreen .player-bar > div:first-child span,
   #gameScreen .player-bar .energy-dots {
-    display: none !important;
-  }
+  display: none !important;
+}
 
-  #gameScreen .player-bar .life-energy span {
-    font-size: 7.5px !important;
-    line-height: 1 !important;
-  }
+#gameScreen .player-bar .life-energy span {
+  font-size: 7.5px !important;
+  line-height: 1 !important;
+}
 
-  #gameScreen .player-bar .life-energy span:first-child {
-    font-size: 9px !important;
-    font-weight: 900 !important;
+#gameScreen .player-bar .life-energy span:first-child {
+  font-size: 9px !important;
+  font-weight: 900 !important;
+}
+
+#gameScreen .terrain-zone {
+  min-height: 20px !important;
+  height: 20px !important;
+  padding: 2px 6px !important;
+  border-radius: 10px !important;
+}
+
+#gameScreen .zone-title {
+  min-height: 14px !important;
+  height: 14px !important;
+  margin-bottom: 2px !important;
+  gap: 3px !important;
+}
+
+#gameScreen .zone-title h3,
+  #gameScreen .zone-title span {
+  font-size: 8px !important;
+  line-height: 1 !important;
+}
+
+#gameScreen .end-turn-btn {
+  min-height: 18px !important;
+  height: 18px !important;
+  padding: 2px 6px !important;
+  border-radius: 8px !important;
+  font-size: 8px !important;
+}
+
+#gameScreen .empty-field {
+  min-width: 68px !important;
+  height: 49px !important;
+  font-size: 7px !important;
+  border-radius: 8px !important;
+}
+
+#gameScreen .hand-zone {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 4px !important;
+  border-radius: 13px !important;
+}
+
+#gameScreen .hand {
+  height: 112px !important;
+  min-height: 112px !important;
+  max-height: 112px !important;
+  padding: 1px 1px 4px !important;
+}
+
+#gameScreen .log-wrapper {
+  display: none !important;
+}
+
+#gameScreen .battle-board {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: hidden !important;
+  display: grid !important;
+  grid-template-rows: 20px 118px 118px minmax(120px, 1fr) !important;
+  gap: 4px !important;
+}
+
+#gameScreen .field-zone {
+  min-height: 118px !important;
+  height: 118px !important;
+  max-height: 118px !important;
+  padding: 5px !important;
+  border-radius: 16px !important;
+}
+
+#gameScreen .compact-field {
+  gap: 4px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  min-height: 86px !important;
+  height: 86px !important;
+  max-height: 86px !important;
+  padding: 2px !important;
+  align-items: stretch !important;
+}
+
+#gameScreen .compact-field .empty-field {
+  flex: 1 1 100% !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  font-size: 11px !important;
+}
+}
+
+@media (max-width: 380px) {
+.game-logo h1 {
+  font-size: 30px;
+}
+
+.game-screen {
+  padding: 5px;
+}
+
+.app-topbar h1 {
+  font-size: 15px;
+}
+
+.round-btn {
+  width: 30px;
+  height: 30px;
+}
+
+.player-bar,
+  .turn-panel {
+  min-height: 54px;
+  font-size: 9px;
+  padding: 4px;
+}
+
+.compact-field {
+  height: 100px;
+}
+
+.hand {
+  height: 106px;
+}
+
+.card {
+  flex-basis: 72px;
+  width: 72px;
+  min-height: 90px;
+  padding: 4px;
+}
+
+.card-icon {
+  font-size: 14px;
+}
+
+.card-cost {
+  width: 17px;
+  height: 17px;
+  font-size: 8.5px;
+}
+
+.card-name {
+  font-size: 7.8px;
+}
+
+.badge {
+  font-size: 5.3px;
+}
+
+.card-stat {
+  font-size: 7.5px;
+}
+
+.app-bottom-nav button span {
+  font-size: 8px;
+}
+
+.app-bottom-nav {
+  gap: 4px;
+  padding: 6px;
+}
+
+#gameScreen.game-screen:not(.hidden) {
+  padding: 3px 4px calc(3px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+#gameScreen .hand {
+  height: 104px !important;
+  min-height: 104px !important;
+  max-height: 104px !important;
+}
+
+#gameScreen .battle-board {
+  grid-template-rows: 18px 106px 106px minmax(108px, 1fr) !important;
+  gap: 3px !important;
+}
+
+#gameScreen .field-zone {
+  min-height: 106px !important;
+  height: 106px !important;
+  max-height: 106px !important;
+  padding: 4px !important;
+}
+
+#gameScreen .compact-field {
+  min-height: 78px !important;
+  height: 78px !important;
+  max-height: 78px !important;
+}
+
+#gameScreen .compact-field .empty-field {
+  border-radius: 10px !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: 100% !important;
+  font-size: 10px !important;
+}
+}
+
+/* =========================================================
+   V59 - FINAL MOBILE GAME TUNING
+   Modifica qui i valori principali del gameplay mobile.
+   ========================================================= */
+@media (max-width: 700px) {
+  #gameScreen.game-screen:not(.hidden),
+  .game-screen:not(.hidden) {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 6px 6px 8px !important;
   }
 
   #gameScreen .battle-board {
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    height: auto !important;
+    display: grid !important;
+    grid-template-rows: auto 118px 118px minmax(126px, 1fr) auto !important;
+    gap: 5px !important;
     overflow: hidden !important;
-    display: grid !important;
-    grid-template-rows: 20px 76px 76px minmax(120px, 1fr) !important;
-    gap: 3px !important;
-  }
-
-  #gameScreen .terrain-zone {
-    min-height: 20px !important;
-    height: 20px !important;
-    padding: 2px 6px !important;
-    border-radius: 10px !important;
   }
 
   #gameScreen .field-zone {
-    min-height: 76px !important;
-    height: 76px !important;
-    max-height: 76px !important;
-    padding: 3px !important;
-    border-radius: 12px !important;
-  }
-
-  #gameScreen .zone-title {
-    min-height: 14px !important;
-    height: 14px !important;
-    margin-bottom: 2px !important;
-    gap: 3px !important;
-  }
-
-  #gameScreen .zone-title h3,
-  #gameScreen .zone-title span {
-    font-size: 8px !important;
-    line-height: 1 !important;
-  }
-
-  #gameScreen .end-turn-btn {
-    min-height: 18px !important;
-    height: 18px !important;
-    padding: 2px 6px !important;
-    border-radius: 8px !important;
-    font-size: 8px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 54px !important;
-    height: 54px !important;
-    max-height: 54px !important;
-    gap: 4px !important;
-    padding: 1px 1px 2px !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-  }
-
-  #gameScreen .empty-field {
-    min-width: 68px !important;
-    height: 49px !important;
-    font-size: 7px !important;
-    border-radius: 8px !important;
-  }
-
-  #gameScreen .hand-zone {
-    min-height: 0 !important;
-    height: auto !important;
-    padding: 4px !important;
-    border-radius: 13px !important;
-  }
-
-  #gameScreen .hand {
-    height: 112px !important;
-    min-height: 112px !important;
-    max-height: 112px !important;
-    padding: 1px 1px 4px !important;
-  }
-
-  #gameScreen .log-wrapper {
-    display: none !important;
-  }
-}
-
-@media (max-width: 380px) {
-  #gameScreen.game-screen:not(.hidden) {
-    padding: 3px 4px calc(3px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  #gameScreen .battle-board {
-    grid-template-rows: 18px 68px 68px minmax(108px, 1fr) !important;
-    gap: 2px !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 68px !important;
-    height: 68px !important;
-    max-height: 68px !important;
-  }
-
-  #gameScreen .compact-field {
-    min-height: 48px !important;
-    height: 48px !important;
-    max-height: 48px !important;
-  }
-
-  #gameScreen .hand {
-    height: 104px !important;
-    min-height: 104px !important;
-    max-height: 104px !important;
-  }
-}
-
-
-/* =========================================================
-   V57 - Box tratteggiato grande quanto il campo
-   ========================================================= */
-@media (max-width: 700px) {
-  #gameScreen .compact-field {
-    align-items: stretch !important;
-  }
-
-  #gameScreen .compact-field .empty-field {
-    flex: 1 1 100% !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
-    display: grid !important;
-    place-items: center !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border-radius: 12px !important;
-    font-size: 10px !important;
-  }
-}
-
-@media (max-width: 380px) {
-  #gameScreen .compact-field .empty-field {
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
-    font-size: 9px !important;
-    border-radius: 10px !important;
-  }
-}
-
-
-/* =========================================================
-   V58 - Campi allargati + box tratteggiato a tutta area
-   ========================================================= */
-@media (max-width: 700px) {
-  #gameScreen .battle-board {
-    grid-template-rows: 20px 118px 118px minmax(120px, 1fr) !important;
-    gap: 4px !important;
-  }
-
-  #gameScreen .field-zone {
-    min-height: 130px !important;
     height: 118px !important;
+    min-height: 118px !important;
     max-height: 118px !important;
     padding: 5px !important;
     border-radius: 16px !important;
   }
 
   #gameScreen .compact-field {
-    min-height: 100px !important;
     height: 86px !important;
+    min-height: 86px !important;
     max-height: 86px !important;
-    padding: 2px !important;
+    padding: 0 !important;
+    gap: 6px !important;
     align-items: stretch !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
   }
 
   #gameScreen .compact-field .empty-field {
-    flex: 1 1 100% !important;
     width: 100% !important;
     min-width: 100% !important;
-    max-width: 100% !important;
     height: 100% !important;
     min-height: 100% !important;
-    max-height: 100% !important;
-    display: grid !important;
-    place-items: center !important;
     margin: 0 !important;
-    padding: 0 !important;
-    border-radius: 14px !important;
-    font-size: 11px !important;
+    border-radius: 12px !important;
+  }
+
+  #gameScreen .card {
+    flex: 0 0 72px !important;
+    width: 72px !important;
+    min-width: 72px !important;
+    min-height: 90px !important;
+    height: 90px !important;
+    padding: 4px !important;
+    border-radius: 12px !important;
+  }
+
+  #gameScreen .hand .card {
+    flex-basis: 76px !important;
+    width: 76px !important;
+    min-width: 76px !important;
+    min-height: 96px !important;
+    height: 96px !important;
+  }
+
+  #gameScreen .card-icon {
+    font-size: 14px !important;
+  }
+
+  #gameScreen .card-cost {
+    width: 17px !important;
+    height: 17px !important;
+    font-size: 8px !important;
+  }
+
+  #gameScreen .card-name {
+    font-size: 7.4px !important;
+    line-height: 1.02 !important;
+  }
+
+  #gameScreen .card-stat {
+    font-size: 7px !important;
+    padding: 2px !important;
+  }
+
+  #gameScreen .card-stat small {
+    font-size: 4.8px !important;
+  }
+
+  #gameScreen .ability-row,
+  #gameScreen .card-desc {
+    display: none !important;
   }
 }
 
 @media (max-width: 380px) {
   #gameScreen .battle-board {
-    grid-template-rows: 18px 106px 106px minmax(108px, 1fr) !important;
-    gap: 3px !important;
+    grid-template-rows: auto 108px 108px minmax(116px, 1fr) auto !important;
   }
 
   #gameScreen .field-zone {
-    min-height: 106px !important;
-    height: 106px !important;
-    max-height: 106px !important;
-    padding: 4px !important;
+    height: 108px !important;
+    min-height: 108px !important;
+    max-height: 108px !important;
   }
 
   #gameScreen .compact-field {
-    min-height: 78px !important;
     height: 78px !important;
+    min-height: 78px !important;
     max-height: 78px !important;
   }
 
-  #gameScreen .compact-field .empty-field {
-    height: 100% !important;
-    min-height: 100% !important;
-    max-height: 100% !important;
-    font-size: 10px !important;
+  #gameScreen .card {
+    flex-basis: 66px !important;
+    width: 66px !important;
+    min-width: 66px !important;
+    min-height: 84px !important;
+    height: 84px !important;
+  }
+
+  #gameScreen .hand .card {
+    flex-basis: 70px !important;
+    width: 70px !important;
+    min-width: 70px !important;
+    min-height: 90px !important;
+    height: 90px !important;
   }
 }
