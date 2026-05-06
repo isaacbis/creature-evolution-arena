@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=39" />
+  <link rel="stylesheet" href="style.css?v=40" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -117,16 +117,6 @@
 </head>
 <body class="has-app-nav">
 
-  <!-- LOADER APP -->
-  <div id="appLoader" class="app-loader">
-    <div class="loader-card">
-      <div class="loader-orb">⚔️</div>
-      <strong>Evolution Arena</strong>
-      <span>Caricamento arena...</span>
-    </div>
-  </div>
-
-
   <!-- MENU PRINCIPALE -->
   <div id="menuScreen" class="screen menu-screen compact-menu-screen">
     <div class="menu-shell compact-home-shell">
@@ -145,13 +135,6 @@
           <button id="openMissionsBtn" class="icon-pill">🎯 Missioni</button>
         </div>
 
-        
-        <div class="app-shell-status">
-          <div><strong>🔥</strong><span>Evento Fuoco</span></div>
-          <div><strong>🏆</strong><span>Ranked presto</span></div>
-          <div><strong>🎁</strong><span>Pack giornaliero</span></div>
-        </div>
-
         <div class="home-brand-block">
           <div class="home-logo-mark">⚔️</div>
           <div class="home-brand-copy">
@@ -167,20 +150,21 @@
         </label>
 
         
-        <div id="installHintCard" class="install-hint-card">
-          <span>📱</span>
-          <div>
-            <strong>Esperienza app</strong>
-            <small>Aggiungi alla schermata Home per giocare a schermo intero.</small>
+        <div class="app-mini-strip">
+          <div id="walletChip" class="wallet-chip">
+            <span>🪙</span>
+            <div>
+              <strong id="coinText">0 monete</strong>
+              <small>Ricompense partita</small>
+            </div>
           </div>
-        </div>
 
-        
-        <div id="walletChip" class="wallet-chip">
-          <span>🪙</span>
-          <div>
-            <strong id="coinText">0 monete</strong>
-            <small>Vinci partite per aprire pack</small>
+          <div id="installHintCard" class="wallet-chip install-hint-card">
+            <span>📱</span>
+            <div>
+              <strong>Modalità app</strong>
+              <small>Aggiungi alla Home</small>
+            </div>
           </div>
         </div>
 
@@ -209,7 +193,6 @@
         <div class="main-actions hero-secondary-actions">
           <button id="campaignBtn" class="glass-action">Campagna</button>
           <button id="draftBtn" class="glass-action">Draft</button>
-          <button id="raidBtn" class="glass-action">Raid Boss</button>
         </div>
 
         <button id="openOptionsHubBtn" class="full-glass-btn options-trigger-btn">Personalizza · Entra con codice · Altre opzioni</button>
@@ -373,7 +356,6 @@
       </div>
 
       <div class="top-actions">
-        <button id="heroPowerBtn" class="round-btn hero-power-btn">✨</button>
         <button id="quickChatBtn" class="round-btn">💬</button>
         <button id="backMenuBtn" class="round-btn">☰</button>
         <button id="restartBtn" class="round-btn accent">↻</button>
@@ -457,30 +439,38 @@
   </div>
 
 
-  <!-- MODAL MODALITÀ DI GIOCO -->
+  <!-- MODAL MODALITÀ -->
   <div id="playModesModal" class="modal hidden">
     <div class="modal-card app-sheet-card play-modes-card">
       <div class="sheet-head">
         <div>
           <div class="result-icon">⚔️</div>
           <h2>Scegli modalità</h2>
-          <p>Avvia subito una partita o entra nelle modalità speciali.</p>
+          <p>Avvia una partita o entra in una modalità speciale.</p>
         </div>
         <button id="closePlayModesBtn" class="sheet-close-btn" type="button">✕</button>
       </div>
 
       <div class="play-mode-grid">
         <button id="modeBotBtn" class="play-mode-card fire-mode" type="button">
-          <span>🤖</span><strong>Vs Bot</strong><small>Partita rapida</small>
+          <span>🤖</span>
+          <strong>Vs Bot</strong>
+          <small>Partita rapida</small>
         </button>
         <button id="modeOnlineBtn" class="play-mode-card water-mode" type="button">
-          <span>🌐</span><strong>Online</strong><small>Crea stanza</small>
+          <span>🌐</span>
+          <strong>Online</strong>
+          <small>Crea stanza</small>
         </button>
         <button id="modeCampaignBtn" class="play-mode-card shadow-mode" type="button">
-          <span>🐉</span><strong>Campagna</strong><small>Boss</small>
+          <span>🐉</span>
+          <strong>Campagna</strong>
+          <small>Boss</small>
         </button>
         <button id="modeDraftBtn" class="play-mode-card forest-mode" type="button">
-          <span>🃏</span><strong>Draft</strong><small>Mazzo casuale</small>
+          <span>🃏</span>
+          <strong>Draft</strong>
+          <small>Mazzo casuale</small>
         </button>
       </div>
     </div>
@@ -488,45 +478,56 @@
 
 
 
-  <!-- MULLIGAN INIZIALE -->
-  <div id="mulliganModal" class="modal hidden">
-    <div class="modal-card app-sheet-card mulligan-card">
+  <!-- COLLEZIONE CARTE -->
+  <div id="collectionModal" class="modal hidden">
+    <div class="modal-card app-sheet-card collection-card">
       <div class="sheet-head">
         <div>
-          <div class="result-icon">🔄</div>
-          <h2>Mulligan</h2>
-          <p>Scegli fino a 2 carte da cambiare prima dell'inizio della partita.</p>
+          <div class="result-icon">🃏</div>
+          <h2>Collezione</h2>
+          <p>Tutte le carte del gioco.</p>
         </div>
+        <button id="closeCollectionBtn" class="sheet-close-btn" type="button">✕</button>
       </div>
 
-      <div id="mulliganGrid" class="mulligan-grid"></div>
-
-      <div class="mulligan-footer">
-        <span id="mulliganCountText">0/2 selezionate</span>
-        <button id="confirmMulliganBtn" class="primary-action" type="button">Inizia partita</button>
+      <div class="collection-toolbar">
+        <button class="collection-filter active" data-filter="all" type="button">Tutte</button>
+        <button class="collection-filter" data-filter="creature" type="button">Creature</button>
+        <button class="collection-filter" data-filter="spell" type="button">Magie</button>
+        <button class="collection-filter" data-filter="equipment" type="button">Equip</button>
+        <button class="collection-filter" data-filter="terrain" type="button">Terreni</button>
       </div>
+
+      <div id="collectionStats" class="collection-stats"></div>
+      <div id="collectionGrid" class="collection-grid"></div>
     </div>
   </div>
 
 
 
-  <!-- POTERE EROE -->
-  <div id="heroPowerModal" class="modal hidden">
-    <div class="modal-card app-sheet-card hero-power-sheet">
+  <!-- RANK / PROFILO -->
+  <div id="rankModal" class="modal hidden">
+    <div class="modal-card app-sheet-card rank-card">
       <div class="sheet-head">
         <div>
-          <div class="result-icon">✨</div>
-          <h2>Potere eroe</h2>
-          <p id="heroPowerDesc">Potere del mazzo.</p>
+          <div class="result-icon">🏆</div>
+          <h2>Rank</h2>
+          <p>Profilo locale e progressione.</p>
         </div>
-        <button id="closeHeroPowerBtn" class="sheet-close-btn" type="button">✕</button>
+        <button id="closeRankBtn" class="sheet-close-btn" type="button">✕</button>
       </div>
 
-      <div id="heroPowerTargets" class="hero-power-targets"></div>
+      <div id="rankProfileBox" class="rank-profile-box"></div>
 
-      <div class="modal-actions">
-        <button id="useHeroPowerBtn" class="primary-action" type="button">Usa potere</button>
+      <div class="rank-road">
+        <div class="rank-step active">🥉 Bronzo</div>
+        <div class="rank-step">🥈 Argento</div>
+        <div class="rank-step">🥇 Oro</div>
+        <div class="rank-step">💎 Diamante</div>
+        <div class="rank-step">👑 Master</div>
       </div>
+
+      <button id="rankPlayBtn" class="primary-action full-glass-btn" type="button">Gioca per salire</button>
     </div>
   </div>
 
@@ -658,30 +659,6 @@
     </div>
   </div>
 
-
-  <!-- BOSS RAID -->
-  <div id="raidModal" class="modal hidden">
-    <div class="modal-card raid-card">
-      <div class="result-icon">🐲</div>
-      <h2>Boss Raid</h2>
-      <p>Affronta un boss gigante con più vita, poteri speciali e ricompense maggiori.</p>
-
-      <div class="raid-boss-preview">
-        <div class="raid-boss-avatar">🐉</div>
-        <div>
-          <strong>Drakthar Prime</strong>
-          <span>100 HP · Potere: Fiamme Antiche ogni 3 turni</span>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button id="startRaidBtn">Inizia Raid</button>
-        <button id="closeRaidBtn" class="secondary-btn">Chiudi</button>
-      </div>
-    </div>
-  </div>
-
-
   <!-- PACCHETTO CARTE -->
   <div id="packModal" class="modal hidden">
     <div class="modal-card">
@@ -721,59 +698,6 @@
     </div>
   </div>
 
-
-  <!-- COLLEZIONE CARTE -->
-  <div id="collectionModal" class="modal hidden">
-    <div class="modal-card app-sheet-card collection-card">
-      <div class="sheet-head">
-        <div>
-          <div class="result-icon">🃏</div>
-          <h2>Collezione</h2>
-          <p>Tutte le carte del gioco, ordinate per tipo e rarità.</p>
-        </div>
-        <button id="closeCollectionBtn" class="sheet-close-btn" type="button">✕</button>
-      </div>
-
-      <div class="collection-toolbar">
-        <button class="collection-filter active" data-filter="all" type="button">Tutte</button>
-        <button class="collection-filter" data-filter="creature" type="button">Creature</button>
-        <button class="collection-filter" data-filter="spell" type="button">Magie</button>
-        <button class="collection-filter" data-filter="equipment" type="button">Equip</button>
-        <button class="collection-filter" data-filter="terrain" type="button">Terreni</button>
-      </div>
-
-      <div id="collectionStats" class="collection-stats"></div>
-      <div id="collectionGrid" class="collection-grid"></div>
-    </div>
-  </div>
-
-  <!-- RANK / PROFILO -->
-  <div id="rankModal" class="modal hidden">
-    <div class="modal-card app-sheet-card rank-card">
-      <div class="sheet-head">
-        <div>
-          <div class="result-icon">🏆</div>
-          <h2>Rank</h2>
-          <p>Profilo competitivo locale. Online ranked pronto per una futura versione.</p>
-        </div>
-        <button id="closeRankBtn" class="sheet-close-btn" type="button">✕</button>
-      </div>
-
-      <div id="rankProfileBox" class="rank-profile-box"></div>
-
-      <div class="rank-road">
-        <div class="rank-step active">🥉 Bronzo</div>
-        <div class="rank-step">🥈 Argento</div>
-        <div class="rank-step">🥇 Oro</div>
-        <div class="rank-step">💎 Diamante</div>
-        <div class="rank-step">👑 Master</div>
-      </div>
-
-      <button id="rankPlayBtn" class="primary-action full-glass-btn" type="button">Gioca per salire</button>
-    </div>
-  </div>
-
-
   <!-- REPLAY -->
   <div id="replayModal" class="modal hidden">
     <div class="modal-card">
@@ -787,26 +711,11 @@
 
   <!-- BARRA APP INFERIORE -->
   <nav id="appBottomNav" class="app-bottom-nav" aria-label="Navigazione principale">
-    <button id="navHomeBtn" class="app-nav-item active" type="button">
-      <span>🏠</span>
-      <small>Home</small>
-    </button>
-    <button id="navPlayBtn" class="app-nav-item primary" type="button">
-      <span>⚔️</span>
-      <small>Gioca</small>
-    </button>
-    <button id="navCollectionBtn" class="app-nav-item" type="button">
-      <span>🃏</span>
-      <small>Carte</small>
-    </button>
-    <button id="navRankBtn" class="app-nav-item" type="button">
-      <span>🏆</span>
-      <small>Rank</small>
-    </button>
-    <button id="navSettingsBtn" class="app-nav-item" type="button">
-      <span>⚙️</span>
-      <small>Altro</small>
-    </button>
+    <button id="navHomeBtn" class="app-nav-item active" type="button"><span>🏠</span><small>Home</small></button>
+    <button id="navPlayBtn" class="app-nav-item primary" type="button"><span>⚔️</span><small>Gioca</small></button>
+    <button id="navCollectionBtn" class="app-nav-item" type="button"><span>🃏</span><small>Carte</small></button>
+    <button id="navRankBtn" class="app-nav-item" type="button"><span>🏆</span><small>Rank</small></button>
+    <button id="navSettingsBtn" class="app-nav-item" type="button"><span>⚙️</span><small>Altro</small></button>
   </nav>
 
 
@@ -814,7 +723,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=39")
+        .register("./service-worker.js?v=40")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -822,22 +731,6 @@
   }
 </script>
 
-
-<script id="v39-loader-fallback">
-  window.addEventListener("load", function () {
-    setTimeout(function () {
-      var loader = document.getElementById("appLoader");
-      if (loader) {
-        loader.classList.add("hidden");
-        setTimeout(function () {
-          if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
-        }, 450);
-      }
-    }, 1200);
-  });
-</script>
-
-
-<script type="module" src="script.js?v=39"></script>
+<script type="module" src="script.js?v=40"></script>
 </body>
 </html>

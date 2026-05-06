@@ -1,4 +1,4 @@
-const CACHE_NAME = "creature-evolution-arena-v39";
+const CACHE_NAME = "creature-evolution-arena-v40";
 
 const APP_SHELL = [
   "./",
@@ -10,8 +10,9 @@ const APP_SHELL = [
   "./app-icon.svg",
   "./assets/cards/arciera-elfea.png",
   "./assets/cards/aurelia-angelo-solare.png",
-  "./assets/cards/drakthar-drago-infernale.png",
+  "./assets/cards/drakthar-il-drago-infernale.png",
   "./assets/cards/fenice-reale.png",
+  "./assets/cards/golem-di-pietra.png",
   "./assets/cards/guardiano-della-foresta.png",
   "./assets/cards/leviatano-degli-abissi.png",
   "./assets/cards/mago-del-gelo.png",

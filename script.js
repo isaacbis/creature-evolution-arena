@@ -10,7 +10,6 @@ import {
 
 const $ = id => document.getElementById(id);
 
-const appLoader = $("appLoader");
 const menuScreen = $("menuScreen");
 const lobbyScreen = $("lobbyScreen");
 const gameScreen = $("gameScreen");
@@ -22,10 +21,6 @@ const createOnlineBtn = $("createOnlineBtn");
 const joinOnlineBtn = $("joinOnlineBtn");
 const campaignBtn = $("campaignBtn");
 const draftBtn = $("draftBtn");
-const raidBtn = $("raidBtn");
-const raidModal = $("raidModal");
-const startRaidBtn = $("startRaidBtn");
-const closeRaidBtn = $("closeRaidBtn");
 
 const roomCodeText = $("roomCodeText");
 const lobbyStatusText = $("lobbyStatusText");
@@ -148,19 +143,12 @@ const summaryArenaChip = $("summaryArenaChip");
 
 const enemyHudBox = $("enemyHudBox");
 
-const heroPowerBtn = $("heroPowerBtn");
-const heroPowerModal = $("heroPowerModal");
-const heroPowerDesc = $("heroPowerDesc");
-const heroPowerTargets = $("heroPowerTargets");
-const closeHeroPowerBtn = $("closeHeroPowerBtn");
-const useHeroPowerBtn = $("useHeroPowerBtn");
-
-const mulliganModal = $("mulliganModal");
-const mulliganGrid = $("mulliganGrid");
-const mulliganCountText = $("mulliganCountText");
-const confirmMulliganBtn = $("confirmMulliganBtn");
-const coinText = $("coinText");
-
+const appBottomNav = $("appBottomNav");
+const navHomeBtn = $("navHomeBtn");
+const navPlayBtn = $("navPlayBtn");
+const navCollectionBtn = $("navCollectionBtn");
+const navRankBtn = $("navRankBtn");
+const navSettingsBtn = $("navSettingsBtn");
 
 const playModesModal = $("playModesModal");
 const closePlayModesBtn = $("closePlayModesBtn");
@@ -168,15 +156,6 @@ const modeBotBtn = $("modeBotBtn");
 const modeOnlineBtn = $("modeOnlineBtn");
 const modeCampaignBtn = $("modeCampaignBtn");
 const modeDraftBtn = $("modeDraftBtn");
-const installHintCard = $("installHintCard");
-
-
-const appBottomNav = $("appBottomNav");
-const navHomeBtn = $("navHomeBtn");
-const navPlayBtn = $("navPlayBtn");
-const navCollectionBtn = $("navCollectionBtn");
-const navRankBtn = $("navRankBtn");
-const navSettingsBtn = $("navSettingsBtn");
 
 const collectionModal = $("collectionModal");
 const collectionGrid = $("collectionGrid");
@@ -188,13 +167,14 @@ const rankProfileBox = $("rankProfileBox");
 const closeRankBtn = $("closeRankBtn");
 const rankPlayBtn = $("rankPlayBtn");
 
+const coinText = $("coinText");
+const installHintCard = $("installHintCard");
+
 
 const STARTING_LIFE = 30;
 const STARTING_HAND = 5;
 const MAX_FIELD_SIZE = 5;
 const TURN_SECONDS = 60;
-const MAX_HAND_SIZE = 8;
-const MULLIGAN_MAX = 2;
 
 let selectedDeck = "balanced";
 let selectedAvatar = "🧙";
@@ -213,9 +193,6 @@ let turnTimerInterval = null;
 let draftDeck = [];
 let draftPickCount = 0;
 let draftCurrentChoices = [];
-let pendingMulligan = null;
-let selectedMulliganCardIds = new Set();
-let selectedHeroPowerTarget = null;
 
 let dragState = {
   active: false,
@@ -232,22 +209,23 @@ let dragState = {
 
 
 /* =========================
-   FINAL · ARTWORK COLLEGATI ALLE CARTE
+   V40 · ARTWORK COLLEGATI
    ========================= */
 
 const CARD_ART_BY_ID = {
-  "fire_3": "assets/cards/drakthar-drago-infernale.png",
-  "water_3": "assets/cards/leviatano-degli-abissi.png",
-  "light_3": "assets/cards/aurelia-angelo-solare.png",
-  "shadow_3": "assets/cards/necromante-del-vuoto.png",
   "fire_2": "assets/cards/fenice-reale.png",
-  "forest_3": "assets/cards/guardiano-della-foresta.png",
-  "forest_2": "assets/cards/arciera-elfea.png",
+  "fire_3": "assets/cards/drakthar-il-drago-infernale.png",
   "water_2": "assets/cards/mago-del-gelo.png",
-  "shadow_2": "assets/cards/stregone-del-chaos.png"
+  "water_3": "assets/cards/leviatano-degli-abissi.png",
+  "forest_2": "assets/cards/arciera-elfea.png",
+  "forest_3": "assets/cards/guardiano-della-foresta.png",
+  "shadow_2": "assets/cards/stregone-del-chaos.png",
+  "shadow_3": "assets/cards/necromante-del-vuoto.png",
+  "light_2": "assets/cards/golem-di-pietra.png",
+  "light_3": "assets/cards/aurelia-angelo-solare.png"
 };
 
-function getCardArt(card) {
+function getCardArtwork(card) {
   return CARD_ART_BY_ID[card?.cardId] || "";
 }
 
@@ -256,11 +234,7 @@ const abilityLabels = {
   haste: "Rapidità",
   flying: "Volare",
   rage: "Rabbia",
-  poison: "Veleno",
-  shield: "Scudo",
-  lifesteal: "Risucchio",
-  freeze: "Gelo",
-  reborn: "Ritorno"
+  poison: "Veleno"
 };
 
 const abilityDescriptions = {
@@ -268,11 +242,7 @@ const abilityDescriptions = {
   haste: "Rapidità: può attaccare subito quando entra.",
   flying: "Volare: può attaccare direttamente se il nemico non ha creature volanti.",
   rage: "Rabbia: quando subisce danno e sopravvive, guadagna +1 ATK.",
-  poison: "Veleno: avvelena la creatura con cui combatte. Il veleno fa danno a inizio turno.",
-  shield: "Scudo: annulla il primo danno subito.",
-  lifesteal: "Risucchio: quando infligge danno, cura il proprietario.",
-  freeze: "Gelo: quando combatte congela il bersaglio per un turno.",
-  reborn: "Ritorno: la prima volta che muore torna con 1 HP."
+  poison: "Veleno: avvelena la creatura con cui combatte. Il veleno fa danno a inizio turno."
 };
 
 const deckLabels = {
@@ -283,59 +253,6 @@ const deckLabels = {
   light: "Luce",
   balanced: "Bilanciato",
   draft: "Draft"
-};
-
-
-const heroPowers = {
-  fire: {
-    name: "Brucia",
-    icon: "🔥",
-    desc: "Infliggi 1 danno al nemico o a una creatura nemica.",
-    needsTarget: true,
-    targetSide: "enemy"
-  },
-  water: {
-    name: "Rigenera",
-    icon: "🌊",
-    desc: "Cura 2 HP a una tua creatura o 2 vita se non hai creature.",
-    needsTarget: true,
-    targetSide: "ally"
-  },
-  forest: {
-    name: "Crescita",
-    icon: "🌿",
-    desc: "Dai +1/+1 a una tua creatura.",
-    needsTarget: true,
-    targetSide: "ally"
-  },
-  shadow: {
-    name: "Maledizione",
-    icon: "🌑",
-    desc: "Una creatura nemica perde -1 ATK. Se non ci sono creature, infliggi 1 danno.",
-    needsTarget: true,
-    targetSide: "enemy"
-  },
-  light: {
-    name: "Scudo",
-    icon: "☀️",
-    desc: "Dai Scudo a una tua creatura o cura 2 vita.",
-    needsTarget: true,
-    targetSide: "ally"
-  },
-  balanced: {
-    name: "Focus",
-    icon: "⚔️",
-    desc: "Pesca 1 carta. Costa 1 energia.",
-    needsTarget: false,
-    targetSide: "none"
-  },
-  draft: {
-    name: "Istinto",
-    icon: "🃏",
-    desc: "Pesca 1 carta. Costa 1 energia.",
-    needsTarget: false,
-    targetSide: "none"
-  }
 };
 
 const bossData = {
@@ -367,14 +284,6 @@ const bossData = {
     deck: "shadow",
     power: "Ogni 3 turni avvelena una tua creatura."
   },
-  draktharPrime: {
-    name: "Drakthar Prime",
-    avatar: "🐉",
-    life: 100,
-    deck: "fire",
-    power: "Ogni 3 turni infligge 4 danni e potenzia una creatura.",
-    raid: true
-  },
   final: {
     name: "Boss Finale",
     avatar: "👑",
@@ -390,7 +299,7 @@ const families = {
     icon: "🔥",
     cards: [
       c("fire_1", "Scintilla", "fire", 1, 2, 3, 1, "common", "Piccola creatura di fuoco.", null, []),
-      c("fire_2", "Fenice Reale", "fire", 2, 4, 5, 2, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["haste", "reborn"]),
+      c("fire_2", "Fenice Reale", "fire", 2, 4, 5, 2, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["haste"]),
       c("fire_3", "Drakthar", "fire", 3, 7, 8, 4, "legendary", "Quando entra, infligge 2 danni a tutte le creature nemiche.", "fireStorm", ["flying"])
     ]
   },
@@ -400,7 +309,7 @@ const families = {
     icon: "🌊",
     cards: [
       c("water_1", "Goccia Viva", "water", 1, 1, 4, 1, "common", "Creatura resistente con Guardia.", null, ["guard"]),
-      c("water_2", "Mago del Gelo", "water", 2, 3, 7, 2, "rare", "Quando entra, cura 2 vita.", "healOwner", ["guard", "freeze"]),
+      c("water_2", "Mago del Gelo", "water", 2, 3, 7, 2, "rare", "Quando entra, cura 2 vita.", "healOwner", ["guard"]),
       c("water_3", "Leviatano degli Abissi", "water", 3, 6, 11, 4, "epic", "Quando entra, pesca una carta.", "drawOne", ["guard"])
     ]
   },
@@ -421,7 +330,7 @@ const families = {
     cards: [
       c("shadow_1", "Ombra Minore", "shadow", 1, 3, 2, 1, "common", "Avvelena chi combatte contro di lei.", null, ["poison"]),
       c("shadow_2", "Stregone del Chaos", "shadow", 2, 5, 5, 3, "rare", "Quando entra, toglie 1 ATK a un nemico.", "weakenEnemy", ["poison"]),
-      c("shadow_3", "Necromante del Vuoto", "shadow", 3, 9, 6, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "flying", "lifesteal"])
+      c("shadow_3", "Necromante del Vuoto", "shadow", 3, 9, 6, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "flying"])
     ]
   },
 
@@ -430,8 +339,8 @@ const families = {
     icon: "☀️",
     cards: [
       c("light_1", "Lumina", "light", 1, 1, 5, 1, "common", "Base difensiva con Guardia.", null, ["guard"]),
-      c("light_2", "Golem di Pietra", "light", 2, 4, 6, 3, "rare", "Quando entra, cura il campo di 1.", "healTeam", ["shield"]),
-      c("light_3", "Aurelia", "light", 3, 7, 9, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["flying", "guard", "lifesteal"])
+      c("light_2", "Golem di Pietra", "light", 2, 4, 6, 3, "rare", "Quando entra, cura il campo di 1.", "healTeam", []),
+      c("light_3", "Aurelia", "light", 3, 7, 9, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["flying", "guard"])
     ]
   }
 };
@@ -474,53 +383,6 @@ function e(cardId, name, cost, rarity, icon, desc, effect, decks) {
 function t(cardId, name, cost, rarity, icon, desc, terrainType, decks) {
   return { cardId, type: "terrain", name, cost, rarity, icon, desc, terrainType, decks };
 }
-
-
-
-/* =========================
-   V37 · SAFE UI HELPERS
-   ========================= */
-
-function safeOn(el, eventName, handler) {
-  if (!el || typeof handler !== "function") return;
-  el.addEventListener(eventName, handler);
-}
-
-function hideAppLoader() {
-  if (!appLoader) return;
-  appLoader.classList.add("hidden");
-  setTimeout(() => {
-    if (appLoader && appLoader.parentNode) appLoader.remove();
-  }, 360);
-}
-
-function closeModalSafe(modal) {
-  if (modal) modal.classList.add("hidden");
-}
-
-function openModalSafe(modal) {
-  if (modal) modal.classList.remove("hidden");
-}
-
-function isVisible(el) {
-  return Boolean(el && !el.classList.contains("hidden"));
-}
-
-function hapticTap(strong = false) {
-  if (navigator.vibrate) navigator.vibrate(strong ? 22 : 8);
-}
-
-function updateInstallHint() {
-  if (!installHintCard) return;
-  const standalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-  installHintCard.classList.toggle("hidden", standalone);
-}
-
-window.addEventListener("error", event => {
-  console.warn("Errore UI intercettato:", event.message);
-});
 
 function uid() {
   if (window.crypto && crypto.randomUUID) {
@@ -583,8 +445,7 @@ function getProfile() {
     wins: 0,
     losses: 0,
     missions: {},
-    coins: 0,
-    dust: 0
+    coins: 0
   };
 }
 
@@ -673,7 +534,6 @@ function showOnly(screen) {
   if (screen === menuScreen) setActiveNav("home");
   if (screen === gameScreen) setActiveNav("play");
   updateBottomNavVisibility();
-  hideAppLoader();
 }
 
 function setMessage(text) {
@@ -690,8 +550,7 @@ function makeStats() {
     spellsPlayed: 0,
     equipmentsPlayed: 0,
     terrainsPlayed: 0,
-    bestCard: "-",
-    heroPowersUsed: 0
+    bestCard: "-"
   };
 }
 
@@ -707,9 +566,7 @@ function makePlayer(name, deckType, forcedDeck = null) {
     deck: forcedDeck || createDeck(deckType),
     hand: [],
     field: [],
-    stats: makeStats(),
-    fatigue: 0,
-    heroPowerUsed: false
+    stats: makeStats()
   };
 }
 
@@ -730,9 +587,7 @@ function makeBot(bossKey = null) {
     deck: createDeck(deckType),
     hand: [],
     field: [],
-    stats: makeStats(),
-    fatigue: 0,
-    heroPowerUsed: false
+    stats: makeStats()
   };
 }
 
@@ -801,9 +656,6 @@ function createCreatureCard(template) {
     currentHp: template.hp,
     maxHp: template.hp,
     poisoned: false,
-    frozen: false,
-    shielded: false,
-    rebornUsed: false,
     canAttack: false,
     hasAttacked: false,
     equipped: [],
@@ -860,20 +712,12 @@ function drawCard(player) {
   if (!player) return;
 
   if (player.deck.length === 0) {
-    player.fatigue = (player.fatigue || 0) + 1;
-    player.life -= player.fatigue;
-    addLog(`${player.name} ha il mazzo vuoto e subisce ${player.fatigue} danni da fatica.`);
+    player.life -= 1;
+    addLog(`${player.name} ha il mazzo vuoto e perde 1 vita.`);
     return;
   }
 
-  const drawn = player.deck.shift();
-
-  if (player.hand.length >= MAX_HAND_SIZE) {
-    addLog(`${player.name} brucia una carta perché ha la mano piena: ${drawn.name}.`);
-    return;
-  }
-
-  player.hand.push(drawn);
+  player.hand.push(player.deck.shift());
 }
 
 function initialDraw(g) {
@@ -929,11 +773,6 @@ function startBotGame(bossKey = null, forcedDeck = null) {
   cardDetailModal.classList.add("hidden");
 
   showOnly(gameScreen);
-
-  if (!bossKey && !forcedDeck && gameMode === "bot") {
-    openMulligan();
-  }
-
   render();
 }
 
@@ -1114,7 +953,6 @@ function startTurnInGame(g, slot) {
 
   tickTerrain(g);
   applyPoisonDamage(player);
-  player.heroPowerUsed = false;
   prepareCreatures(player);
   drawCard(player);
 
@@ -1169,32 +1007,10 @@ function applyBossPower(bossKey) {
     dealLifeDamage(bot, player, 1, document.querySelector(".my-bar"));
     addLog("Potere Boss Finale: +1 energia e 1 danno.");
   }
-
-  if (bossKey === "draktharPrime") {
-    dealLifeDamage(bot, player, 4, document.querySelector(".my-bar"));
-    if (bot.field.length) {
-      const target = randomItem(bot.field);
-      target.attack += 2;
-      target.maxHp += 2;
-      target.currentHp += 2;
-      addLog("Raid Boss: Drakthar Prime potenzia una creatura e scatena Fiamme Antiche.");
-    } else {
-      addLog("Raid Boss: Drakthar Prime scatena Fiamme Antiche.");
-    }
-    createRaidWarningFx();
-  }
 }
 
 function prepareCreatures(player) {
   player.field.forEach(card => {
-    if (card.frozen) {
-      card.canAttack = false;
-      card.hasAttacked = true;
-      card.frozen = false;
-      addLog(`${card.name} è congelata e salta l'attacco.`);
-      return;
-    }
-
     card.canAttack = true;
     card.hasAttacked = false;
   });
@@ -1465,7 +1281,8 @@ function applyEntryEffect(card, owner, opponent) {
 
     case "fireStorm":
       opponent.field.forEach(creature => {
-        damageCreature(creature, 2, owner, opponent);
+        creature.currentHp -= 2;
+        applyRageIfDamaged(creature);
       });
       owner.stats.damageDealt += 2 * opponent.field.length;
       addLog(`${card.name} infligge 2 danni al campo avversario.`);
@@ -1533,7 +1350,9 @@ function applySpellEffect(spell, owner, opponent) {
     case "spellFireball":
       if (opponent.field.length) {
         const target = chooseSpellTarget(opponent.field);
-        damageCreature(target, 3, owner, opponent);
+        target.currentHp -= 3;
+        owner.stats.damageDealt += 3;
+        applyRageIfDamaged(target);
         addLog(`${spell.name} infligge 3 danni a ${target.name}.`);
         removeDead(opponent);
       } else {
@@ -1564,7 +1383,8 @@ function applySpellEffect(spell, owner, opponent) {
 
     case "spellStorm":
       opponent.field.forEach(creature => {
-        damageCreature(creature, 2, owner, opponent);
+        creature.currentHp -= 2;
+        applyRageIfDamaged(creature);
       });
       owner.stats.damageDealt += 2 * opponent.field.length;
       addLog(`${spell.name} infligge 2 danni al campo avversario.`);
@@ -1765,8 +1585,7 @@ async function playerAttack(attackerIndex, targetIndex) {
     }
 
     dealLifeDamage(me, enemy, attacker.attack, enemyHudBox);
-    if (hasAbility(attacker, "lifesteal")) healLife(me, Math.min(attacker.attack, 3), document.querySelector(".my-bar"));
-    playAttackFx(enemyHudBox);
+playAttackFx(enemyHudBox);
 
     attacker.hasAttacked = true;
     addLog(`${attacker.name} infligge ${attacker.attack} danni diretti.`);
@@ -1796,29 +1615,17 @@ async function playerAttack(attackerIndex, targetIndex) {
 }
 
 function fight(attacker, defender, attackerOwner, defenderOwner) {
-  damageCreature(defender, attacker.attack, attackerOwner, defenderOwner);
-  damageCreature(attacker, defender.attack, defenderOwner, attackerOwner);
+  defender.currentHp -= attacker.attack;
+  attacker.currentHp -= defender.attack;
   attacker.hasAttacked = true;
 
-  if (hasAbility(attacker, "lifesteal")) {
-    healLife(attackerOwner, Math.min(attacker.attack, 3));
-    addLog(`${attacker.name} attiva Risucchio.`);
-  }
+  attackerOwner.stats.damageDealt += attacker.attack;
+  attackerOwner.stats.damageTaken += defender.attack;
+  defenderOwner.stats.damageDealt += defender.attack;
+  defenderOwner.stats.damageTaken += attacker.attack;
 
-  if (hasAbility(defender, "lifesteal")) {
-    healLife(defenderOwner, Math.min(defender.attack, 3));
-    addLog(`${defender.name} attiva Risucchio.`);
-  }
-
-  if (hasAbility(attacker, "freeze") && defender.currentHp > 0) {
-    defender.frozen = true;
-    addLog(`${defender.name} viene congelata.`);
-  }
-
-  if (hasAbility(defender, "freeze") && attacker.currentHp > 0) {
-    attacker.frozen = true;
-    addLog(`${attacker.name} viene congelata.`);
-  }
+  applyRageIfDamaged(attacker);
+  applyRageIfDamaged(defender);
 
   if (hasAbility(attacker, "poison") && defender.currentHp > 0) {
     defender.poisoned = true;
@@ -1832,8 +1639,8 @@ function fight(attacker, defender, attackerOwner, defenderOwner) {
 
   addLog(`${attacker.name} combatte contro ${defender.name}.`);
 
-  const targetCardEl = document.querySelector(".card.enemy-targetable") || document.querySelector(".card.selected-attacker");
-  playAttackFx(targetCardEl);
+const targetCardEl = document.querySelector(".card.enemy-targetable") || document.querySelector(".card.selected-attacker");
+playAttackFx(targetCardEl);
 
   removeDead(attackerOwner);
   removeDead(defenderOwner);
@@ -1848,16 +1655,6 @@ function applyRageIfDamaged(card) {
 
 function removeDead(player) {
   const before = player.field.length;
-
-  player.field.forEach(card => {
-    if (card.currentHp <= 0 && hasAbility(card, "reborn") && !card.rebornUsed) {
-      card.rebornUsed = true;
-      card.currentHp = 1;
-      card.poisoned = false;
-      addLog(`${card.name} ritorna con 1 HP.`);
-    }
-  });
-
   player.field = player.field.filter(card => card.currentHp > 0);
 
   if (player.field.length < before) {
@@ -1923,8 +1720,6 @@ function botTurn() {
 
   let action = true;
   let count = 0;
-
-  botUseHeroPower(bot, player);
 
   while (action && count < 8) {
     count++;
@@ -2012,7 +1807,6 @@ function botTurn() {
       fight(attacker, target, bot, player);
     } else if (canAttackLife(attacker, player.field)) {
       dealLifeDamage(bot, player, attacker.attack, document.querySelector(".my-bar"));
-      if (hasAbility(attacker, "lifesteal")) healLife(bot, Math.min(attacker.attack, 3), document.querySelector(".enemy-bar"));
       attacker.hasAttacked = true;
       addLog(`Bot infligge ${attacker.attack} danni diretti.`);
     }
@@ -2028,10 +1822,9 @@ function botTurn() {
 
 function shouldBotUseSpell(spell, bot, player) {
   if (spell.effect === "spellHeal") return bot.life <= STARTING_LIFE - 5;
-  if (spell.effect === "spellDrawTwo") return bot.hand.length <= 3 && bot.hand.length < MAX_HAND_SIZE;
+  if (spell.effect === "spellDrawTwo") return bot.hand.length <= 3;
   if (spell.effect === "spellBlessing") return bot.field.length >= 2;
   if (spell.effect === "spellStorm") return player.field.length >= 2;
-  if (spell.effect === "spellFireball") return player.life <= 3 || player.field.some(card => card.currentHp <= 3);
   if (spell.effect === "spellGainEnergy") return bot.hand.some(card => card.cost > bot.energy);
   return true;
 }
@@ -2160,7 +1953,6 @@ playResultFx(won);
     <div>✨ Magie usate: <strong>${stats.spellsPlayed}</strong></div>
     <div>🛡️ Equipaggiamenti: <strong>${stats.equipmentsPlayed}</strong></div>
     <div>🌍 Terreni: <strong>${stats.terrainsPlayed}</strong></div>
-    <div>✨ Poteri eroe: <strong>${stats.heroPowersUsed || 0}</strong></div>
     <div>⭐ Carta migliore: <strong>${stats.bestCard}</strong></div>
   `;
 }
@@ -2244,8 +2036,6 @@ function render() {
   renderField(enemyFieldEl, enemy.field, "enemy");
   renderLog();
   startTimerLoop();
-  updateHeroPowerButton();
-  updateEconomyUi();
 
   if (game.winner) {
     endTurnBtn.disabled = true;
@@ -2640,12 +2430,6 @@ function createCardEl(card, extraClass) {
     el.classList.add("has-created-art");
   }
 
-  const realArtwork = getCardArt(card);
-  if (realArtwork) {
-    el.style.setProperty("--card-art", `url("${realArtwork}")`);
-    el.classList.add("has-real-art");
-  }
-
   if (card.type === "creature") {
     el.className = `card creature ${card.family} ${card.rarity} ${extraClass}`;
 
@@ -2947,21 +2731,12 @@ function playSummonFx(card) {
   createFxFlash("summon");
   createFxText("Evocazione", "summon", true);
   animateCardById(card?.id, "fx-card-summon", card?.family || "light");
-
-  if (card?.rarity === "legendary" || card?.stage === 3) {
-    playLegendarySummonFx(card);
-  }
 }
 
 function playEvolveFx(card) {
   createFxFlash("evolve");
   createFxText("Evoluzione!", "evolve");
   animateCardById(card?.id, "fx-card-evolve", "light");
-
-  if (card?.stage === 3 || card?.rarity === "legendary") {
-    createCinematicBanner(card?.name || "Evoluzione", "Forma finale", "legendary");
-    createParticlesFromElement(document.body, card?.family || "light", 30);
-  }
 }
 
 function playEquipmentFx(card) {
@@ -3046,9 +2821,7 @@ function showOnlyMenu(force = false) {
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
 
-  if (menuScreen) showOnly(menuScreen);
-updateBottomNavVisibility();
-setActiveNav("home");
+  showOnly(menuScreen);
   renderProfile();
 }
 
@@ -3096,8 +2869,6 @@ function setupRoomFromUrl() {
 
 function openPack() {
   packModal.classList.remove("hidden");
-  showPremiumToast("Pacchetto aperto");
-  upgradePackRevealFx();
   const pool = allDraftTemplates();
   const found = shuffle(pool).slice(0, 3);
 
@@ -3217,44 +2988,29 @@ function applyArenaSkin(value) {
 
 
 /* =========================
-   V33 · CINEMATIC POLISH
+   V40 · APP UI SICURA
    ========================= */
 
-function createCinematicBanner(title, subtitle = "", tone = "legendary") {
-  const banner = document.createElement("div");
-  banner.className = `cinematic-banner ${tone}`;
-  banner.innerHTML = `
-    <strong>${title}</strong>
-    <span>${subtitle}</span>
-  `;
-  document.body.appendChild(banner);
-
-  setTimeout(() => banner.remove(), 1700);
+function safeOn(el, eventName, handler) {
+  if (!el || typeof handler !== "function") return;
+  el.addEventListener(eventName, handler);
 }
 
-function createRaidWarningFx() {
-  createCinematicBanner("RAID BOSS", "Fiamme Antiche", "danger");
-  createFxFlash("attack");
-  shakeScreen();
+function closeModalSafe(modal) {
+  if (modal) modal.classList.add("hidden");
 }
 
-function playLegendarySummonFx(card) {
-  createCinematicBanner(card?.name || "Leggendaria", "Evocazione leggendaria", "legendary");
-  createFxFlash("evolve");
-  createParticlesFromElement(document.body, card?.family || "light", 34);
-  shakeScreen();
+function openModalSafe(modal) {
+  if (modal) modal.classList.remove("hidden");
 }
 
-function upgradePackRevealFx() {
-  createCinematicBanner("PACCHETTO APERTO", "Nuove carte sbloccate", "pack");
-  createParticlesFromElement(document.body, "light", 28);
+function isVisible(el) {
+  return Boolean(el && !el.classList.contains("hidden"));
 }
 
-
-
-/* =========================
-   V34 · APP NAV / COLLEZIONE / RANK
-   ========================= */
+function hapticTap(strong = false) {
+  if (navigator.vibrate) navigator.vibrate(strong ? 22 : 8);
+}
 
 function setActiveNav(name) {
   if (!appBottomNav) return;
@@ -3267,128 +3023,6 @@ function setActiveNav(name) {
     settings: navSettingsBtn
   };
 
-  Object.values(map).forEach(btn => {
-    if (btn) btn.classList.remove("active");
-  });
-
-  if (map[name]) map[name].classList.add("active");
-}
-
-function updateBottomNavVisibility() {
-  if (!appBottomNav) return;
-  const inGame = gameScreen && !gameScreen.classList.contains("hidden");
-  appBottomNav.classList.toggle("compact", inGame);
-}
-
-function openCollection(filter = "all") {
-  if (!collectionModal || !collectionGrid || !collectionStats) return;
-
-  collectionModal.classList.remove("hidden");
-  setActiveNav("cards");
-
-  document.querySelectorAll(".collection-filter").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.filter === filter);
-    btn.onclick = () => openCollection(btn.dataset.filter || "all");
-  });
-
-  const cards = allDraftTemplates();
-  const filtered = filter === "all" ? cards : cards.filter(card => card.type === filter);
-
-  const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
-  filtered.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0));
-
-  const total = cards.length;
-  const legendary = cards.filter(card => card.rarity === "legendary").length;
-  const creatures = cards.filter(card => card.type === "creature").length;
-
-  collectionStats.innerHTML = `
-    <div><strong>${total}</strong><span>Totali</span></div>
-    <div><strong>${creatures}</strong><span>Creature</span></div>
-    <div><strong>${legendary}</strong><span>Leggendarie</span></div>
-  `;
-
-  collectionGrid.innerHTML = filtered.map(card => {
-    const icon = card.icon || families[card.family]?.icon || "🃏";
-    const family = card.family ? families[card.family]?.label || card.family : card.type;
-    const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
-    return `
-      <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
-        <div class="mini-card-art" style="${getCardArtwork(card) ? `background-image: linear-gradient(to bottom, transparent, rgba(0,0,0,.62)), url('${getCardArtwork(card)}')` : ''}">${getCardArtwork(card) ? '' : icon}</div>
-        <strong>${card.name}</strong>
-        <span>${family} · ${type}</span>
-        <small>${shortRarity(card.rarity || "common")}</small>
-      </button>
-    `;
-  }).join("");
-
-  document.querySelectorAll(".collection-card-mini").forEach(button => {
-    button.onclick = () => {
-      const card = cards.find(item => item.cardId === button.dataset.cardId);
-      if (card) showCardDetail(card.type === "creature" ? createCreatureCard(card) : { ...card, id: uid() });
-    };
-  });
-}
-
-function openRankPanel() {
-  if (!rankModal || !rankProfileBox) return;
-
-  const profile = getProfile();
-  const total = (profile.wins || 0) + (profile.losses || 0);
-  const winrate = total ? Math.round(((profile.wins || 0) / total) * 100) : 0;
-  const level = getLevelFromXp(profile.xp || 0);
-  const rankName =
-    (profile.wins || 0) >= 40 ? "Master" :
-    (profile.wins || 0) >= 25 ? "Diamante" :
-    (profile.wins || 0) >= 14 ? "Oro" :
-    (profile.wins || 0) >= 6 ? "Argento" :
-    "Bronzo";
-
-  rankProfileBox.innerHTML = `
-    <div class="rank-avatar">${selectedAvatar}</div>
-    <div>
-      <strong>${playerNameInput.value.trim() || localStorage.getItem("playerName") || "Giocatore"}</strong>
-      <span>Livello ${level} · Rank ${rankName}</span>
-    </div>
-    <div class="rank-mini-stats">
-      <span>V ${profile.wins || 0}</span>
-      <span>S ${profile.losses || 0}</span>
-      <span>${winrate}%</span>
-    </div>
-  `;
-
-  rankModal.classList.remove("hidden");
-  setActiveNav("rank");
-}
-
-function closeAllAppSheets() {
-  if (collectionModal) collectionModal.classList.add("hidden");
-  if (rankModal) rankModal.classList.add("hidden");
-  if (optionsHubModal) optionsHubModal.classList.add("hidden");
-}
-
-function showPremiumToast(text) {
-  const toast = document.createElement("div");
-  toast.className = "premium-toast";
-  toast.textContent = text;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 1400);
-}
-
-
-
-/* =========================
-   V37 · NAV APP / MODALITÀ
-   ========================= */
-
-function setActiveNav(name) {
-  if (!appBottomNav) return;
-  const map = {
-    home: navHomeBtn,
-    play: navPlayBtn,
-    cards: navCollectionBtn,
-    rank: navRankBtn,
-    settings: navSettingsBtn
-  };
   Object.values(map).forEach(btn => btn && btn.classList.remove("active"));
   if (map[name]) map[name].classList.add("active");
 }
@@ -3401,10 +3035,10 @@ function updateBottomNavVisibility() {
 }
 
 function closeAllAppSheets() {
+  closeModalSafe(playModesModal);
   closeModalSafe(collectionModal);
   closeModalSafe(rankModal);
   closeModalSafe(optionsHubModal);
-  closeModalSafe(playModesModal);
 }
 
 function openPlayModes() {
@@ -3414,11 +3048,6 @@ function openPlayModes() {
   } else {
     startBotGame();
   }
-}
-
-function closePlayModes() {
-  closeModalSafe(playModesModal);
-  setActiveNav(isVisible(gameScreen) ? "play" : "home");
 }
 
 function openCollection(filter = "all") {
@@ -3435,6 +3064,7 @@ function openCollection(filter = "all") {
   const cards = allDraftTemplates();
   const filtered = filter === "all" ? cards : cards.filter(card => card.type === filter);
   const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
+
   filtered.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0));
 
   collectionStats.innerHTML = `
@@ -3448,7 +3078,8 @@ function openCollection(filter = "all") {
     const art = getCardArtwork(card);
     const family = card.family ? families[card.family]?.label || card.family : card.type;
     const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
-    const artStyle = art ? `background-image: linear-gradient(to bottom, transparent, rgba(0,0,0,.70)), url('${art}')` : "";
+    const artStyle = art ? `background-image: linear-gradient(to bottom, transparent, rgba(0,0,0,.72)), url('${art}')` : "";
+
     return `
       <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
         <div class="mini-card-art" style="${artStyle}">${art ? "" : icon}</div>
@@ -3463,6 +3094,7 @@ function openCollection(filter = "all") {
     button.onclick = () => {
       const card = cards.find(item => item.cardId === button.dataset.cardId);
       if (!card) return;
+
       if (card.type === "creature") showCardDetail(createCreatureCard(card));
       else showCardDetail({ ...card, id: uid() });
     };
@@ -3476,6 +3108,7 @@ function openRankPanel() {
   const total = (profile.wins || 0) + (profile.losses || 0);
   const winrate = total ? Math.round(((profile.wins || 0) / total) * 100) : 0;
   const level = getLevelFromXp(profile.xp || 0);
+
   const rankName =
     (profile.wins || 0) >= 40 ? "Master" :
     (profile.wins || 0) >= 25 ? "Diamante" :
@@ -3500,371 +3133,27 @@ function openRankPanel() {
   setActiveNav("rank");
 }
 
+function updateEconomyUi() {
+  const profile = getProfile();
+  if (coinText) coinText.textContent = `${profile.coins || 0} monete`;
+}
+
+function updateInstallHint() {
+  if (!installHintCard) return;
+
+  const standalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+
+  installHintCard.classList.toggle("hidden", standalone);
+}
+
 function showPremiumToast(text) {
   const toast = document.createElement("div");
   toast.className = "premium-toast";
   toast.textContent = text;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 1400);
-}
-
-
-
-/* =========================
-   V38 · GAMEPLAY UPGRADE
-   ========================= */
-
-function getHeroPowerForPlayer(player) {
-  if (!player) return heroPowers.balanced;
-  return heroPowers[player.deckType] || heroPowers.balanced;
-}
-
-function getHeroPowerCost(player) {
-  const power = getHeroPowerForPlayer(player);
-  return power.name === "Focus" || power.name === "Istinto" ? 1 : 2;
-}
-
-function canUseHeroPower(player = getMyPlayer()) {
-  if (!player) return false;
-  if (!isMyTurn()) return false;
-  if (player.heroPowerUsed) return false;
-  return player.energy >= getHeroPowerCost(player);
-}
-
-function openHeroPowerPanel() {
-  const me = getMyPlayer();
-  if (!me || !heroPowerModal) return;
-
-  const power = getHeroPowerForPlayer(me);
-  selectedHeroPowerTarget = null;
-
-  heroPowerDesc.textContent = `${power.icon} ${power.name}: ${power.desc} · Costo ${getHeroPowerCost(me)} energia`;
-  heroPowerTargets.innerHTML = "";
-
-  const candidates = power.targetSide === "ally"
-    ? me.field
-    : power.targetSide === "enemy"
-      ? getEnemyPlayer()?.field || []
-      : [];
-
-  if (!power.needsTarget) {
-    heroPowerTargets.innerHTML = `<div class="hero-power-empty">Nessun bersaglio necessario.</div>`;
-  } else if (!candidates.length) {
-    heroPowerTargets.innerHTML = `<div class="hero-power-empty">Nessun bersaglio: userai l'effetto alternativo.</div>`;
-  } else {
-    candidates.forEach((card, index) => {
-      const button = document.createElement("button");
-      button.className = "hero-power-target";
-      button.type = "button";
-      button.dataset.index = index;
-      button.innerHTML = `
-        <span>${card.icon || "🃏"}</span>
-        <strong>${card.name}</strong>
-        <small>ATK ${card.attack} · HP ${card.currentHp}/${card.maxHp}</small>
-      `;
-
-      button.onclick = () => {
-        document.querySelectorAll(".hero-power-target").forEach(btn => btn.classList.remove("selected"));
-        button.classList.add("selected");
-        selectedHeroPowerTarget = index;
-      };
-
-      heroPowerTargets.appendChild(button);
-    });
-  }
-
-  useHeroPowerBtn.disabled = !canUseHeroPower(me);
-  openModalSafe(heroPowerModal);
-}
-
-async function useHeroPower() {
-  const me = getMyPlayer();
-  const enemy = getEnemyPlayer();
-
-  if (!me || !enemy || !canUseHeroPower(me)) return;
-
-  const power = getHeroPowerForPlayer(me);
-  const cost = getHeroPowerCost(me);
-  me.energy -= cost;
-  me.heroPowerUsed = true;
-  me.stats.heroPowersUsed = (me.stats.heroPowersUsed || 0) + 1;
-
-  if (me.deckType === "fire") {
-    if (enemy.field.length && selectedHeroPowerTarget !== null) {
-      const target = enemy.field[selectedHeroPowerTarget];
-      damageCreature(target, 1, me, enemy);
-      addLog(`Potere ${power.name}: 1 danno a ${target.name}.`);
-      removeDead(enemy);
-    } else {
-      dealLifeDamage(me, enemy, 1, enemyHudBox);
-      addLog(`Potere ${power.name}: 1 danno diretto.`);
-    }
-  }
-
-  if (me.deckType === "water") {
-    if (me.field.length && selectedHeroPowerTarget !== null) {
-      const target = me.field[selectedHeroPowerTarget];
-      target.currentHp = Math.min(target.maxHp, target.currentHp + 2);
-      addLog(`Potere ${power.name}: cura ${target.name} di 2.`);
-    } else {
-      healLife(me, 2, document.querySelector(".my-bar"));
-      addLog(`Potere ${power.name}: cura 2 vita.`);
-    }
-  }
-
-  if (me.deckType === "forest") {
-    if (me.field.length && selectedHeroPowerTarget !== null) {
-      const target = me.field[selectedHeroPowerTarget];
-      target.attack += 1;
-      target.maxHp += 1;
-      target.currentHp += 1;
-      addLog(`Potere ${power.name}: +1/+1 a ${target.name}.`);
-    } else {
-      drawCard(me);
-      addLog(`Potere ${power.name}: nessuna creatura, peschi 1 carta.`);
-    }
-  }
-
-  if (me.deckType === "shadow") {
-    if (enemy.field.length && selectedHeroPowerTarget !== null) {
-      const target = enemy.field[selectedHeroPowerTarget];
-      target.attack = Math.max(0, target.attack - 1);
-      addLog(`Potere ${power.name}: ${target.name} perde -1 ATK.`);
-    } else {
-      dealLifeDamage(me, enemy, 1, enemyHudBox);
-      addLog(`Potere ${power.name}: 1 danno diretto.`);
-    }
-  }
-
-  if (me.deckType === "light") {
-    if (me.field.length && selectedHeroPowerTarget !== null) {
-      const target = me.field[selectedHeroPowerTarget];
-      target.shielded = true;
-      if (!target.abilities.includes("shield")) target.abilities.push("shield");
-      addLog(`Potere ${power.name}: ${target.name} ottiene Scudo.`);
-    } else {
-      healLife(me, 2, document.querySelector(".my-bar"));
-      addLog(`Potere ${power.name}: cura 2 vita.`);
-    }
-  }
-
-  if (me.deckType === "balanced" || me.deckType === "draft") {
-    drawCard(me);
-    addLog(`Potere ${power.name}: peschi 1 carta.`);
-  }
-
-  closeModalSafe(heroPowerModal);
-  selectedHeroPowerTarget = null;
-  checkGameOver();
-  render();
-  await saveOnlineGame();
-}
-
-function damageCreature(card, amount, sourceOwner = null, targetOwner = null) {
-  if (!card || amount <= 0) return;
-
-  if (card.shielded || hasAbility(card, "shield")) {
-    card.shielded = false;
-    card.abilities = (card.abilities || []).filter(a => a !== "shield");
-    addLog(`${card.name} annulla il danno con Scudo.`);
-    return;
-  }
-
-  card.currentHp -= amount;
-
-  if (sourceOwner?.stats) sourceOwner.stats.damageDealt += amount;
-  if (targetOwner?.stats) targetOwner.stats.damageTaken += amount;
-
-  applyRageIfDamaged(card);
-}
-
-function openMulligan() {
-  const me = getMyPlayer();
-  if (!me || !mulliganModal || !mulliganGrid) return;
-
-  pendingMulligan = true;
-  selectedMulliganCardIds = new Set();
-  mulliganModal.classList.remove("hidden");
-  renderMulligan();
-}
-
-function renderMulligan() {
-  const me = getMyPlayer();
-  if (!me || !mulliganGrid) return;
-
-  mulliganCountText.textContent = `${selectedMulliganCardIds.size}/${MULLIGAN_MAX} selezionate`;
-
-  mulliganGrid.innerHTML = me.hand.map(card => {
-    const selected = selectedMulliganCardIds.has(card.id);
-    const art = getCardArtwork(card);
-    const artStyle = art ? `style="background-image: linear-gradient(to bottom, transparent, rgba(0,0,0,.70)), url('${art}')"` : "";
-    return `
-      <button class="mulligan-card-choice ${selected ? "selected" : ""}" data-id="${card.id}" type="button" ${artStyle}>
-        <span>${card.icon || "🃏"}</span>
-        <strong>${card.name}</strong>
-        <small>Costo ${card.cost} · ${shortRarity(card.rarity)}</small>
-      </button>
-    `;
-  }).join("");
-
-  document.querySelectorAll(".mulligan-card-choice").forEach(button => {
-    button.onclick = () => {
-      const id = button.dataset.id;
-      if (selectedMulliganCardIds.has(id)) {
-        selectedMulliganCardIds.delete(id);
-      } else {
-        if (selectedMulliganCardIds.size >= MULLIGAN_MAX) {
-          showPremiumToast(`Puoi cambiare massimo ${MULLIGAN_MAX} carte.`);
-          return;
-        }
-        selectedMulliganCardIds.add(id);
-      }
-
-      renderMulligan();
-    };
-  });
-}
-
-function confirmMulligan() {
-  const me = getMyPlayer();
-  if (!me) return;
-
-  const returned = [];
-
-  me.hand = me.hand.filter(card => {
-    if (selectedMulliganCardIds.has(card.id)) {
-      returned.push(card);
-      return false;
-    }
-    return true;
-  });
-}
-
-function finishMulligan() {
-  const me = getMyPlayer();
-  if (!me) return;
-
-  const returned = [];
-  me.hand = me.hand.filter(card => {
-    if (selectedMulliganCardIds.has(card.id)) {
-      returned.push(card);
-      return false;
-    }
-    return true;
-  });
-
-  me.deck.push(...returned);
-  me.deck = shuffle(me.deck);
-
-  for (let i = 0; i < returned.length; i++) {
-    drawCard(me);
-  }
-
-  pendingMulligan = null;
-  selectedMulliganCardIds = new Set();
-  closeModalSafe(mulliganModal);
-  showPremiumToast("Partita iniziata");
-  render();
-}
-
-function shouldBotUseHeroPower(bot, player) {
-  if (!bot || bot.heroPowerUsed) return false;
-  if (bot.energy < getHeroPowerCost(bot)) return false;
-
-  if (bot.deckType === "fire") return player.life <= 8 || player.field.some(c => c.currentHp <= 1);
-  if (bot.deckType === "water") return bot.life <= 24 || bot.field.some(c => c.currentHp < c.maxHp);
-  if (bot.deckType === "forest") return bot.field.length > 0;
-  if (bot.deckType === "shadow") return player.field.length > 0 || player.life <= 10;
-  if (bot.deckType === "light") return bot.field.length > 0 || bot.life <= 24;
-  return bot.hand.length <= 4;
-}
-
-function botUseHeroPower(bot, player) {
-  if (!shouldBotUseHeroPower(bot, player)) return false;
-
-  bot.energy -= getHeroPowerCost(bot);
-  bot.heroPowerUsed = true;
-  bot.stats.heroPowersUsed = (bot.stats.heroPowersUsed || 0) + 1;
-
-  if (bot.deckType === "fire") {
-    const target = player.field.find(c => c.currentHp <= 1) || null;
-    if (target) {
-      damageCreature(target, 1, bot, player);
-      addLog(`Bot usa Brucia su ${target.name}.`);
-      removeDead(player);
-    } else {
-      dealLifeDamage(bot, player, 1, document.querySelector(".my-bar"));
-      addLog("Bot usa Brucia sulla tua vita.");
-    }
-    return true;
-  }
-
-  if (bot.deckType === "water") {
-    const target = bot.field.find(c => c.currentHp < c.maxHp);
-    if (target) {
-      target.currentHp = Math.min(target.maxHp, target.currentHp + 2);
-      addLog(`Bot usa Rigenera su ${target.name}.`);
-    } else {
-      healLife(bot, 2, document.querySelector(".enemy-bar"));
-      addLog("Bot usa Rigenera.");
-    }
-    return true;
-  }
-
-  if (bot.deckType === "forest") {
-    const target = [...bot.field].sort((a,b) => b.attack - a.attack)[0];
-    if (target) {
-      target.attack += 1;
-      target.maxHp += 1;
-      target.currentHp += 1;
-      addLog(`Bot usa Crescita su ${target.name}.`);
-      return true;
-    }
-  }
-
-  if (bot.deckType === "shadow") {
-    const target = [...player.field].sort((a,b) => b.attack - a.attack)[0];
-    if (target) {
-      target.attack = Math.max(0, target.attack - 1);
-      addLog(`Bot usa Maledizione su ${target.name}.`);
-    } else {
-      dealLifeDamage(bot, player, 1, document.querySelector(".my-bar"));
-      addLog("Bot usa Maledizione sulla tua vita.");
-    }
-    return true;
-  }
-
-  if (bot.deckType === "light") {
-    const target = bot.field[0];
-    if (target) {
-      target.shielded = true;
-      if (!target.abilities.includes("shield")) target.abilities.push("shield");
-      addLog(`Bot usa Scudo su ${target.name}.`);
-    } else {
-      healLife(bot, 2, document.querySelector(".enemy-bar"));
-      addLog("Bot usa Scudo per curarsi.");
-    }
-    return true;
-  }
-
-  drawCard(bot);
-  addLog("Bot usa Focus e pesca 1 carta.");
-  return true;
-}
-
-function updateHeroPowerButton() {
-  if (!heroPowerBtn) return;
-  const me = getMyPlayer();
-  const power = getHeroPowerForPlayer(me);
-  heroPowerBtn.textContent = power?.icon || "✨";
-  heroPowerBtn.title = power ? `${power.name} - ${power.desc}` : "Potere eroe";
-  heroPowerBtn.disabled = !canUseHeroPower(me);
-  heroPowerBtn.classList.toggle("ready", canUseHeroPower(me));
-}
-
-function updateEconomyUi() {
-  const profile = getProfile();
-  if (coinText) coinText.textContent = `${profile.coins || 0} monete`;
 }
 
 document.querySelectorAll(".deck-btn").forEach(button => {
@@ -3903,82 +3192,6 @@ document.querySelectorAll(".quick-chat-msg").forEach(button => {
   };
 });
 
-
-if (navHomeBtn) {
-  navHomeBtn.onclick = () => {
-    closeAllAppSheets();
-    showOnlyMenu(true);
-    setActiveNav("home");
-  };
-}
-
-if (navPlayBtn) {
-  navPlayBtn.onclick = () => {
-    closeAllAppSheets();
-    startBotGame();
-    setActiveNav("play");
-  };
-}
-
-if (navCollectionBtn) {
-  navCollectionBtn.onclick = () => {
-    openCollection("all");
-  };
-}
-
-if (navRankBtn) {
-  navRankBtn.onclick = () => {
-    openRankPanel();
-  };
-}
-
-if (navSettingsBtn) {
-  navSettingsBtn.onclick = () => {
-    closeAllAppSheets();
-    openOptionsHub();
-    setActiveNav("settings");
-  };
-}
-
-if (closeCollectionBtn) {
-  closeCollectionBtn.onclick = () => {
-    collectionModal.classList.add("hidden");
-    setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
-  };
-}
-
-if (collectionModal) {
-  collectionModal.onclick = event => {
-    if (event.target === collectionModal) {
-      collectionModal.classList.add("hidden");
-      setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
-    }
-  };
-}
-
-if (closeRankBtn) {
-  closeRankBtn.onclick = () => {
-    rankModal.classList.add("hidden");
-    setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
-  };
-}
-
-if (rankModal) {
-  rankModal.onclick = event => {
-    if (event.target === rankModal) {
-      rankModal.classList.add("hidden");
-      setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
-    }
-  };
-}
-
-if (rankPlayBtn) {
-  rankPlayBtn.onclick = () => {
-    rankModal.classList.add("hidden");
-    startBotGame();
-  };
-}
-
 playBotBtn.onclick = () => startBotGame();
 createOnlineBtn.onclick = createOnlineGame;
 joinOnlineBtn.onclick = joinOnlineGame;
@@ -3986,16 +3199,6 @@ endTurnBtn.onclick = endTurn;
 
 campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
 draftBtn.onclick = startDraft;
-
-if (raidBtn) raidBtn.onclick = () => raidModal.classList.remove("hidden");
-if (closeRaidBtn) closeRaidBtn.onclick = () => raidModal.classList.add("hidden");
-if (startRaidBtn) {
-  startRaidBtn.onclick = () => {
-    raidModal.classList.add("hidden");
-    startBotGame("draktharPrime");
-  };
-}
-
 if (openOptionsHubBtn) openOptionsHubBtn.onclick = openOptionsHub;
 if (closeOptionsHubBtn) closeOptionsHubBtn.onclick = closeOptionsHub;
 if (summaryAvatarChip) summaryAvatarChip.onclick = openOptionsHub;
@@ -4175,9 +3378,7 @@ if (savedArena && arenaSkinSelect) {
 setupRoomFromUrl();
 renderProfile();
 updateHomeSummary();
-if (menuScreen) showOnly(menuScreen);
-updateBottomNavVisibility();
-setActiveNav("home");
+showOnly(menuScreen);
 
 if (!localStorage.getItem("tutorialSeen")) {
   setTimeout(() => tutorialModal.classList.remove("hidden"), 450);
@@ -4191,7 +3392,10 @@ if (optionsHubModal) {
 
 
 
-/* V37 event binding sicuro */
+/* =========================
+   V40 · EVENTI APP SICURI
+   ========================= */
+
 safeOn(navHomeBtn, "click", () => {
   closeAllAppSheets();
   showOnlyMenu(true);
@@ -4212,28 +3416,28 @@ safeOn(navSettingsBtn, "click", () => {
   setActiveNav("settings");
 });
 
-safeOn(closePlayModesBtn, "click", closePlayModes);
+safeOn(closePlayModesBtn, "click", () => closeModalSafe(playModesModal));
 safeOn(playModesModal, "click", event => {
-  if (event.target === playModesModal) closePlayModes();
+  if (event.target === playModesModal) closeModalSafe(playModesModal);
 });
 safeOn(modeBotBtn, "click", () => {
   hapticTap(true);
-  closePlayModes();
+  closeModalSafe(playModesModal);
   startBotGame();
 });
 safeOn(modeOnlineBtn, "click", () => {
   hapticTap(true);
-  closePlayModes();
+  closeModalSafe(playModesModal);
   createOnlineGame();
 });
 safeOn(modeCampaignBtn, "click", () => {
   hapticTap(true);
-  closePlayModes();
+  closeModalSafe(playModesModal);
   openModalSafe(campaignModal);
 });
 safeOn(modeDraftBtn, "click", () => {
   hapticTap(true);
-  closePlayModes();
+  closeModalSafe(playModesModal);
   startDraft();
 });
 
@@ -4268,38 +3472,6 @@ safeOn(document, "click", event => {
 });
 
 updateInstallHint();
-setTimeout(hideAppLoader, 500);
-
-
-safeOn(heroPowerBtn, "click", openHeroPowerPanel);
-safeOn(closeHeroPowerBtn, "click", () => closeModalSafe(heroPowerModal));
-safeOn(heroPowerModal, "click", event => {
-  if (event.target === heroPowerModal) closeModalSafe(heroPowerModal);
-});
-safeOn(useHeroPowerBtn, "click", useHeroPower);
-safeOn(confirmMulliganBtn, "click", finishMulligan);
-safeOn(mulliganModal, "click", event => {
-  if (event.target === mulliganModal) {
-    showPremiumToast("Scegli o conferma il mulligan.");
-  }
-});
-
-// V39_LOADER_FORCE_HIDE
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    try {
-      hideAppLoader();
-    } catch (error) {
-      const loader = document.getElementById("appLoader");
-      if (loader) loader.remove();
-    }
-  }, 700);
-});
-setTimeout(() => {
-  try {
-    hideAppLoader();
-  } catch (error) {
-    const loader = document.getElementById("appLoader");
-    if (loader) loader.remove();
-  }
-}, 1600);
+updateBottomNavVisibility();
+updateEconomyUi();
+setActiveNav("home");
