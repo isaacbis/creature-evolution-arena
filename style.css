@@ -3819,7 +3819,7 @@ button:hover::after {
   }
 
   #gameScreen .field-zone {
-    min-height: 118px !important;
+    min-height: 130px !important;
     height: 118px !important;
     max-height: 118px !important;
     padding: 5px !important;
@@ -3827,7 +3827,7 @@ button:hover::after {
   }
 
   #gameScreen .compact-field {
-    min-height: 86px !important;
+    min-height: 100px !important;
     height: 86px !important;
     max-height: 86px !important;
     padding: 2px !important;
