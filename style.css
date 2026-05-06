@@ -3622,7 +3622,7 @@ body:has(#gameScreen.game-screen:not(.hidden)) {
 
 
 /* =========================================================
-   V61 - Carte auto-fit: contenuti sempre proporzionati
+   V62 - Campi leggermente più bassi + carte auto-fit
    =========================================================
    Cosa fa:
    - Le carte nel campo si adattano alla larghezza disponibile.
@@ -3633,8 +3633,8 @@ body:has(#gameScreen.game-screen:not(.hidden)) {
 */
 @media (max-width: 700px) {
   #gameScreen {
-    --field-h: 122px;
-    --field-inner-h: 112px;
+    --field-h: 136px;
+    --field-inner-h: 104px;
     --hand-h: 120px;
     --field-gap: 5px;
     --field-card-w: clamp(58px, calc((100vw - 54px) / 5), 76px);
@@ -3828,8 +3828,8 @@ body:has(#gameScreen.game-screen:not(.hidden)) {
 
 @media (max-width: 380px) {
   #gameScreen {
-    --field-h: 134px;
-    --field-inner-h: 104px;
+    --field-h: 126px;
+    --field-inner-h: 96px;
     --hand-h: 114px;
     --field-card-w: clamp(54px, calc((100vw - 50px) / 5), 68px);
     --field-card-h: 98px;
