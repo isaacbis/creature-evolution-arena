@@ -21,6 +21,10 @@ const createOnlineBtn = $("createOnlineBtn");
 const joinOnlineBtn = $("joinOnlineBtn");
 const campaignBtn = $("campaignBtn");
 const draftBtn = $("draftBtn");
+const raidBtn = $("raidBtn");
+const raidModal = $("raidModal");
+const startRaidBtn = $("startRaidBtn");
+const closeRaidBtn = $("closeRaidBtn");
 
 const roomCodeText = $("roomCodeText");
 const lobbyStatusText = $("lobbyStatusText");
@@ -254,6 +258,14 @@ const bossData = {
     life: 38,
     deck: "shadow",
     power: "Ogni 3 turni avvelena una tua creatura."
+  },
+  draktharPrime: {
+    name: "Drakthar Prime",
+    avatar: "🐉",
+    life: 100,
+    deck: "fire",
+    power: "Ogni 3 turni infligge 4 danni e potenzia una creatura.",
+    raid: true
   },
   final: {
     name: "Boss Finale",
@@ -969,6 +981,20 @@ function applyBossPower(bossKey) {
     bot.energy += 1;
     dealLifeDamage(bot, player, 1, document.querySelector(".hud-box.player"));
     addLog("Potere Boss Finale: +1 energia e 1 danno.");
+  }
+
+  if (bossKey === "draktharPrime") {
+    dealLifeDamage(bot, player, 4, document.querySelector(".hud-box.player"));
+    if (bot.field.length) {
+      const target = randomItem(bot.field);
+      target.attack += 2;
+      target.maxHp += 2;
+      target.currentHp += 2;
+      addLog("Raid Boss: Drakthar Prime potenzia una creatura e scatena Fiamme Antiche.");
+    } else {
+      addLog("Raid Boss: Drakthar Prime scatena Fiamme Antiche.");
+    }
+    createRaidWarningFx();
   }
 }
 
@@ -2680,12 +2706,21 @@ function playSummonFx(card) {
   createFxFlash("summon");
   createFxText("Evocazione", "summon", true);
   animateCardById(card?.id, "fx-card-summon", card?.family || "light");
+
+  if (card?.rarity === "legendary" || card?.stage === 3) {
+    playLegendarySummonFx(card);
+  }
 }
 
 function playEvolveFx(card) {
   createFxFlash("evolve");
   createFxText("Evoluzione!", "evolve");
   animateCardById(card?.id, "fx-card-evolve", "light");
+
+  if (card?.stage === 3 || card?.rarity === "legendary") {
+    createCinematicBanner(card?.name || "Evoluzione", "Forma finale", "legendary");
+    createParticlesFromElement(document.body, card?.family || "light", 30);
+  }
 }
 
 function playEquipmentFx(card) {
@@ -2818,6 +2853,7 @@ function setupRoomFromUrl() {
 
 function openPack() {
   packModal.classList.remove("hidden");
+  upgradePackRevealFx();
   const pool = allDraftTemplates();
   const found = shuffle(pool).slice(0, 3);
 
@@ -2934,6 +2970,42 @@ function applyArenaSkin(value) {
   }
 }
 
+
+
+/* =========================
+   V33 · CINEMATIC POLISH
+   ========================= */
+
+function createCinematicBanner(title, subtitle = "", tone = "legendary") {
+  const banner = document.createElement("div");
+  banner.className = `cinematic-banner ${tone}`;
+  banner.innerHTML = `
+    <strong>${title}</strong>
+    <span>${subtitle}</span>
+  `;
+  document.body.appendChild(banner);
+
+  setTimeout(() => banner.remove(), 1700);
+}
+
+function createRaidWarningFx() {
+  createCinematicBanner("RAID BOSS", "Fiamme Antiche", "danger");
+  createFxFlash("attack");
+  shakeScreen();
+}
+
+function playLegendarySummonFx(card) {
+  createCinematicBanner(card?.name || "Leggendaria", "Evocazione leggendaria", "legendary");
+  createFxFlash("evolve");
+  createParticlesFromElement(document.body, card?.family || "light", 34);
+  shakeScreen();
+}
+
+function upgradePackRevealFx() {
+  createCinematicBanner("PACCHETTO APERTO", "Nuove carte sbloccate", "pack");
+  createParticlesFromElement(document.body, "light", 28);
+}
+
 document.querySelectorAll(".deck-btn").forEach(button => {
   button.onclick = () => {
     document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
@@ -2977,6 +3049,16 @@ endTurnBtn.onclick = endTurn;
 
 campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
 draftBtn.onclick = startDraft;
+
+if (raidBtn) raidBtn.onclick = () => raidModal.classList.remove("hidden");
+if (closeRaidBtn) closeRaidBtn.onclick = () => raidModal.classList.add("hidden");
+if (startRaidBtn) {
+  startRaidBtn.onclick = () => {
+    raidModal.classList.add("hidden");
+    startBotGame("draktharPrime");
+  };
+}
+
 if (openOptionsHubBtn) openOptionsHubBtn.onclick = openOptionsHub;
 if (closeOptionsHubBtn) closeOptionsHubBtn.onclick = closeOptionsHub;
 if (summaryAvatarChip) summaryAvatarChip.onclick = openOptionsHub;

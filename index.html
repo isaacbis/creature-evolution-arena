@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=final-art" />
+  <link rel="stylesheet" href="style.css?v=33" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -174,6 +174,7 @@
         <div class="main-actions hero-secondary-actions">
           <button id="campaignBtn" class="glass-action">Campagna</button>
           <button id="draftBtn" class="glass-action">Draft</button>
+          <button id="raidBtn" class="glass-action">Raid Boss</button>
         </div>
 
         <button id="openOptionsHubBtn" class="full-glass-btn options-trigger-btn">Personalizza · Entra con codice · Altre opzioni</button>
@@ -546,6 +547,30 @@
     </div>
   </div>
 
+
+  <!-- BOSS RAID -->
+  <div id="raidModal" class="modal hidden">
+    <div class="modal-card raid-card">
+      <div class="result-icon">🐲</div>
+      <h2>Boss Raid</h2>
+      <p>Affronta un boss gigante con più vita, poteri speciali e ricompense maggiori.</p>
+
+      <div class="raid-boss-preview">
+        <div class="raid-boss-avatar">🐉</div>
+        <div>
+          <strong>Drakthar Prime</strong>
+          <span>100 HP · Potere: Fiamme Antiche ogni 3 turni</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="startRaidBtn">Inizia Raid</button>
+        <button id="closeRaidBtn" class="secondary-btn">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- PACCHETTO CARTE -->
   <div id="packModal" class="modal hidden">
     <div class="modal-card">
@@ -599,7 +624,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=final-art")
+        .register("./service-worker.js?v=33")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -607,6 +632,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=final-art"></script>
+<script type="module" src="script.js?v=33"></script>
 </body>
 </html>
