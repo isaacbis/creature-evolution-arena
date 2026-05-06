@@ -179,6 +179,27 @@ let dragState = {
   moved: false
 };
 
+
+/* =========================
+   FINAL · ARTWORK COLLEGATI ALLE CARTE
+   ========================= */
+
+const CARD_ART_BY_ID = {
+  "fire_3": "assets/cards/drakthar-drago-infernale.png",
+  "water_3": "assets/cards/leviatano-degli-abissi.png",
+  "light_3": "assets/cards/aurelia-angelo-solare.png",
+  "shadow_3": "assets/cards/necromante-del-vuoto.png",
+  "fire_2": "assets/cards/fenice-reale.png",
+  "forest_3": "assets/cards/guardiano-della-foresta.png",
+  "forest_2": "assets/cards/arciera-elfea.png",
+  "water_2": "assets/cards/mago-del-gelo.png",
+  "shadow_2": "assets/cards/stregone-del-chaos.png"
+};
+
+function getCardArt(card) {
+  return CARD_ART_BY_ID[card?.cardId] || "";
+}
+
 const abilityLabels = {
   guard: "Guardia",
   haste: "Rapidità",
@@ -2363,6 +2384,12 @@ function addEnemyFieldCardEvents(cardEl, card, index) {
 
 function createCardEl(card, extraClass) {
   const el = document.createElement("div");
+
+  const realArtwork = getCardArt(card);
+  if (realArtwork) {
+    el.style.setProperty("--card-art", `url("${realArtwork}")`);
+    el.classList.add("has-real-art");
+  }
 
   if (card.type === "creature") {
     el.className = `card creature ${card.family} ${card.rarity} ${extraClass}`;
