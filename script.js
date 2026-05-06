@@ -3156,6 +3156,139 @@ function showPremiumToast(text) {
   setTimeout(() => toast.remove(), 1400);
 }
 
+
+
+/* =========================
+   V42 · NAV / MODALI SICURE
+   ========================= */
+
+function safeOn(el, eventName, handler) {
+  if (!el || typeof handler !== "function") return;
+  el.addEventListener(eventName, handler);
+}
+
+function closeModalSafe(modal) {
+  if (modal) modal.classList.add("hidden");
+}
+
+function openModalSafe(modal) {
+  if (modal) modal.classList.remove("hidden");
+}
+
+function isVisible(el) {
+  return Boolean(el && !el.classList.contains("hidden"));
+}
+
+function setActiveNav(name) {
+  const map = {
+    home: navHomeBtn,
+    play: navPlayBtn,
+    cards: navCollectionBtn,
+    rank: navRankBtn,
+    settings: navSettingsBtn
+  };
+
+  Object.values(map).forEach(btn => btn && btn.classList.remove("active"));
+  if (map[name]) map[name].classList.add("active");
+}
+
+function updateScreenClass() {
+  document.body.classList.toggle("is-game", isVisible(gameScreen));
+  document.body.classList.toggle("is-home", isVisible(menuScreen));
+}
+
+function closeAllSheets() {
+  closeModalSafe(playModesModal);
+  closeModalSafe(collectionModal);
+  closeModalSafe(rankModal);
+  closeModalSafe(optionsHubModal);
+}
+
+function openPlayModesV42() {
+  closeAllSheets();
+  openModalSafe(playModesModal);
+  setActiveNav("play");
+}
+
+function openCollectionV42(filter = "all") {
+  if (!collectionModal || !collectionGrid || !collectionStats) return;
+
+  closeAllSheets();
+  openModalSafe(collectionModal);
+  setActiveNav("cards");
+
+  document.querySelectorAll(".collection-filter").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.filter === filter);
+    btn.onclick = () => openCollectionV42(btn.dataset.filter || "all");
+  });
+
+  const cards = allDraftTemplates();
+  const filtered = filter === "all" ? cards : cards.filter(card => card.type === filter);
+
+  collectionStats.innerHTML = `
+    <div><strong>${cards.length}</strong><span>Totali</span></div>
+    <div><strong>${cards.filter(c => c.type === "creature").length}</strong><span>Creature</span></div>
+    <div><strong>${cards.filter(c => c.rarity === "legendary").length}</strong><span>Leggendarie</span></div>
+  `;
+
+  collectionGrid.innerHTML = filtered.map(card => {
+    const icon = card.icon || families[card.family]?.icon || "🃏";
+    const family = card.family ? families[card.family]?.label || card.family : card.type;
+    const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
+
+    return `
+      <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
+        <div class="mini-card-art">${icon}</div>
+        <strong>${card.name}</strong>
+        <span>${family} · ${type}</span>
+        <small>${shortRarity(card.rarity || "common")}</small>
+      </button>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".collection-card-mini").forEach(button => {
+    button.onclick = () => {
+      const card = cards.find(item => item.cardId === button.dataset.cardId);
+      if (!card) return;
+      if (card.type === "creature") showCardDetail(createCreatureCard(card));
+      else showCardDetail({ ...card, id: uid() });
+    };
+  });
+}
+
+function openRankV42() {
+  if (!rankModal || !rankProfileBox) return;
+
+  const profile = getProfile();
+  const total = (profile.wins || 0) + (profile.losses || 0);
+  const winrate = total ? Math.round(((profile.wins || 0) / total) * 100) : 0;
+  const level = getLevelFromXp(profile.xp || 0);
+
+  const rankName =
+    (profile.wins || 0) >= 40 ? "Master" :
+    (profile.wins || 0) >= 25 ? "Diamante" :
+    (profile.wins || 0) >= 14 ? "Oro" :
+    (profile.wins || 0) >= 6 ? "Argento" :
+    "Bronzo";
+
+  rankProfileBox.innerHTML = `
+    <div class="rank-avatar">${selectedAvatar}</div>
+    <div>
+      <strong>${playerNameInput?.value?.trim() || localStorage.getItem("playerName") || "Giocatore"}</strong>
+      <span>Livello ${level} · Rank ${rankName}</span>
+    </div>
+    <div class="rank-mini-stats">
+      <span>V ${profile.wins || 0}</span>
+      <span>S ${profile.losses || 0}</span>
+      <span>${winrate}%</span>
+    </div>
+  `;
+
+  closeAllSheets();
+  openModalSafe(rankModal);
+  setActiveNav("rank");
+}
+
 document.querySelectorAll(".deck-btn").forEach(button => {
   button.onclick = () => {
     document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
@@ -3475,3 +3608,87 @@ updateInstallHint();
 updateBottomNavVisibility();
 updateEconomyUi();
 setActiveNav("home");
+
+
+/* =========================
+   V42 · EVENTI NAV SICURI
+   ========================= */
+
+safeOn(navHomeBtn, "click", () => {
+  closeAllSheets();
+  showOnlyMenu(true);
+  setActiveNav("home");
+  updateScreenClass();
+});
+
+safeOn(navPlayBtn, "click", () => {
+  openPlayModesV42();
+});
+
+safeOn(navCollectionBtn, "click", () => {
+  openCollectionV42("all");
+});
+
+safeOn(navRankBtn, "click", () => {
+  openRankV42();
+});
+
+safeOn(navSettingsBtn, "click", () => {
+  closeAllSheets();
+  openOptionsHub();
+  setActiveNav("settings");
+});
+
+safeOn(closePlayModesBtn, "click", () => closeModalSafe(playModesModal));
+safeOn(playModesModal, "click", event => {
+  if (event.target === playModesModal) closeModalSafe(playModesModal);
+});
+
+safeOn(modeBotBtn, "click", () => {
+  closeModalSafe(playModesModal);
+  startBotGame();
+});
+
+safeOn(modeOnlineBtn, "click", () => {
+  closeModalSafe(playModesModal);
+  createOnlineGame();
+});
+
+safeOn(modeCampaignBtn, "click", () => {
+  closeModalSafe(playModesModal);
+  openModalSafe(campaignModal);
+});
+
+safeOn(modeDraftBtn, "click", () => {
+  closeModalSafe(playModesModal);
+  startDraft();
+});
+
+safeOn(closeCollectionBtn, "click", () => {
+  closeModalSafe(collectionModal);
+  setActiveNav(isVisible(gameScreen) ? "play" : "home");
+});
+safeOn(collectionModal, "click", event => {
+  if (event.target === collectionModal) {
+    closeModalSafe(collectionModal);
+    setActiveNav(isVisible(gameScreen) ? "play" : "home");
+  }
+});
+
+safeOn(closeRankBtn, "click", () => {
+  closeModalSafe(rankModal);
+  setActiveNav(isVisible(gameScreen) ? "play" : "home");
+});
+safeOn(rankModal, "click", event => {
+  if (event.target === rankModal) {
+    closeModalSafe(rankModal);
+    setActiveNav(isVisible(gameScreen) ? "play" : "home");
+  }
+});
+safeOn(rankPlayBtn, "click", () => {
+  closeModalSafe(rankModal);
+  startBotGame();
+});
+
+updateScreenClass();
+setActiveNav(isVisible(gameScreen) ? "play" : "home");
