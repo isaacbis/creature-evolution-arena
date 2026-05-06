@@ -3354,23 +3354,23 @@ button:hover::after {
   #gameScreen .battle-board {
     grid-template-rows:
       auto
-      minmax(60px, 1.35fr)
-      minmax(60px, 1.35fr)
-      minmax(60px, .9fr)
+      minmax(128px, 1.35fr)
+      minmax(128px, 1.35fr)
+      minmax(108px, .9fr)
       auto !important;
     gap: 6px !important;
   }
 
   #gameScreen .field-zone {
-    min-height: 60px !important;
+    min-height: 128px !important;
     padding: 7px !important;
     border-radius: 17px !important;
   }
 
   #gameScreen .compact-field {
-    min-height: 80px !important;
-    height: 80px !important;
-    max-height: 80px !important;
+    min-height: 100px !important;
+    height: 100px !important;
+    max-height: 100px !important;
     gap: 7px !important;
     padding: 2px 2px 5px !important;
     align-items: flex-start !important;
@@ -3541,5 +3541,269 @@ button:hover::after {
     min-height: 58px !important;
     height: 58px !important;
     max-height: 58px !important;
+  }
+}
+
+
+/* =========================================================
+   V56 - Tolto spazio vuoto sotto + campi davvero compatti mobile
+   ========================================================= */
+@media (max-width: 700px) {
+  body:has(#gameScreen.game-screen:not(.hidden)) {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  #gameScreen.game-screen:not(.hidden) {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 100dvh !important;
+    padding: 4px 5px calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #gameScreen .app-topbar {
+    flex: 0 0 32px !important;
+    min-height: 32px !important;
+    height: 32px !important;
+    margin-bottom: 3px !important;
+    padding: 4px 6px !important;
+    border-radius: 13px !important;
+  }
+
+  #gameScreen .mini-logo {
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 9px !important;
+    font-size: 12px !important;
+  }
+
+  #gameScreen .app-topbar h1 {
+    font-size: 13px !important;
+  }
+
+  #gameScreen .app-topbar p {
+    font-size: 8px !important;
+    margin-top: 0 !important;
+  }
+
+  #gameScreen .round-btn {
+    width: 25px !important;
+    height: 25px !important;
+    border-radius: 9px !important;
+    font-size: 11px !important;
+  }
+
+  #gameScreen .battle-hud {
+    flex: 0 0 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    margin: 0 0 3px !important;
+    gap: 3px !important;
+    display: grid !important;
+    grid-template-columns: 1fr .82fr 1fr !important;
+    align-items: stretch !important;
+  }
+
+  #gameScreen .player-bar,
+  #gameScreen .turn-panel {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 3px 5px !important;
+    border-radius: 12px !important;
+  }
+
+  #gameScreen .turn-panel {
+    grid-column: auto !important;
+    order: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  #gameScreen .enemy-bar { order: 1 !important; }
+  #gameScreen .my-bar { order: 3 !important; }
+
+  #gameScreen .turn-panel strong {
+    font-size: 9px !important;
+    line-height: 1 !important;
+  }
+
+  #gameScreen .turn-panel #message,
+  #gameScreen .turn-panel #roomInfoText,
+  #gameScreen .turn-panel .timer-text,
+  #gameScreen .turn-panel .tiny-btn {
+    display: none !important;
+  }
+
+  #gameScreen .player-bar strong {
+    font-size: 8.5px !important;
+    line-height: 1 !important;
+  }
+
+  #gameScreen .player-bar > div:first-child span,
+  #gameScreen .player-bar .energy-dots {
+    display: none !important;
+  }
+
+  #gameScreen .player-bar .life-energy span {
+    font-size: 7.5px !important;
+    line-height: 1 !important;
+  }
+
+  #gameScreen .player-bar .life-energy span:first-child {
+    font-size: 9px !important;
+    font-weight: 900 !important;
+  }
+
+  #gameScreen .battle-board {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    display: grid !important;
+    grid-template-rows: 20px 76px 76px minmax(120px, 1fr) !important;
+    gap: 3px !important;
+  }
+
+  #gameScreen .terrain-zone {
+    min-height: 20px !important;
+    height: 20px !important;
+    padding: 2px 6px !important;
+    border-radius: 10px !important;
+  }
+
+  #gameScreen .field-zone {
+    min-height: 76px !important;
+    height: 76px !important;
+    max-height: 76px !important;
+    padding: 3px !important;
+    border-radius: 12px !important;
+  }
+
+  #gameScreen .zone-title {
+    min-height: 14px !important;
+    height: 14px !important;
+    margin-bottom: 2px !important;
+    gap: 3px !important;
+  }
+
+  #gameScreen .zone-title h3,
+  #gameScreen .zone-title span {
+    font-size: 8px !important;
+    line-height: 1 !important;
+  }
+
+  #gameScreen .end-turn-btn {
+    min-height: 18px !important;
+    height: 18px !important;
+    padding: 2px 6px !important;
+    border-radius: 8px !important;
+    font-size: 8px !important;
+  }
+
+  #gameScreen .compact-field {
+    min-height: 54px !important;
+    height: 54px !important;
+    max-height: 54px !important;
+    gap: 4px !important;
+    padding: 1px 1px 2px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  #gameScreen .empty-field {
+    min-width: 68px !important;
+    height: 49px !important;
+    font-size: 7px !important;
+    border-radius: 8px !important;
+  }
+
+  #gameScreen .hand-zone {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 4px !important;
+    border-radius: 13px !important;
+  }
+
+  #gameScreen .hand {
+    height: 112px !important;
+    min-height: 112px !important;
+    max-height: 112px !important;
+    padding: 1px 1px 4px !important;
+  }
+
+  #gameScreen .log-wrapper {
+    display: none !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #gameScreen.game-screen:not(.hidden) {
+    padding: 3px 4px calc(3px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #gameScreen .battle-board {
+    grid-template-rows: 18px 68px 68px minmax(108px, 1fr) !important;
+    gap: 2px !important;
+  }
+
+  #gameScreen .field-zone {
+    min-height: 68px !important;
+    height: 68px !important;
+    max-height: 68px !important;
+  }
+
+  #gameScreen .compact-field {
+    min-height: 48px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+  }
+
+  #gameScreen .hand {
+    height: 104px !important;
+    min-height: 104px !important;
+    max-height: 104px !important;
+  }
+}
+
+
+/* =========================================================
+   V57 - Box tratteggiato grande quanto il campo
+   ========================================================= */
+@media (max-width: 700px) {
+  #gameScreen .compact-field {
+    align-items: stretch !important;
+  }
+
+  #gameScreen .compact-field .empty-field {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #gameScreen .compact-field .empty-field {
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    font-size: 9px !important;
+    border-radius: 10px !important;
   }
 }

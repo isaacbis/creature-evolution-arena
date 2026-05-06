@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=55" />
+  <link rel="stylesheet" href="style.css?v=57" />
   <style>
     #menuScreen.menu-screen.hidden, #lobbyScreen.lobby-screen.hidden, #gameScreen.game-screen.hidden { display: none !important; }
   </style>
@@ -535,7 +535,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=55")
+        .register("./service-worker.js?v=57")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -543,6 +543,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=55"></script>
+<script type="module" src="script.js?v=57"></script>
 </body>
 </html>
