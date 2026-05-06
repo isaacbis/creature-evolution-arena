@@ -143,7 +143,17 @@ const summaryArenaChip = $("summaryArenaChip");
 
 const enemyHudBox = $("enemyHudBox");
 
-const v44Home = $("v44Home");
+const stableAvatar = $("stableAvatar");
+const stableProfileLine = $("stableProfileLine");
+const stableOptionsBtn = $("stableOptionsBtn");
+const stableNameInput = $("stableNameInput");
+const stableDeckText = $("stableDeckText");
+const stableLevelText = $("stableLevelText");
+const stableWinsText = $("stableWinsText");
+const stablePlayBtn = $("stablePlayBtn");
+const stableCardsBtn = $("stableCardsBtn");
+
+
 const v44Avatar = $("v44Avatar");
 const v44PlayerLine = $("v44PlayerLine");
 const v44PlayerNameInput = $("v44PlayerNameInput");
@@ -3721,76 +3731,74 @@ window.addEventListener("unhandledrejection", event => {
 
 
 /* =========================
-   V44 · HOME HARD FIX
+   V45 · HOME STABILE
    ========================= */
 
-function syncV44Home() {
-  if (!v44Home) return;
+function syncStableHome() {
+  try {
+    const profile = getProfile();
+    const level = getLevelFromXp(profile.xp || 0);
+    const currentName =
+      playerNameInput?.value?.trim() ||
+      localStorage.getItem("playerName") ||
+      "Giocatore";
 
-  const profile = getProfile ? getProfile() : {};
-  const savedName = localStorage.getItem("playerName") || "Giocatore";
-  const level = getLevelFromXp ? getLevelFromXp(profile.xp || 0) : 1;
-
-  if (v44Avatar) v44Avatar.textContent = selectedAvatar || "🧙";
-  if (v44PlayerLine) v44PlayerLine.textContent = `${savedName} · Livello ${level}`;
-  if (v44PlayerNameInput && document.activeElement !== v44PlayerNameInput) {
-    v44PlayerNameInput.value = playerNameInput?.value || savedName;
+    if (stableAvatar) stableAvatar.textContent = selectedAvatar || "🧙";
+    if (stableProfileLine) stableProfileLine.textContent = `${currentName} · Livello ${level}`;
+    if (stableNameInput && document.activeElement !== stableNameInput) stableNameInput.value = currentName;
+    if (stableDeckText) stableDeckText.textContent = deckConfigs?.[selectedDeck]?.label || selectedDeck || "Mazzo";
+    if (stableLevelText) stableLevelText.textContent = String(level);
+    if (stableWinsText) stableWinsText.textContent = String(profile.wins || 0);
+  } catch (error) {
+    console.warn("syncStableHome:", error);
   }
-
-  if (v44DeckText) {
-    const deckLabel = deckConfigs?.[selectedDeck]?.label || selectedDeck || "Mazzo";
-    v44DeckText.textContent = deckLabel;
-  }
-
-  if (v44CoinsText) v44CoinsText.textContent = profile.coins || 0;
-  if (v44WinsText) v44WinsText.textContent = `${profile.wins || 0} V`;
 }
 
-function showV44Home(show = true) {
-  if (!v44Home) return;
-  v44Home.classList.toggle("hidden", !show);
-}
-
-if (v44PlayerNameInput) {
-  v44PlayerNameInput.addEventListener("input", () => {
+if (stableNameInput) {
+  stableNameInput.addEventListener("input", () => {
     if (playerNameInput) {
-      playerNameInput.value = v44PlayerNameInput.value;
-      localStorage.setItem("playerName", v44PlayerNameInput.value.trim() || "Giocatore");
+      playerNameInput.value = stableNameInput.value;
+      localStorage.setItem("playerName", stableNameInput.value.trim() || "Giocatore");
       renderProfile();
     }
-    syncV44Home();
+    syncStableHome();
   });
 }
 
-if (v44PlayBtn) {
-  v44PlayBtn.addEventListener("click", () => {
+if (stableOptionsBtn) {
+  stableOptionsBtn.addEventListener("click", () => {
+    if (typeof openOptionsHub === "function") openOptionsHub();
+  });
+}
+
+if (stablePlayBtn) {
+  stablePlayBtn.addEventListener("click", () => {
     if (typeof openPlayModesV42 === "function") openPlayModesV42();
     else if (typeof startBotGame === "function") startBotGame();
   });
 }
 
-if (v44OptionsBtn) {
-  v44OptionsBtn.addEventListener("click", () => {
-    if (typeof openOptionsHub === "function") openOptionsHub();
+if (stableCardsBtn) {
+  stableCardsBtn.addEventListener("click", () => {
+    if (typeof openCollectionV42 === "function") openCollectionV42("all");
   });
 }
 
-const originalShowOnlyV44 = typeof showOnly === "function" ? showOnly : null;
-if (originalShowOnlyV44) {
-  showOnly = function(screen) {
-    originalShowOnlyV44(screen);
-    showV44Home(screen === menuScreen);
-    syncV44Home();
-  };
-}
-
-const originalRenderProfileV44 = typeof renderProfile === "function" ? renderProfile : null;
-if (originalRenderProfileV44) {
+const originalRenderProfileV45 = typeof renderProfile === "function" ? renderProfile : null;
+if (originalRenderProfileV45) {
   renderProfile = function() {
-    originalRenderProfileV44();
-    syncV44Home();
+    originalRenderProfileV45();
+    syncStableHome();
   };
 }
 
-syncV44Home();
-showV44Home(menuScreen && !menuScreen.classList.contains("hidden"));
+const originalShowOnlyV45 = typeof showOnly === "function" ? showOnly : null;
+if (originalShowOnlyV45) {
+  showOnly = function(screen) {
+    originalShowOnlyV45(screen);
+    syncStableHome();
+  };
+}
+
+window.addEventListener("load", syncStableHome);
+setTimeout(syncStableHome, 100);
