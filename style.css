@@ -3469,3 +3469,153 @@ body:has(#gameScreen.game-screen:not(.hidden)) {
     height: 90px !important;
   }
 }
+
+/* =========================================================
+   V60 - Carte scalabili + campi più alti
+   - Le informazioni dentro le carte usano unità container (cqw):
+     se riduci larghezza/altezza carta, testi e badge si adattano meglio.
+   - Campi gameplay mobile leggermente più alti.
+   ========================================================= */
+@media (max-width: 700px) {
+  #gameScreen {
+    --field-h: 132px;
+    --field-inner-h: 100px;
+    --hand-h: 118px;
+    --card-w: 72px;
+    --card-h: 92px;
+    --hand-card-w: 76px;
+    --hand-card-h: 98px;
+  }
+
+  #gameScreen .battle-board {
+    grid-template-rows: auto var(--field-h) var(--field-h) minmax(var(--hand-h), 1fr) auto !important;
+    gap: 5px !important;
+  }
+
+  #gameScreen .field-zone {
+    height: var(--field-h) !important;
+    min-height: var(--field-h) !important;
+    max-height: var(--field-h) !important;
+    padding: 5px !important;
+  }
+
+  #gameScreen .compact-field {
+    height: var(--field-inner-h) !important;
+    min-height: var(--field-inner-h) !important;
+    max-height: var(--field-inner-h) !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+  }
+
+  #gameScreen .compact-field .empty-field {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    font-size: clamp(8px, 2.5vw, 11px) !important;
+  }
+
+  #gameScreen .card {
+    container-type: inline-size;
+    flex: 0 0 var(--card-w) !important;
+    width: var(--card-w) !important;
+    min-width: var(--card-w) !important;
+    height: var(--card-h) !important;
+    min-height: var(--card-h) !important;
+    padding: clamp(3px, 5.4cqw, 5px) !important;
+    border-radius: clamp(9px, 16cqw, 13px) !important;
+  }
+
+  #gameScreen .hand {
+    height: var(--hand-h) !important;
+    min-height: var(--hand-h) !important;
+    max-height: var(--hand-h) !important;
+  }
+
+  #gameScreen .hand .card {
+    flex-basis: var(--hand-card-w) !important;
+    width: var(--hand-card-w) !important;
+    min-width: var(--hand-card-w) !important;
+    height: var(--hand-card-h) !important;
+    min-height: var(--hand-card-h) !important;
+  }
+
+  /* Interni carta: proporzionali alla larghezza della carta */
+  #gameScreen .card-top {
+    gap: clamp(2px, 4cqw, 4px) !important;
+  }
+
+  #gameScreen .card-icon {
+    font-size: clamp(11px, 20cqw, 18px) !important;
+    line-height: 1 !important;
+  }
+
+  #gameScreen .card-cost {
+    width: clamp(14px, 23cqw, 20px) !important;
+    height: clamp(14px, 23cqw, 20px) !important;
+    font-size: clamp(7px, 10.5cqw, 9px) !important;
+    border-width: 1px !important;
+  }
+
+  #gameScreen .card-name {
+    font-size: clamp(6.2px, 9.6cqw, 8.4px) !important;
+    line-height: 1.02 !important;
+    margin-top: clamp(2px, 3.5cqw, 4px) !important;
+  }
+
+  #gameScreen .card-meta {
+    gap: clamp(1px, 2.8cqw, 3px) !important;
+    margin-top: clamp(2px, 3.2cqw, 4px) !important;
+  }
+
+  #gameScreen .badge,
+  #gameScreen .ability {
+    font-size: clamp(4.8px, 7.2cqw, 6.2px) !important;
+    padding: clamp(1px, 2cqw, 2px) clamp(2px, 3.2cqw, 3px) !important;
+    border-radius: clamp(5px, 9cqw, 8px) !important;
+  }
+
+  #gameScreen .ability-row,
+  #gameScreen .card-desc {
+    display: none !important;
+  }
+
+  #gameScreen .hp-bar {
+    height: clamp(2px, 4.2cqw, 4px) !important;
+    margin-top: clamp(2px, 3.5cqw, 4px) !important;
+  }
+
+  #gameScreen .card-stats {
+    gap: clamp(2px, 3.5cqw, 3px) !important;
+    margin-top: clamp(2px, 3.5cqw, 4px) !important;
+  }
+
+  #gameScreen .card-stat {
+    font-size: clamp(6px, 8.8cqw, 8px) !important;
+    padding: clamp(1px, 2.8cqw, 2px) !important;
+    border-radius: clamp(5px, 8cqw, 7px) !important;
+  }
+
+  #gameScreen .card-stat small {
+    font-size: clamp(4px, 6.1cqw, 5px) !important;
+  }
+
+  #gameScreen .card::after {
+    inset: clamp(3px, 5.5cqw, 5px) !important;
+    border-radius: clamp(7px, 13cqw, 10px) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #gameScreen {
+    --field-h: 122px;
+    --field-inner-h: 92px;
+    --hand-h: 112px;
+    --card-w: 66px;
+    --card-h: 86px;
+    --hand-card-w: 70px;
+    --hand-card-h: 92px;
+  }
+}
