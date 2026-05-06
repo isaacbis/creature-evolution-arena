@@ -3391,9 +3391,9 @@ button:hover::after {
   #gameScreen .battle-board {
     grid-template-rows:
       auto
-      minmax(118px, 1.3fr)
-      minmax(118px, 1.3fr)
-      minmax(102px, .85fr)
+      minmax(140px, 1.3fr)
+      minmax(140px, 1.3fr)
+      minmax(140px, .85fr)
       auto !important;
   }
 
