@@ -154,14 +154,6 @@ const stablePlayBtn = $("stablePlayBtn");
 const stableCardsBtn = $("stableCardsBtn");
 
 
-const v44Avatar = $("v44Avatar");
-const v44PlayerLine = $("v44PlayerLine");
-const v44PlayerNameInput = $("v44PlayerNameInput");
-const v44DeckText = $("v44DeckText");
-const v44CoinsText = $("v44CoinsText");
-const v44WinsText = $("v44WinsText");
-const v44PlayBtn = $("v44PlayBtn");
-const v44OptionsBtn = $("v44OptionsBtn");
 
 
 const appBottomNav = $("appBottomNav");
@@ -3802,3 +3794,70 @@ if (originalShowOnlyV45) {
 
 window.addEventListener("load", syncStableHome);
 setTimeout(syncStableHome, 100);
+
+
+
+/* =========================
+   V46 · HOME STABILE REALE
+   ========================= */
+
+function syncStableHomeV46() {
+  try {
+    const profile = typeof getProfile === "function" ? getProfile() : {};
+    const level = typeof getLevelFromXp === "function" ? getLevelFromXp(profile.xp || 0) : 1;
+    const currentName =
+      playerNameInput?.value?.trim() ||
+      localStorage.getItem("playerName") ||
+      "Giocatore";
+
+    if (stableAvatar) stableAvatar.textContent = selectedAvatar || "🧙";
+    if (stableProfileLine) stableProfileLine.textContent = `${currentName} · Livello ${level}`;
+    if (stableNameInput && document.activeElement !== stableNameInput) stableNameInput.value = currentName;
+    if (stableDeckText) stableDeckText.textContent = deckConfigs?.[selectedDeck]?.label || selectedDeck || "Mazzo";
+    if (stableLevelText) stableLevelText.textContent = String(level);
+    if (stableWinsText) stableWinsText.textContent = String(profile.wins || 0);
+  } catch (error) {
+    console.warn("syncStableHomeV46:", error);
+  }
+}
+
+safeOn(stableNameInput, "input", () => {
+  if (playerNameInput) {
+    playerNameInput.value = stableNameInput.value;
+    localStorage.setItem("playerName", stableNameInput.value.trim() || "Giocatore");
+    renderProfile();
+  }
+  syncStableHomeV46();
+});
+
+safeOn(stableOptionsBtn, "click", () => {
+  if (typeof openOptionsHub === "function") openOptionsHub();
+});
+
+safeOn(stablePlayBtn, "click", () => {
+  if (typeof openPlayModesV42 === "function") openPlayModesV42();
+  else if (typeof startBotGame === "function") startBotGame();
+});
+
+safeOn(stableCardsBtn, "click", () => {
+  if (typeof openCollectionV42 === "function") openCollectionV42("all");
+});
+
+const originalRenderProfileV46 = typeof renderProfile === "function" ? renderProfile : null;
+if (originalRenderProfileV46) {
+  renderProfile = function() {
+    originalRenderProfileV46();
+    syncStableHomeV46();
+  };
+}
+
+const originalShowOnlyV46 = typeof showOnly === "function" ? showOnly : null;
+if (originalShowOnlyV46) {
+  showOnly = function(screen) {
+    originalShowOnlyV46(screen);
+    syncStableHomeV46();
+  };
+}
+
+window.addEventListener("load", syncStableHomeV46);
+setTimeout(syncStableHomeV46, 100);

@@ -2743,9 +2743,12 @@ body.screen-shake {
 
 
 
+
+
+
+
 /* ==========================================================
-   V45 · REAL STABLE LAYOUT
-   Layout riscritto senza hack sovrapposti.
+   V46 · HOME REBUILT - FINAL LAYOUT
    ========================================================== */
 
 :root {
@@ -2765,7 +2768,7 @@ body {
   overflow: hidden;
 }
 
-body.app-v45 {
+body.app-v46 {
   width: 100vw;
   height: var(--app-height);
   min-height: var(--app-height);
@@ -2776,7 +2779,7 @@ body.app-v45 {
     linear-gradient(160deg, #111827 0%, #05060b 100%);
 }
 
-/* schermate */
+/* screens */
 #menuScreen,
 #lobbyScreen,
 #gameScreen {
@@ -2811,11 +2814,11 @@ body.app-v45 {
   padding: 6px !important;
 }
 
-/* nascondiamo i vecchi controlli della home ma li lasciamo nel DOM per il JS */
+/* hide legacy controls */
 .legacy-home-controls {
   position: absolute !important;
-  left: -9999px !important;
-  top: -9999px !important;
+  left: -10000px !important;
+  top: -10000px !important;
   width: 1px !important;
   height: 1px !important;
   overflow: hidden !important;
@@ -2823,7 +2826,7 @@ body.app-v45 {
   pointer-events: none !important;
 }
 
-/* Home stabile */
+/* home real */
 .home-app {
   width: 100%;
   height: 100%;
@@ -3051,7 +3054,7 @@ body.app-v45 {
   font-size: 11px;
 }
 
-/* Bottom nav stabile */
+/* Bottom nav stable */
 .app-bottom-nav {
   position: fixed !important;
   left: 50% !important;
@@ -3185,11 +3188,6 @@ body.app-v45 {
   border-radius: 11px !important;
 }
 
-#gameScreen .terrain-zone span,
-#gameScreen .terrain-zone strong {
-  font-size: 8.5px !important;
-}
-
 #gameScreen .field-zone,
 #gameScreen .hand-zone {
   padding: 5px !important;
@@ -3287,7 +3285,6 @@ body.app-v45 {
   display: none !important;
 }
 
-/* modal generiche */
 .modal {
   z-index: 200 !important;
 }
@@ -3299,10 +3296,6 @@ body.app-v45 {
 }
 
 @media (min-width: 760px) {
-  .home-app {
-    border-radius: 0 0 28px 28px;
-  }
-
   #gameScreen .card {
     flex-basis: 68px !important;
     width: 68px !important;
