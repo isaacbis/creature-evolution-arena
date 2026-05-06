@@ -3346,3 +3346,245 @@ button:hover::after {
   .card.legendary,
   .card.epic { animation: cardEnter .01ms ease both !important; }
 }
+/* =========================================================
+   V50 MOBILE APP PLAYABILITY
+   - più spazio al campo su telefono
+   - bottom nav nascosta durante la partita
+   - carte giocabili con tap / pulsante, non solo drag
+   ========================================================= */
+@media (max-width: 700px) {
+  body:has(.game-screen:not(.hidden)) .app-bottom-nav {
+    display: none !important;
+  }
+
+  body:has(.game-screen:not(.hidden)) .ambient-particles {
+    opacity: .22;
+  }
+
+  #gameScreen.game-screen:not(.hidden) {
+    display: flex !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    padding: calc(5px + env(safe-area-inset-top, 0px)) 5px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .app-topbar {
+    min-height: 40px !important;
+    padding: 5px 7px !important;
+    margin-bottom: 4px !important;
+    border-radius: 16px !important;
+  }
+
+  .mini-logo {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 15px !important;
+  }
+
+  .app-topbar h1 {
+    font-size: 14px !important;
+  }
+
+  .app-topbar p {
+    display: none !important;
+  }
+
+  .round-btn {
+    width: 31px !important;
+    height: 31px !important;
+    border-radius: 11px !important;
+  }
+
+  .battle-hud {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 4px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .turn-panel {
+    grid-column: 1 / -1 !important;
+    order: -1 !important;
+    min-height: 42px !important;
+    padding: 5px 8px !important;
+    border-radius: 14px !important;
+  }
+
+  .turn-panel strong { font-size: 11px !important; }
+  #message { font-size: 9.5px !important; }
+  #roomInfoText, .timer-text { font-size: 9px !important; }
+
+  .player-bar {
+    min-height: 44px !important;
+    padding: 5px 7px !important;
+    border-radius: 14px !important;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 5px !important;
+    align-items: center !important;
+  }
+
+  .player-bar strong { font-size: 10px !important; }
+  .player-bar span { font-size: 9px !important; }
+  .energy-dots { display: none !important; }
+
+  .battle-board {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: 26px minmax(88px, .78fr) minmax(92px, .85fr) minmax(154px, 1.18fr) 0 !important;
+    gap: 4px !important;
+    overflow: hidden !important;
+  }
+
+  .terrain-zone {
+    min-height: 0 !important;
+    height: 26px !important;
+    padding: 4px 8px !important;
+    border-radius: 13px !important;
+  }
+
+  .terrain-zone span,
+  .terrain-zone strong { font-size: 8.8px !important; }
+
+  .field-zone,
+  .hand-zone {
+    padding: 5px !important;
+    border-radius: 15px !important;
+  }
+
+  .zone-title {
+    height: 18px !important;
+    min-height: 18px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .zone-title h3 { font-size: 10.5px !important; }
+  .zone-title span { font-size: 8.5px !important; }
+
+  .end-turn-btn {
+    min-width: 92px !important;
+    min-height: 30px !important;
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+  }
+
+  .compact-field {
+    height: calc(100% - 20px) !important;
+    min-height: 70px !important;
+    gap: 6px !important;
+    padding: 1px 2px 3px !important;
+    scroll-snap-type: x mandatory !important;
+  }
+
+  .hand-zone {
+    overflow: hidden !important;
+    border-color: rgba(245,199,107,.34) !important;
+  }
+
+  .hand {
+    height: calc(100% - 20px) !important;
+    min-height: 130px !important;
+    gap: 7px !important;
+    padding: 1px 2px 4px !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .field .card {
+    flex: 0 0 78px !important;
+    width: 78px !important;
+    min-height: 94px !important;
+  }
+
+  .hand .card {
+    flex: 0 0 98px !important;
+    width: 98px !important;
+    min-height: 132px !important;
+    padding: 5px !important;
+    touch-action: pan-x !important;
+  }
+
+  .hand .card-name { font-size: 9px !important; }
+  .hand .card-icon { font-size: 17px !important; }
+  .hand .card-cost { width: 20px !important; height: 20px !important; font-size: 9px !important; }
+  .hand .card-stats { margin-top: 4px !important; }
+  .hand .card-stat { font-size: 8px !important; padding: 2px !important; }
+
+  .field .card-name { font-size: 7.8px !important; }
+  .field .card-icon { font-size: 14px !important; }
+  .field .card-cost { width: 17px !important; height: 17px !important; font-size: 8px !important; }
+  .field .card-stat { font-size: 7.2px !important; padding: 2px !important; }
+
+  .mobile-card-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important;
+    margin-top: 4px !important;
+    position: relative !important;
+    z-index: 5 !important;
+  }
+
+  .mobile-card-actions button {
+    min-height: 24px !important;
+    padding: 3px 2px !important;
+    border-radius: 9px !important;
+    font-size: 8.5px !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-card-actions .secondary-mini {
+    color: #fff !important;
+    background: rgba(0,0,0,.35) !important;
+    border: 1px solid rgba(255,255,255,.18) !important;
+  }
+
+  .mobile-card-actions button:disabled {
+    opacity: .35 !important;
+  }
+
+  .card.mobile-action-target {
+    outline: 3px solid rgba(245,199,107,.98) !important;
+    outline-offset: 2px !important;
+    box-shadow:
+      0 0 0 4px rgba(245,199,107,.18),
+      0 0 28px rgba(245,199,107,.48),
+      0 16px 28px rgba(0,0,0,.38) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+  }
+
+  .log-wrapper {
+    display: none !important;
+  }
+
+  .modal {
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 10px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .modal-card {
+    width: min(420px, 96vw) !important;
+    max-height: 86dvh !important;
+    padding: 16px !important;
+    border-radius: 24px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .battle-board {
+    grid-template-rows: 24px minmax(82px, .74fr) minmax(86px, .80fr) minmax(145px, 1.18fr) 0 !important;
+  }
+
+  .hand .card {
+    flex-basis: 92px !important;
+    width: 92px !important;
+    min-height: 126px !important;
+  }
+
+  .field .card {
+    flex-basis: 72px !important;
+    width: 72px !important;
+    min-height: 88px !important;
+  }
+}
