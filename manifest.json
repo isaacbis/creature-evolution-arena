@@ -1,7 +1,7 @@
 {
   "name": "Creature Evolution Arena",
   "short_name": "Evolution Arena",
-  "description": "Gioco di carte con creature, evoluzioni, magie, equipaggiamenti e multiplayer.",
+  "description": "Gioco di carte fantasy con creature, evoluzioni, pack, collezione e multiplayer.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

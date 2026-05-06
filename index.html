@@ -2,10 +2,10 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=35" />
+  <link rel="stylesheet" href="style.css?v=37" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -117,6 +117,16 @@
 </head>
 <body class="has-app-nav">
 
+  <!-- LOADER APP -->
+  <div id="appLoader" class="app-loader">
+    <div class="loader-card">
+      <div class="loader-orb">⚔️</div>
+      <strong>Evolution Arena</strong>
+      <span>Caricamento arena...</span>
+    </div>
+  </div>
+
+
   <!-- MENU PRINCIPALE -->
   <div id="menuScreen" class="screen menu-screen compact-menu-screen">
     <div class="menu-shell compact-home-shell">
@@ -155,6 +165,15 @@
           Il tuo nome
           <input id="playerNameInput" type="text" placeholder="Es. Isaac" maxlength="18" />
         </label>
+
+        
+        <div id="installHintCard" class="install-hint-card">
+          <span>📱</span>
+          <div>
+            <strong>Esperienza app</strong>
+            <small>Aggiungi alla schermata Home per giocare a schermo intero.</small>
+          </div>
+        </div>
 
         <div class="home-summary-grid">
           <button id="summaryAvatarChip" class="summary-chip" type="button">
@@ -426,6 +445,37 @@
 
     </main>
   </div>
+
+
+  <!-- MODAL MODALITÀ DI GIOCO -->
+  <div id="playModesModal" class="modal hidden">
+    <div class="modal-card app-sheet-card play-modes-card">
+      <div class="sheet-head">
+        <div>
+          <div class="result-icon">⚔️</div>
+          <h2>Scegli modalità</h2>
+          <p>Avvia subito una partita o entra nelle modalità speciali.</p>
+        </div>
+        <button id="closePlayModesBtn" class="sheet-close-btn" type="button">✕</button>
+      </div>
+
+      <div class="play-mode-grid">
+        <button id="modeBotBtn" class="play-mode-card fire-mode" type="button">
+          <span>🤖</span><strong>Vs Bot</strong><small>Partita rapida</small>
+        </button>
+        <button id="modeOnlineBtn" class="play-mode-card water-mode" type="button">
+          <span>🌐</span><strong>Online</strong><small>Crea stanza</small>
+        </button>
+        <button id="modeCampaignBtn" class="play-mode-card shadow-mode" type="button">
+          <span>🐉</span><strong>Campagna</strong><small>Boss</small>
+        </button>
+        <button id="modeDraftBtn" class="play-mode-card forest-mode" type="button">
+          <span>🃏</span><strong>Draft</strong><small>Mazzo casuale</small>
+        </button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- DETTAGLIO CARTA -->
   <div id="cardDetailModal" class="modal hidden">
@@ -710,7 +760,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=35")
+        .register("./service-worker.js?v=37")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -718,6 +768,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=35"></script>
+<script type="module" src="script.js?v=37"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@ import {
 
 const $ = id => document.getElementById(id);
 
+const appLoader = $("appLoader");
 const menuScreen = $("menuScreen");
 const lobbyScreen = $("lobbyScreen");
 const gameScreen = $("gameScreen");
@@ -146,6 +147,15 @@ const summaryDeckChip = $("summaryDeckChip");
 const summaryArenaChip = $("summaryArenaChip");
 
 const enemyHudBox = $("enemyHudBox");
+
+const playModesModal = $("playModesModal");
+const closePlayModesBtn = $("closePlayModesBtn");
+const modeBotBtn = $("modeBotBtn");
+const modeOnlineBtn = $("modeOnlineBtn");
+const modeCampaignBtn = $("modeCampaignBtn");
+const modeDraftBtn = $("modeDraftBtn");
+const installHintCard = $("installHintCard");
+
 
 const appBottomNav = $("appBottomNav");
 const navHomeBtn = $("navHomeBtn");
@@ -385,6 +395,53 @@ function t(cardId, name, cost, rarity, icon, desc, terrainType, decks) {
   return { cardId, type: "terrain", name, cost, rarity, icon, desc, terrainType, decks };
 }
 
+
+
+/* =========================
+   V37 · SAFE UI HELPERS
+   ========================= */
+
+function safeOn(el, eventName, handler) {
+  if (!el || typeof handler !== "function") return;
+  el.addEventListener(eventName, handler);
+}
+
+function hideAppLoader() {
+  if (!appLoader) return;
+  appLoader.classList.add("hidden");
+  setTimeout(() => {
+    if (appLoader && appLoader.parentNode) appLoader.remove();
+  }, 360);
+}
+
+function closeModalSafe(modal) {
+  if (modal) modal.classList.add("hidden");
+}
+
+function openModalSafe(modal) {
+  if (modal) modal.classList.remove("hidden");
+}
+
+function isVisible(el) {
+  return Boolean(el && !el.classList.contains("hidden"));
+}
+
+function hapticTap(strong = false) {
+  if (navigator.vibrate) navigator.vibrate(strong ? 22 : 8);
+}
+
+function updateInstallHint() {
+  if (!installHintCard) return;
+  const standalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+  installHintCard.classList.toggle("hidden", standalone);
+}
+
+window.addEventListener("error", event => {
+  console.warn("Errore UI intercettato:", event.message);
+});
+
 function uid() {
   if (window.crypto && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -523,6 +580,8 @@ function updateHomeSummary() {
 }
 
 function showOnly(screen) {
+  if (!screen || !menuScreen || !lobbyScreen || !gameScreen) return;
+
   menuScreen.classList.add("hidden");
   lobbyScreen.classList.add("hidden");
   gameScreen.classList.add("hidden");
@@ -531,6 +590,7 @@ function showOnly(screen) {
   if (screen === menuScreen) setActiveNav("home");
   if (screen === gameScreen) setActiveNav("play");
   updateBottomNavVisibility();
+  hideAppLoader();
 }
 
 function setMessage(text) {
@@ -983,12 +1043,12 @@ function applyBossPower(bossKey) {
   }
 
   if (bossKey === "knight") {
-    healLife(bot, 2, document.querySelector(".hud-box.enemy"));
+    healLife(bot, 2, document.querySelector(".enemy-bar"));
     addLog("Potere Boss: cura 2 vita.");
   }
 
   if (bossKey === "dragon") {
-    dealLifeDamage(bot, player, 2, document.querySelector(".hud-box.player"));
+    dealLifeDamage(bot, player, 2, document.querySelector(".my-bar"));
     addLog("Potere Boss: infligge 2 danni diretti.");
   }
 
@@ -1001,12 +1061,12 @@ function applyBossPower(bossKey) {
 
   if (bossKey === "final") {
     bot.energy += 1;
-    dealLifeDamage(bot, player, 1, document.querySelector(".hud-box.player"));
+    dealLifeDamage(bot, player, 1, document.querySelector(".my-bar"));
     addLog("Potere Boss Finale: +1 energia e 1 danno.");
   }
 
   if (bossKey === "draktharPrime") {
-    dealLifeDamage(bot, player, 4, document.querySelector(".hud-box.player"));
+    dealLifeDamage(bot, player, 4, document.querySelector(".my-bar"));
     if (bot.field.length) {
       const target = randomItem(bot.field);
       target.attack += 2;
@@ -1817,7 +1877,7 @@ function botTurn() {
       const target = guards[0] || chooseBotTarget(player.field);
       fight(attacker, target, bot, player);
     } else if (canAttackLife(attacker, player.field)) {
-      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".hud-box.player"));
+      dealLifeDamage(bot, player, attacker.attack, document.querySelector(".my-bar"));
       attacker.hasAttacked = true;
       addLog(`Bot infligge ${attacker.attack} danni diretti.`);
     }
@@ -2545,6 +2605,18 @@ function createCardEl(card, extraClass) {
 }
 
 function showCardDetail(card) {
+  const detailArt = getCardArtwork(card);
+  const detailCard = cardDetailModal?.querySelector(".detail-card");
+  if (detailCard) {
+    if (detailArt) {
+      detailCard.style.setProperty("--detail-art", `url("${detailArt}")`);
+      detailCard.classList.add("detail-card-has-art");
+    } else {
+      detailCard.classList.remove("detail-card-has-art");
+      detailCard.style.removeProperty("--detail-art");
+    }
+  }
+
   detailIcon.textContent = card.icon || "🃏";
   detailName.textContent = card.name;
   detailCost.textContent = card.cost;
@@ -3161,6 +3233,140 @@ function showPremiumToast(text) {
   setTimeout(() => toast.remove(), 1400);
 }
 
+
+
+/* =========================
+   V37 · NAV APP / MODALITÀ
+   ========================= */
+
+function setActiveNav(name) {
+  if (!appBottomNav) return;
+  const map = {
+    home: navHomeBtn,
+    play: navPlayBtn,
+    cards: navCollectionBtn,
+    rank: navRankBtn,
+    settings: navSettingsBtn
+  };
+  Object.values(map).forEach(btn => btn && btn.classList.remove("active"));
+  if (map[name]) map[name].classList.add("active");
+}
+
+function updateBottomNavVisibility() {
+  if (!appBottomNav) return;
+  const inGame = isVisible(gameScreen);
+  appBottomNav.classList.toggle("compact", inGame);
+  document.body.classList.toggle("is-playing", inGame);
+}
+
+function closeAllAppSheets() {
+  closeModalSafe(collectionModal);
+  closeModalSafe(rankModal);
+  closeModalSafe(optionsHubModal);
+  closeModalSafe(playModesModal);
+}
+
+function openPlayModes() {
+  if (playModesModal) {
+    openModalSafe(playModesModal);
+    setActiveNav("play");
+  } else {
+    startBotGame();
+  }
+}
+
+function closePlayModes() {
+  closeModalSafe(playModesModal);
+  setActiveNav(isVisible(gameScreen) ? "play" : "home");
+}
+
+function openCollection(filter = "all") {
+  if (!collectionModal || !collectionGrid || !collectionStats) return;
+
+  openModalSafe(collectionModal);
+  setActiveNav("cards");
+
+  document.querySelectorAll(".collection-filter").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.filter === filter);
+    btn.onclick = () => openCollection(btn.dataset.filter || "all");
+  });
+
+  const cards = allDraftTemplates();
+  const filtered = filter === "all" ? cards : cards.filter(card => card.type === filter);
+  const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
+  filtered.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0));
+
+  collectionStats.innerHTML = `
+    <div><strong>${cards.length}</strong><span>Totali</span></div>
+    <div><strong>${cards.filter(c => c.type === "creature").length}</strong><span>Creature</span></div>
+    <div><strong>${cards.filter(c => c.rarity === "legendary").length}</strong><span>Leggendarie</span></div>
+  `;
+
+  collectionGrid.innerHTML = filtered.map(card => {
+    const icon = card.icon || families[card.family]?.icon || "🃏";
+    const art = getCardArtwork(card);
+    const family = card.family ? families[card.family]?.label || card.family : card.type;
+    const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
+    const artStyle = art ? `background-image: linear-gradient(to bottom, transparent, rgba(0,0,0,.70)), url('${art}')` : "";
+    return `
+      <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
+        <div class="mini-card-art" style="${artStyle}">${art ? "" : icon}</div>
+        <strong>${card.name}</strong>
+        <span>${family} · ${type}</span>
+        <small>${shortRarity(card.rarity || "common")}</small>
+      </button>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".collection-card-mini").forEach(button => {
+    button.onclick = () => {
+      const card = cards.find(item => item.cardId === button.dataset.cardId);
+      if (!card) return;
+      if (card.type === "creature") showCardDetail(createCreatureCard(card));
+      else showCardDetail({ ...card, id: uid() });
+    };
+  });
+}
+
+function openRankPanel() {
+  if (!rankModal || !rankProfileBox) return;
+
+  const profile = getProfile();
+  const total = (profile.wins || 0) + (profile.losses || 0);
+  const winrate = total ? Math.round(((profile.wins || 0) / total) * 100) : 0;
+  const level = getLevelFromXp(profile.xp || 0);
+  const rankName =
+    (profile.wins || 0) >= 40 ? "Master" :
+    (profile.wins || 0) >= 25 ? "Diamante" :
+    (profile.wins || 0) >= 14 ? "Oro" :
+    (profile.wins || 0) >= 6 ? "Argento" :
+    "Bronzo";
+
+  rankProfileBox.innerHTML = `
+    <div class="rank-avatar">${selectedAvatar}</div>
+    <div>
+      <strong>${playerNameInput?.value?.trim() || localStorage.getItem("playerName") || "Giocatore"}</strong>
+      <span>Livello ${level} · Rank ${rankName}</span>
+    </div>
+    <div class="rank-mini-stats">
+      <span>V ${profile.wins || 0}</span>
+      <span>S ${profile.losses || 0}</span>
+      <span>${winrate}%</span>
+    </div>
+  `;
+
+  openModalSafe(rankModal);
+  setActiveNav("rank");
+}
+
+function showPremiumToast(text) {
+  const toast = document.createElement("div");
+  toast.className = "premium-toast";
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 1400);
+}
+
 document.querySelectorAll(".deck-btn").forEach(button => {
   button.onclick = () => {
     document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
@@ -3482,3 +3688,84 @@ if (optionsHubModal) {
     if (event.target === optionsHubModal) closeOptionsHub();
   };
 }
+
+
+
+/* V37 event binding sicuro */
+safeOn(navHomeBtn, "click", () => {
+  closeAllAppSheets();
+  showOnlyMenu(true);
+  setActiveNav("home");
+});
+
+safeOn(navPlayBtn, "click", () => {
+  closeAllAppSheets();
+  openPlayModes();
+});
+
+safeOn(navCollectionBtn, "click", () => openCollection("all"));
+safeOn(navRankBtn, "click", () => openRankPanel());
+
+safeOn(navSettingsBtn, "click", () => {
+  closeAllAppSheets();
+  openOptionsHub();
+  setActiveNav("settings");
+});
+
+safeOn(closePlayModesBtn, "click", closePlayModes);
+safeOn(playModesModal, "click", event => {
+  if (event.target === playModesModal) closePlayModes();
+});
+safeOn(modeBotBtn, "click", () => {
+  hapticTap(true);
+  closePlayModes();
+  startBotGame();
+});
+safeOn(modeOnlineBtn, "click", () => {
+  hapticTap(true);
+  closePlayModes();
+  createOnlineGame();
+});
+safeOn(modeCampaignBtn, "click", () => {
+  hapticTap(true);
+  closePlayModes();
+  openModalSafe(campaignModal);
+});
+safeOn(modeDraftBtn, "click", () => {
+  hapticTap(true);
+  closePlayModes();
+  startDraft();
+});
+
+safeOn(closeCollectionBtn, "click", () => {
+  closeModalSafe(collectionModal);
+  setActiveNav(isVisible(gameScreen) ? "play" : "home");
+});
+safeOn(collectionModal, "click", event => {
+  if (event.target === collectionModal) {
+    closeModalSafe(collectionModal);
+    setActiveNav(isVisible(gameScreen) ? "play" : "home");
+  }
+});
+
+safeOn(closeRankBtn, "click", () => {
+  closeModalSafe(rankModal);
+  setActiveNav(isVisible(gameScreen) ? "play" : "home");
+});
+safeOn(rankModal, "click", event => {
+  if (event.target === rankModal) {
+    closeModalSafe(rankModal);
+    setActiveNav(isVisible(gameScreen) ? "play" : "home");
+  }
+});
+safeOn(rankPlayBtn, "click", () => {
+  closeModalSafe(rankModal);
+  startBotGame();
+});
+
+safeOn(document, "click", event => {
+  if (event.target.closest("button")) hapticTap(false);
+});
+
+updateInstallHint();
+setTimeout(hideAppLoader, 500);
