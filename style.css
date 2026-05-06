@@ -2214,12 +2214,10 @@ body.screen-shake {
   }
 
   .card {
-    flex: 0 0 78px;
-    width: 78px;
-    min-height: 96px;
-    border-radius: 12px;
-    padding: 4px;
-  }
+  flex: 0 0 68px;
+  width: 68px;
+  min-height: 84px;
+}
 
   .card-icon {
     font-size: 15px;
