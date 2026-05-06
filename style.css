@@ -3368,9 +3368,9 @@ button:hover::after {
   }
 
   #gameScreen .compact-field {
-    min-height: 100px !important;
-    height: 100px !important;
-    max-height: 100px !important;
+    min-height: 80px !important;
+    height: 80px !important;
+    max-height: 80px !important;
     gap: 7px !important;
     padding: 2px 2px 5px !important;
     align-items: flex-start !important;
