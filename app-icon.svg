@@ -1,1 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd43b"/><stop offset=".45" stop-color="#ff922b"/><stop offset="1" stop-color="#5f3dc4"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-opacity=".45"/></filter></defs><rect width="512" height="512" rx="120" fill="#070914"/><circle cx="95" cy="90" r="145" fill="#ff9f43" opacity=".18"/><circle cx="430" cy="120" r="150" fill="#59d1ff" opacity=".15"/><path d="M145 346 256 78l111 268-111-64-111 64Z" fill="url(#g)" filter="url(#s)"/><path d="M174 362h164l-82 72-82-72Z" fill="#fff" opacity=".86"/><circle cx="256" cy="229" r="50" fill="#fff" opacity=".92"/><text x="256" y="250" text-anchor="middle" font-family="Arial" font-size="64" font-weight="900" fill="#10121a">⚔</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="g1" cx="30%" cy="20%" r="80%">
+      <stop offset="0" stop-color="#fff4ba"/>
+      <stop offset="0.30" stop-color="#ff9f43"/>
+      <stop offset="0.68" stop-color="#11172b"/>
+      <stop offset="1" stop-color="#05060b"/>
+    </radialGradient>
+    <linearGradient id="g2" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="0.35" stop-color="#f5c76b"/>
+      <stop offset="1" stop-color="#ff6b2a"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="26" stdDeviation="34" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="230" fill="url(#g1)"/>
+  <circle cx="770" cy="186" r="190" fill="#59d1ff" opacity="0.16"/>
+  <circle cx="220" cy="815" r="260" fill="#b197fc" opacity="0.18"/>
+  <g filter="url(#shadow)">
+    <rect x="290" y="210" width="360" height="540" rx="54" fill="#101322" stroke="#f5c76b" stroke-width="18" transform="rotate(-11 470 480)"/>
+    <rect x="378" y="210" width="360" height="540" rx="54" fill="#161a2d" stroke="#fff1b8" stroke-width="18" transform="rotate(11 558 480)"/>
+    <rect x="332" y="174" width="360" height="560" rx="60" fill="#101322" stroke="url(#g2)" stroke-width="22"/>
+    <path d="M512 282 L586 435 L754 458 L633 575 L662 742 L512 663 L362 742 L391 575 L270 458 L438 435 Z" fill="url(#g2)"/>
+    <path d="M512 342 L557 445 L670 459 L588 538 L607 650 L512 596 L417 650 L436 538 L354 459 L467 445 Z" fill="#101322" opacity="0.92"/>
+    <text x="512" y="870" text-anchor="middle" font-family="Arial, sans-serif" font-size="82" font-weight="900" fill="#fff1b8">CEA</text>
+  </g>
+</svg>
