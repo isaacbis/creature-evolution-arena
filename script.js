@@ -3215,7 +3215,7 @@ if (!localStorage.getItem("tutorialSeen")) {
    ========================= */
 (function setupPremiumUiV22() {
   const root = document.documentElement;
-  root.dataset.ceaVersion = "52";
+  root.dataset.ceaVersion = "53";
 
   function vibrate(ms = 12) {
     try {
@@ -3240,7 +3240,7 @@ if (!localStorage.getItem("tutorialSeen")) {
 
   const versionBadge = document.createElement("div");
   versionBadge.className = "build-badge";
-  versionBadge.textContent = "v22 MAX";
+  versionBadge.textContent = "v53 MOBILE";
   document.body.appendChild(versionBadge);
 
   function addArenaParticles() {
@@ -3261,10 +3261,10 @@ if (!localStorage.getItem("tutorialSeen")) {
 })();
 
 /* =========================================================
-   V52 - guardia anti-sovrapposizione barra finale
+   V53 - guardia anti-sovrapposizione barra finale
    Anche se qualche CSS vecchio resta in cache, la nav viene rimossa.
    ========================================================= */
-(function removeBottomNavV52() {
+(function removeBottomNavV53() {
   function removeNav() {
     const nav = document.getElementById("appBottomNav");
     if (nav) nav.remove();
