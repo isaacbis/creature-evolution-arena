@@ -3046,7 +3046,7 @@ function showOnlyMenu(force = false) {
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
 
-  showOnly(menuScreen);
+  if (menuScreen) showOnly(menuScreen);
 updateBottomNavVisibility();
 setActiveNav("home");
   renderProfile();
@@ -4175,7 +4175,7 @@ if (savedArena && arenaSkinSelect) {
 setupRoomFromUrl();
 renderProfile();
 updateHomeSummary();
-showOnly(menuScreen);
+if (menuScreen) showOnly(menuScreen);
 updateBottomNavVisibility();
 setActiveNav("home");
 
@@ -4283,3 +4283,23 @@ safeOn(mulliganModal, "click", event => {
     showPremiumToast("Scegli o conferma il mulligan.");
   }
 });
+
+// V39_LOADER_FORCE_HIDE
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    try {
+      hideAppLoader();
+    } catch (error) {
+      const loader = document.getElementById("appLoader");
+      if (loader) loader.remove();
+    }
+  }, 700);
+});
+setTimeout(() => {
+  try {
+    hideAppLoader();
+  } catch (error) {
+    const loader = document.getElementById("appLoader");
+    if (loader) loader.remove();
+  }
+}, 1600);

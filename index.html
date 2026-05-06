@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=38" />
+  <link rel="stylesheet" href="style.css?v=39" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -814,7 +814,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=38")
+        .register("./service-worker.js?v=39")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -822,6 +822,22 @@
   }
 </script>
 
-<script type="module" src="script.js?v=38"></script>
+
+<script id="v39-loader-fallback">
+  window.addEventListener("load", function () {
+    setTimeout(function () {
+      var loader = document.getElementById("appLoader");
+      if (loader) {
+        loader.classList.add("hidden");
+        setTimeout(function () {
+          if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+        }, 450);
+      }
+    }, 1200);
+  });
+</script>
+
+
+<script type="module" src="script.js?v=39"></script>
 </body>
 </html>
