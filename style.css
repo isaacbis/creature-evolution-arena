@@ -3619,3 +3619,221 @@ body:has(#gameScreen.game-screen:not(.hidden)) {
     --hand-card-h: 92px;
   }
 }
+
+
+/* =========================================================
+   V61 - Carte auto-fit: contenuti sempre proporzionati
+   =========================================================
+   Cosa fa:
+   - Le carte nel campo si adattano alla larghezza disponibile.
+   - Se nel campo ci sono fino a 5 carte, provano a stare tutte nella riga.
+   - Le informazioni interne usano unità proporzionali alla carta.
+   - Il nome va al massimo su 2 righe e non viene tagliato male.
+   - ATK/HP e costo restano leggibili anche con carte più piccole.
+*/
+@media (max-width: 700px) {
+  #gameScreen {
+    --field-h: 144px;
+    --field-inner-h: 112px;
+    --hand-h: 120px;
+    --field-gap: 5px;
+    --field-card-w: clamp(58px, calc((100vw - 54px) / 5), 76px);
+    --field-card-h: 106px;
+    --hand-card-w: 74px;
+    --hand-card-h: 98px;
+  }
+
+  #gameScreen .battle-board {
+    grid-template-rows: auto var(--field-h) var(--field-h) minmax(var(--hand-h), 1fr) auto !important;
+    gap: 5px !important;
+  }
+
+  #gameScreen .field-zone {
+    height: var(--field-h) !important;
+    min-height: var(--field-h) !important;
+    max-height: var(--field-h) !important;
+    padding: 5px !important;
+    overflow: hidden !important;
+  }
+
+  #gameScreen .compact-field {
+    height: var(--field-inner-h) !important;
+    min-height: var(--field-inner-h) !important;
+    max-height: var(--field-inner-h) !important;
+    gap: var(--field-gap) !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+
+  #gameScreen .compact-field .empty-field {
+    width: 100% !important;
+    min-width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    font-size: clamp(9px, 2.8vw, 12px) !important;
+  }
+
+  /* Carte NEL CAMPO: larghezza automatica, altezza controllata dal campo */
+  #gameScreen .compact-field .card {
+    container-type: inline-size;
+    flex: 0 0 var(--field-card-w) !important;
+    width: var(--field-card-w) !important;
+    min-width: var(--field-card-w) !important;
+    height: min(var(--field-card-h), 100%) !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    padding: clamp(2px, 4.4cqw, 4px) !important;
+    border-radius: clamp(8px, 15cqw, 12px) !important;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: clamp(1px, 2.2cqw, 3px) !important;
+    overflow: hidden !important;
+  }
+
+  /* Carte IN MANO: un filo più grandi, ma con gli stessi interni scalabili */
+  #gameScreen .hand {
+    height: var(--hand-h) !important;
+    min-height: var(--hand-h) !important;
+    max-height: var(--hand-h) !important;
+    padding-bottom: 2px !important;
+  }
+
+  #gameScreen .hand .card {
+    container-type: inline-size;
+    flex: 0 0 var(--hand-card-w) !important;
+    width: var(--hand-card-w) !important;
+    min-width: var(--hand-card-w) !important;
+    height: var(--hand-card-h) !important;
+    min-height: var(--hand-card-h) !important;
+    max-height: var(--hand-card-h) !important;
+    padding: clamp(2px, 4.6cqw, 5px) !important;
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: clamp(1px, 2.2cqw, 3px) !important;
+    overflow: hidden !important;
+  }
+
+  #gameScreen .card > div:first-child,
+  #gameScreen .card > div:last-child {
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #gameScreen .card-top {
+    gap: clamp(1px, 3.2cqw, 4px) !important;
+    align-items: start !important;
+  }
+
+  #gameScreen .card-icon {
+    font-size: clamp(10px, 18cqw, 17px) !important;
+    line-height: 1 !important;
+  }
+
+  #gameScreen .card-cost {
+    width: clamp(13px, 22cqw, 19px) !important;
+    height: clamp(13px, 22cqw, 19px) !important;
+    min-width: clamp(13px, 22cqw, 19px) !important;
+    font-size: clamp(6.4px, 10.2cqw, 8.8px) !important;
+    border-width: 1px !important;
+  }
+
+  #gameScreen .card-name {
+    font-size: clamp(5.6px, 8.8cqw, 8px) !important;
+    line-height: 1.02 !important;
+    margin-top: clamp(1px, 2.8cqw, 3px) !important;
+    max-height: 2.1em !important;
+    overflow: hidden !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    word-break: normal !important;
+    hyphens: auto !important;
+  }
+
+  #gameScreen .card-meta {
+    display: flex !important;
+    gap: clamp(1px, 2.1cqw, 2px) !important;
+    margin-top: clamp(1px, 2.3cqw, 3px) !important;
+    max-height: 1.35em !important;
+    overflow: hidden !important;
+  }
+
+  #gameScreen .badge,
+  #gameScreen .ability {
+    font-size: clamp(4.1px, 6.4cqw, 5.8px) !important;
+    line-height: 1 !important;
+    padding: clamp(1px, 1.8cqw, 2px) clamp(1px, 2.8cqw, 3px) !important;
+    border-radius: clamp(4px, 8cqw, 7px) !important;
+    white-space: nowrap !important;
+  }
+
+  /* In campo mostriamo solo il necessario: nome, tipo/evo, costo, HP/ATK. */
+  #gameScreen .compact-field .ability-row,
+  #gameScreen .compact-field .card-desc {
+    display: none !important;
+  }
+
+  /* In mano teniamo una micro descrizione solo se c'è spazio. */
+  #gameScreen .hand .ability-row {
+    display: none !important;
+  }
+
+  #gameScreen .hand .card-desc {
+    display: block !important;
+    font-size: clamp(4.8px, 6.8cqw, 6px) !important;
+    line-height: 1.05 !important;
+    margin-top: clamp(1px, 2.2cqw, 3px) !important;
+    min-height: 0 !important;
+    max-height: 2.1em !important;
+    overflow: hidden !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+  }
+
+  #gameScreen .hp-bar {
+    height: clamp(2px, 3.6cqw, 4px) !important;
+    margin-top: 0 !important;
+  }
+
+  #gameScreen .card-stats {
+    grid-template-columns: 1fr 1fr !important;
+    gap: clamp(1px, 2.4cqw, 3px) !important;
+    margin-top: clamp(1px, 2.4cqw, 3px) !important;
+  }
+
+  #gameScreen .card-stat {
+    font-size: clamp(5.4px, 8cqw, 7.4px) !important;
+    line-height: 1.02 !important;
+    padding: clamp(1px, 2.3cqw, 2px) !important;
+    border-radius: clamp(4px, 7cqw, 6px) !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #gameScreen .card-stat small {
+    font-size: clamp(3.8px, 5.5cqw, 4.8px) !important;
+    line-height: 1 !important;
+  }
+
+  #gameScreen .card::after {
+    inset: clamp(2px, 4.8cqw, 5px) !important;
+    border-radius: clamp(6px, 12cqw, 10px) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #gameScreen {
+    --field-h: 134px;
+    --field-inner-h: 104px;
+    --hand-h: 114px;
+    --field-card-w: clamp(54px, calc((100vw - 50px) / 5), 68px);
+    --field-card-h: 98px;
+    --hand-card-w: 68px;
+    --hand-card-h: 92px;
+  }
+}

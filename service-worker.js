@@ -1,4 +1,4 @@
-const CACHE_NAME = "creature-evolution-arena-v60";
+const CACHE_NAME = "creature-evolution-arena-v61";
 
 const APP_SHELL = [
   "./",
