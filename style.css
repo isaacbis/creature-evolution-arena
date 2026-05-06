@@ -3588,3 +3588,45 @@ button:hover::after {
     min-height: 88px !important;
   }
 }
+
+
+/* =========================================================
+   V51 FIX BARRA FINALE
+   - la barra non si sovrappone più a partita, lobby e modali
+   - le modali stanno sopra a tutto
+   - nel menu resta spazio sotto per non coprire i pulsanti
+   ========================================================= */
+#gameScreen.game-screen:not(.hidden) ~ #appBottomNav,
+#lobbyScreen.lobby-screen:not(.hidden) ~ #appBottomNav,
+.modal:not(.hidden) ~ #appBottomNav {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.modal {
+  z-index: 300 !important;
+}
+
+#menuScreen.menu-screen:not(.hidden) {
+  padding-bottom: calc(98px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+@media (max-width: 700px) {
+  .app-bottom-nav {
+    z-index: 90 !important;
+  }
+
+  #gameScreen.game-screen:not(.hidden) ~ #appBottomNav,
+  #lobbyScreen.lobby-screen:not(.hidden) ~ #appBottomNav,
+  .modal:not(.hidden) ~ #appBottomNav {
+    display: none !important;
+  }
+
+  #menuScreen.menu-screen:not(.hidden) {
+    padding-bottom: calc(102px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .modal-card {
+    margin-bottom: 0 !important;
+  }
+}

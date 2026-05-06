@@ -1,12 +1,9 @@
-Controlli effettuati:
-- node --check script.js: OK
-- node --check firebase.js: OK
-- Versioni cache e asset aggiornate a v50.
-- app-icon.svg presente e coerente con manifest/service worker.
+TEST REPORT V51
 
-Da verificare su telefono reale dopo deploy:
-- Tap su carta Evo 1: deve evocare sul tuo campo.
-- Tap su magia: deve applicarsi al campo/vita avversaria.
-- Tap su equipaggiamento con più creature: deve chiedere il bersaglio.
-- Tap su evoluzione con più creature compatibili: deve chiedere il bersaglio.
-- Scroll orizzontale della mano: deve restare fluido.
+Controlli eseguiti:
+- Bottom nav nascosta quando gameScreen è visibile.
+- Bottom nav nascosta quando lobbyScreen è visibile.
+- Bottom nav nascosta quando una modale è aperta.
+- Modal z-index superiore alla bottom nav.
+- Menu con padding-bottom aumentato per evitare sovrapposizioni.
+- Versioni cache aggiornate a v51.
