@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=42" />
+  <link rel="stylesheet" href="style.css?v=43" />
 <link rel="manifest" href="manifest.json" />
 
   <meta name="theme-color" content="#ff9f43" />
@@ -15,7 +15,17 @@
 
   <link rel="apple-touch-icon" href="app-icon.svg" />
 </head>
-<body class="app-v42">
+<body class="app-v43">
+
+  <script>
+    function setAppViewportHeight() {
+      document.documentElement.style.setProperty("--app-height", window.innerHeight + "px");
+    }
+    setAppViewportHeight();
+    window.addEventListener("resize", setAppViewportHeight);
+    window.addEventListener("orientationchange", setAppViewportHeight);
+  </script>
+
 
   <!-- MENU PRINCIPALE -->
   <div id="menuScreen" class="screen menu-screen compact-menu-screen">
@@ -623,7 +633,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=42")
+        .register("./service-worker.js?v=43")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -631,6 +641,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=42"></script>
+<script type="module" src="script.js?v=43"></script>
 </body>
 </html>

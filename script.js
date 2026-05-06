@@ -3325,20 +3325,20 @@ document.querySelectorAll(".quick-chat-msg").forEach(button => {
   };
 });
 
-playBotBtn.onclick = () => startBotGame();
-createOnlineBtn.onclick = createOnlineGame;
-joinOnlineBtn.onclick = joinOnlineGame;
-endTurnBtn.onclick = endTurn;
+if (playBotBtn) playBotBtn.onclick = () => startBotGame();
+if (createOnlineBtn) createOnlineBtn.onclick = createOnlineGame;
+if (joinOnlineBtn) joinOnlineBtn.onclick = joinOnlineGame;
+if (endTurnBtn) endTurnBtn.onclick = endTurn;
 
-campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
-draftBtn.onclick = startDraft;
+if (campaignBtn) campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
+if (draftBtn) draftBtn.onclick = startDraft;
 if (openOptionsHubBtn) openOptionsHubBtn.onclick = openOptionsHub;
 if (closeOptionsHubBtn) closeOptionsHubBtn.onclick = closeOptionsHub;
 if (summaryAvatarChip) summaryAvatarChip.onclick = openOptionsHub;
 if (summaryDeckChip) summaryDeckChip.onclick = openOptionsHub;
 if (summaryArenaChip) summaryArenaChip.onclick = openOptionsHub;
 
-restartBtn.onclick = () => {
+if (restartBtn) restartBtn.onclick = () => {
   if (gameMode === "bot" || gameMode === "campaign") {
     startBotGame(game?.players?.p2?.bossKey || null);
   } else {
@@ -3346,11 +3346,11 @@ restartBtn.onclick = () => {
   }
 };
 
-backMenuBtn.onclick = () => showOnlyMenu();
-leaveLobbyBtn.onclick = () => showOnlyMenu(true);
-resultMenuBtn.onclick = () => showOnlyMenu(true);
+if (backMenuBtn) backMenuBtn.onclick = () => showOnlyMenu();
+if (leaveLobbyBtn) leaveLobbyBtn.onclick = () => showOnlyMenu(true);
+if (resultMenuBtn) resultMenuBtn.onclick = () => showOnlyMenu(true);
 
-playAgainBtn.onclick = () => {
+if (playAgainBtn) playAgainBtn.onclick = () => {
   resultModal.classList.add("hidden");
 
   if (gameMode === "bot" || gameMode === "campaign") {
@@ -3360,7 +3360,7 @@ playAgainBtn.onclick = () => {
   }
 };
 
-copyCodeBtn.onclick = async () => {
+if (copyCodeBtn) copyCodeBtn.onclick = async () => {
   if (!roomCode) return;
 
   try {
@@ -3371,7 +3371,7 @@ copyCodeBtn.onclick = async () => {
   }
 };
 
-copyInviteLinkBtn.onclick = async () => {
+if (copyInviteLinkBtn) copyInviteLinkBtn.onclick = async () => {
   if (!roomCode) return;
 
   try {
@@ -3382,21 +3382,21 @@ copyInviteLinkBtn.onclick = async () => {
   }
 };
 
-toggleLogBtn.onclick = () => logWrapper.classList.toggle("collapsed");
+if (toggleLogBtn && logWrapper) toggleLogBtn.onclick = () => logWrapper.classList.toggle("collapsed");
 
-cancelAttackBtn.onclick = () => {
+if (cancelAttackBtn) cancelAttackBtn.onclick = () => {
   selectedAttackerIndex = null;
   setMessage("Attacco annullato.");
   render();
 };
 
-closeDetailBtn.onclick = () => cardDetailModal.classList.add("hidden");
+if (closeDetailBtn && cardDetailModal) closeDetailBtn.onclick = () => cardDetailModal.classList.add("hidden");
 
 cardDetailModal.onclick = event => {
   if (event.target === cardDetailModal) cardDetailModal.classList.add("hidden");
 };
 
-enemyHudBox.addEventListener("click", async () => {
+if (enemyHudBox) enemyHudBox.addEventListener("click", async () => {
   if (selectedAttackerIndex === null) return;
   if (!isMyTurn()) return;
 
@@ -3420,7 +3420,7 @@ enemyHudBox.addEventListener("click", async () => {
   render();
 });
 
-tutorialBtn.onclick = () => tutorialModal.classList.remove("hidden");
+if (tutorialBtn && tutorialModal) tutorialBtn.onclick = () => tutorialModal.classList.remove("hidden");
 
 closeTutorialBtn.onclick = () => {
   localStorage.setItem("tutorialSeen", "yes");
@@ -3431,8 +3431,8 @@ tutorialModal.onclick = event => {
   if (event.target === tutorialModal) tutorialModal.classList.add("hidden");
 };
 
-leaderboardBtn.onclick = openLeaderboard;
-closeLeaderboardBtn.onclick = () => leaderboardModal.classList.add("hidden");
+if (leaderboardBtn) leaderboardBtn.onclick = openLeaderboard;
+if (closeLeaderboardBtn && leaderboardModal) closeLeaderboardBtn.onclick = () => leaderboardModal.classList.add("hidden");
 
 leaderboardModal.onclick = event => {
   if (event.target === leaderboardModal) leaderboardModal.classList.add("hidden");
@@ -3443,46 +3443,46 @@ openMissionsBtn.onclick = () => {
   missionsModal.classList.remove("hidden");
 };
 
-closeMissionsBtn.onclick = () => missionsModal.classList.add("hidden");
+if (closeMissionsBtn && missionsModal) closeMissionsBtn.onclick = () => missionsModal.classList.add("hidden");
 
-closeCampaignBtn.onclick = () => campaignModal.classList.add("hidden");
+if (closeCampaignBtn && campaignModal) closeCampaignBtn.onclick = () => campaignModal.classList.add("hidden");
 
-closeDraftBtn.onclick = () => draftModal.classList.add("hidden");
-startDraftGameBtn.onclick = startDraftGame;
+if (closeDraftBtn && draftModal) closeDraftBtn.onclick = () => draftModal.classList.add("hidden");
+if (startDraftGameBtn) startDraftGameBtn.onclick = startDraftGame;
 
-openPackBtn.onclick = openPack;
-closePackBtn.onclick = () => packModal.classList.add("hidden");
+if (openPackBtn) openPackBtn.onclick = openPack;
+if (closePackBtn && packModal) closePackBtn.onclick = () => packModal.classList.add("hidden");
 
-quickChatBtn.onclick = () => quickChatModal.classList.remove("hidden");
-closeQuickChatBtn.onclick = () => quickChatModal.classList.add("hidden");
+if (quickChatBtn && quickChatModal) quickChatBtn.onclick = () => quickChatModal.classList.remove("hidden");
+if (closeQuickChatBtn && quickChatModal) closeQuickChatBtn.onclick = () => quickChatModal.classList.add("hidden");
 
 historyBtn.onclick = () => {
   renderHistory();
   historyModal.classList.remove("hidden");
 };
 
-closeHistoryBtn.onclick = () => historyModal.classList.add("hidden");
+if (closeHistoryBtn && historyModal) closeHistoryBtn.onclick = () => historyModal.classList.add("hidden");
 
 replayBtn.onclick = () => {
   renderReplay();
   replayModal.classList.remove("hidden");
 };
 
-closeReplayBtn.onclick = () => replayModal.classList.add("hidden");
+if (closeReplayBtn && replayModal) closeReplayBtn.onclick = () => replayModal.classList.add("hidden");
 
-cardBackSelect.onchange = () => {
+if (cardBackSelect) cardBackSelect.onchange = () => {
   selectedCardBack = cardBackSelect.value;
   localStorage.setItem("cardBack", selectedCardBack);
 };
 
-arenaSkinSelect.onchange = () => {
+if (arenaSkinSelect) arenaSkinSelect.onchange = () => {
   selectedArena = arenaSkinSelect.value;
   localStorage.setItem("arenaSkin", selectedArena);
   applyArenaSkin(selectedArena);
   updateHomeSummary();
 };
 
-playerNameInput.addEventListener("input", renderProfile);
+if (playerNameInput) playerNameInput.addEventListener("input", renderProfile);
 
 const savedName = localStorage.getItem("playerName");
 if (savedName) playerNameInput.value = savedName;
@@ -3692,3 +3692,17 @@ safeOn(rankPlayBtn, "click", () => {
 
 updateScreenClass();
 setActiveNav(isVisible(gameScreen) ? "play" : "home");
+
+
+/* =========================
+   V43 · GUARDIA ERRORI
+   ========================= */
+window.addEventListener("error", event => {
+  console.error("Errore app:", event.error || event.message);
+  document.body.classList.add("app-error-soft");
+});
+
+window.addEventListener("unhandledrejection", event => {
+  console.error("Errore promise:", event.reason);
+  document.body.classList.add("app-error-soft");
+});
