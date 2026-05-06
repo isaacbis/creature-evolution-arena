@@ -151,7 +151,6 @@ let roomCode = null;
 let unsubscribeRoom = null;
 let lastAttackCardId = null;
 let selectedAttackerIndex = null;
-let pendingMobileAction = null;
 let turnTimerInterval = null;
 
 let draftDeck = [];
@@ -701,7 +700,6 @@ function startBotGame(bossKey = null, forcedDeck = null) {
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
-  pendingMobileAction = null;
 
   const p1 = makePlayer(name, forcedDeck ? "draft" : selectedDeck, forcedDeck);
   const p2 = makeBot(bossKey);
@@ -739,7 +737,6 @@ async function createOnlineGame() {
     mySlot = "p1";
     lastAttackCardId = null;
     selectedAttackerIndex = null;
-    pendingMobileAction = null;
 
     game = {
       mode: "online",
@@ -808,7 +805,6 @@ async function joinOnlineGame() {
     mySlot = "p2";
     lastAttackCardId = null;
     selectedAttackerIndex = null;
-    pendingMobileAction = null;
 
     match.players.p2 = makePlayer(name, selectedDeck);
     match.status = "playing";
@@ -1631,7 +1627,6 @@ function hasAbility(card, ability) {
 async function endTurn() {
   if (!isMyTurn()) return;
 
-  pendingMobileAction = null;
   selectedAttackerIndex = null;
 
   const me = getMyPlayer();
@@ -2067,105 +2062,6 @@ function renderEnergyDots(current, max) {
   return text;
 }
 
-
-function isMobileLayout() {
-  return window.matchMedia && window.matchMedia("(max-width: 700px)").matches;
-}
-
-function getValidOwnTargetsForHandCard(card) {
-  const me = getMyPlayer();
-  if (!me || !card) return [];
-
-  if (card.type === "equipment") {
-    return me.field.map((target, index) => ({ target, index }));
-  }
-
-  if (card.type === "creature" && card.stage > 1) {
-    return me.field
-      .map((target, index) => ({ target, index }))
-      .filter(item => canEvolveWithCard(card, item.target));
-  }
-
-  return [];
-}
-
-async function playHandCardSmart(cardId) {
-  if (!isMyTurn()) return;
-
-  const me = getMyPlayer();
-  if (!me) return;
-
-  const card = me.hand.find(item => item.id === cardId);
-  if (!card) return;
-
-  if (!canPlayCard(card)) {
-    setMessage("Non puoi giocare questa carta ora.");
-    return;
-  }
-
-  pendingMobileAction = null;
-
-  if (card.type === "spell") {
-    await handleCardDropOnEnemyField(card.id);
-    return;
-  }
-
-  if (card.type === "terrain") {
-    await handleCardDropOnOwnField(card.id);
-    return;
-  }
-
-  if (card.type === "creature" && card.stage === 1) {
-    await handleCardDropOnOwnField(card.id);
-    return;
-  }
-
-  const targets = getValidOwnTargetsForHandCard(card);
-
-  if (!targets.length) {
-    if (card.type === "equipment") setMessage("Per equipaggiare devi avere una creatura nel tuo campo.");
-    else setMessage("Non hai una creatura corretta da evolvere.");
-    return;
-  }
-
-  if (targets.length === 1) {
-    await handleCardDropOnOwnCreature(card.id, targets[0].index);
-    return;
-  }
-
-  pendingMobileAction = {
-    cardId: card.id,
-    cardType: card.type,
-    targetIndexes: targets.map(item => item.index)
-  };
-
-  selectedAttackerIndex = null;
-  setMessage(card.type === "equipment"
-    ? "Tocca la creatura da equipaggiare."
-    : "Tocca la creatura giusta da evolvere.");
-  render();
-}
-
-async function usePendingMobileAction(targetIndex) {
-  if (!pendingMobileAction) return false;
-  if (!pendingMobileAction.targetIndexes.includes(targetIndex)) {
-    setMessage("Questa creatura non è un bersaglio valido.");
-    return true;
-  }
-
-  const cardId = pendingMobileAction.cardId;
-  pendingMobileAction = null;
-  await handleCardDropOnOwnCreature(cardId, targetIndex);
-  render();
-  return true;
-}
-
-function clearPendingMobileAction() {
-  if (!pendingMobileAction) return;
-  pendingMobileAction = null;
-  render();
-}
-
 function renderHand() {
   const me = getMyPlayer();
   if (!me) return;
@@ -2186,53 +2082,14 @@ function renderHand() {
 }
 
 function addHandCardEvents(cardEl, card) {
-  if (isMobileLayout()) {
-    const actions = document.createElement("div");
-    actions.className = "card-actions mobile-card-actions";
-
-    const playBtn = document.createElement("button");
-    playBtn.type = "button";
-    playBtn.textContent = "Gioca";
-    playBtn.disabled = !canPlayCard(card);
-    playBtn.addEventListener("pointerdown", event => event.stopPropagation());
-    playBtn.addEventListener("click", async event => {
-      event.preventDefault();
-      event.stopPropagation();
-      await playHandCardSmart(card.id);
-    });
-
-    const infoBtn = document.createElement("button");
-    infoBtn.type = "button";
-    infoBtn.textContent = "Info";
-    infoBtn.className = "secondary-mini";
-    infoBtn.addEventListener("pointerdown", event => event.stopPropagation());
-    infoBtn.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      showCardDetail(card);
-    });
-
-    actions.appendChild(playBtn);
-    actions.appendChild(infoBtn);
-    cardEl.appendChild(actions);
-  }
-
   cardEl.addEventListener("pointerdown", event => {
-    if (event.target.closest(".mobile-card-actions")) return;
     startPointerDrag(event, cardEl, card);
   });
 
-  cardEl.addEventListener("click", async event => {
-    if (event.target.closest(".mobile-card-actions")) return;
-
+  cardEl.addEventListener("click", event => {
     if (dragState.moved) {
       event.preventDefault();
       event.stopPropagation();
-      return;
-    }
-
-    if (isMobileLayout() && canPlayCard(card)) {
-      await playHandCardSmart(card.id);
       return;
     }
 
@@ -2472,10 +2329,6 @@ el.dataset.cardId = card.id;
       el.classList.add("selected-attacker");
     }
 
-    if (owner === "player" && pendingMobileAction?.targetIndexes?.includes(index)) {
-      el.classList.add("mobile-action-target");
-    }
-
     if (owner === "enemy" && selectedAttackerIndex !== null && isMyTurn()) {
       el.classList.add("enemy-targetable");
     }
@@ -2488,9 +2341,7 @@ el.dataset.cardId = card.id;
 }
 
 function addPlayerFieldCardEvents(cardEl, card, index) {
-  cardEl.addEventListener("click", async () => {
-    if (await usePendingMobileAction(index)) return;
-
+  cardEl.addEventListener("click", () => {
     if (!isMyTurn()) {
       showCardDetail(card);
       return;
@@ -2524,11 +2375,6 @@ function addPlayerFieldCardEvents(cardEl, card, index) {
 
 function addEnemyFieldCardEvents(cardEl, card, index) {
   cardEl.addEventListener("click", async () => {
-    if (pendingMobileAction) {
-      clearPendingMobileAction();
-      setMessage("Azione annullata.");
-      return;
-    }
     if (selectedAttackerIndex !== null) {
       await playerAttack(selectedAttackerIndex, index);
       selectedAttackerIndex = null;
@@ -2927,7 +2773,6 @@ function showOnlyMenu(force = false) {
   mySlot = "p1";
   lastAttackCardId = null;
   selectedAttackerIndex = null;
-  pendingMobileAction = null;
 
   resultModal.classList.add("hidden");
   cardDetailModal.classList.add("hidden");
@@ -3175,7 +3020,6 @@ copyInviteLinkBtn.onclick = async () => {
 toggleLogBtn.onclick = () => logWrapper.classList.toggle("collapsed");
 
 cancelAttackBtn.onclick = () => {
-  pendingMobileAction = null;
   selectedAttackerIndex = null;
   setMessage("Attacco annullato.");
   render();
@@ -3371,7 +3215,7 @@ if (!localStorage.getItem("tutorialSeen")) {
    ========================= */
 (function setupPremiumUiV22() {
   const root = document.documentElement;
-  root.dataset.ceaVersion = "50";
+  root.dataset.ceaVersion = "22";
 
   function vibrate(ms = 12) {
     try {
@@ -3396,7 +3240,7 @@ if (!localStorage.getItem("tutorialSeen")) {
 
   const versionBadge = document.createElement("div");
   versionBadge.className = "build-badge";
-  versionBadge.textContent = "v50 APP";
+  versionBadge.textContent = "v22 MAX";
   document.body.appendChild(versionBadge);
 
   function addArenaParticles() {
