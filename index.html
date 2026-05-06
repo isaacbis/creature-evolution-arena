@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=37" />
+  <link rel="stylesheet" href="style.css?v=38" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -172,6 +172,15 @@
           <div>
             <strong>Esperienza app</strong>
             <small>Aggiungi alla schermata Home per giocare a schermo intero.</small>
+          </div>
+        </div>
+
+        
+        <div id="walletChip" class="wallet-chip">
+          <span>🪙</span>
+          <div>
+            <strong id="coinText">0 monete</strong>
+            <small>Vinci partite per aprire pack</small>
           </div>
         </div>
 
@@ -364,6 +373,7 @@
       </div>
 
       <div class="top-actions">
+        <button id="heroPowerBtn" class="round-btn hero-power-btn">✨</button>
         <button id="quickChatBtn" class="round-btn">💬</button>
         <button id="backMenuBtn" class="round-btn">☰</button>
         <button id="restartBtn" class="round-btn accent">↻</button>
@@ -472,6 +482,50 @@
         <button id="modeDraftBtn" class="play-mode-card forest-mode" type="button">
           <span>🃏</span><strong>Draft</strong><small>Mazzo casuale</small>
         </button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- MULLIGAN INIZIALE -->
+  <div id="mulliganModal" class="modal hidden">
+    <div class="modal-card app-sheet-card mulligan-card">
+      <div class="sheet-head">
+        <div>
+          <div class="result-icon">🔄</div>
+          <h2>Mulligan</h2>
+          <p>Scegli fino a 2 carte da cambiare prima dell'inizio della partita.</p>
+        </div>
+      </div>
+
+      <div id="mulliganGrid" class="mulligan-grid"></div>
+
+      <div class="mulligan-footer">
+        <span id="mulliganCountText">0/2 selezionate</span>
+        <button id="confirmMulliganBtn" class="primary-action" type="button">Inizia partita</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- POTERE EROE -->
+  <div id="heroPowerModal" class="modal hidden">
+    <div class="modal-card app-sheet-card hero-power-sheet">
+      <div class="sheet-head">
+        <div>
+          <div class="result-icon">✨</div>
+          <h2>Potere eroe</h2>
+          <p id="heroPowerDesc">Potere del mazzo.</p>
+        </div>
+        <button id="closeHeroPowerBtn" class="sheet-close-btn" type="button">✕</button>
+      </div>
+
+      <div id="heroPowerTargets" class="hero-power-targets"></div>
+
+      <div class="modal-actions">
+        <button id="useHeroPowerBtn" class="primary-action" type="button">Usa potere</button>
       </div>
     </div>
   </div>
@@ -760,7 +814,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=37")
+        .register("./service-worker.js?v=38")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -768,6 +822,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=37"></script>
+<script type="module" src="script.js?v=38"></script>
 </body>
 </html>

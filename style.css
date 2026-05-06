@@ -4137,3 +4137,214 @@ body.is-playing {
   .install-hint-card small { display: none; }
   .play-mode-grid { grid-template-columns: 1fr; }
 }
+
+
+/* =========================
+   V38 · GAMEPLAY UI
+   ========================= */
+
+.wallet-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin: 6px 0 6px;
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(255,212,59,.14), rgba(255,159,67,.09)),
+    rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.105);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.wallet-chip > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255,212,59,.14);
+}
+
+.wallet-chip strong,
+.wallet-chip small {
+  display: block;
+}
+
+.wallet-chip small {
+  margin-top: 2px;
+  color: rgba(255,255,255,.62);
+  font-size: 10px;
+}
+
+.hero-power-btn.ready {
+  background: linear-gradient(145deg, #ffe066, #ff922b) !important;
+  color: #1b1207 !important;
+  box-shadow:
+    0 0 0 3px rgba(255,212,59,.16),
+    0 0 22px rgba(255,212,59,.30) !important;
+}
+
+.hero-power-btn:disabled {
+  opacity: .42;
+  filter: grayscale(.55);
+}
+
+.hero-power-targets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.hero-power-target,
+.hero-power-empty {
+  min-height: 86px;
+  padding: 10px;
+  border-radius: 18px;
+  text-align: left;
+  color: #fff;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.hero-power-target.selected {
+  outline: 3px solid rgba(255,212,59,.55);
+  background:
+    linear-gradient(145deg, rgba(255,212,59,.22), rgba(255,255,255,.08));
+}
+
+.hero-power-target span,
+.hero-power-target strong,
+.hero-power-target small {
+  display: block;
+}
+
+.hero-power-target span {
+  font-size: 25px;
+}
+
+.hero-power-target strong {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.hero-power-target small {
+  color: rgba(255,255,255,.66);
+  font-size: 10px;
+}
+
+.mulligan-grid {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 2px 12px;
+  margin: 8px 0;
+}
+
+.mulligan-card-choice {
+  flex: 0 0 132px;
+  min-height: 172px;
+  display: grid;
+  align-content: end;
+  gap: 4px;
+  text-align: left;
+  padding: 10px;
+  border-radius: 20px;
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05)),
+    rgba(7,9,18,.82);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 14px 30px rgba(0,0,0,.34);
+  position: relative;
+  overflow: hidden;
+}
+
+.mulligan-card-choice::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 20%, rgba(0,0,0,.86));
+}
+
+.mulligan-card-choice > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mulligan-card-choice.selected {
+  outline: 3px solid rgba(255,212,59,.78);
+  transform: translateY(-4px);
+}
+
+.mulligan-card-choice span {
+  font-size: 28px;
+}
+
+.mulligan-card-choice strong {
+  font-size: 13px;
+  line-height: 1.08;
+}
+
+.mulligan-card-choice small {
+  color: rgba(255,255,255,.70);
+  font-size: 10px;
+}
+
+.mulligan-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.mulligan-footer span {
+  color: rgba(255,255,255,.68);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.card .ability {
+  backdrop-filter: blur(4px);
+}
+
+.card.has-created-art .ability {
+  background: rgba(0,0,0,.48) !important;
+}
+
+/* stati nuovi */
+.card:has(.ability-row) {
+  transition: transform .14s ease, filter .14s ease;
+}
+
+.card.poisoned {
+  outline: 2px solid #37b24d !important;
+}
+
+@media (max-width: 700px) {
+  .hero-power-targets {
+    grid-template-columns: 1fr;
+  }
+
+  .mulligan-card-choice {
+    flex-basis: 116px;
+    min-height: 152px;
+  }
+
+  .mulligan-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .wallet-chip {
+    padding: 8px;
+  }
+
+  .wallet-chip small {
+    display: none;
+  }
+}
