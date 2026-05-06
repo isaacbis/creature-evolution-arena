@@ -3407,3 +3407,87 @@ button:hover::after {
     max-height: 91px !important;
   }
 }
+
+
+/* =========================================================
+   V54 - Nuovi mazzi + campi un po' più stretti
+   ========================================================= */
+.deck-btn.dragon { background: linear-gradient(145deg, #ffb703, #fb5607 48%, #8b1e1e) !important; color: white; }
+.deck-btn.undead { background: linear-gradient(145deg, #ced4da, #495057 48%, #111217) !important; color: white; }
+.deck-btn.mechanic { background: linear-gradient(145deg, #dbe4ff, #748ffc 48%, #343a40) !important; color: white; }
+.deck-btn.beast { background: linear-gradient(145deg, #d8f5a2, #82c91e 48%, #3b5b1f) !important; color: white; }
+.deck-btn.mage { background: linear-gradient(145deg, #e5dbff, #845ef7 48%, #3b0a75) !important; color: white; }
+.deck-btn.pirate { background: linear-gradient(145deg, #ffe8cc, #f08c00 48%, #4f2b10) !important; color: white; }
+.deck-btn.demon { background: linear-gradient(145deg, #ffc9c9, #e03131 48%, #3b0505) !important; color: white; }
+.deck-btn.ice { background: linear-gradient(145deg, #e7f5ff, #74c0fc 48%, #1864ab) !important; color: white; }
+
+.creature.dragon { background: linear-gradient(160deg, #fff0c2 0%, #ff922b 42%, #8b1e1e 100%) !important; }
+.creature.undead { background: linear-gradient(160deg, #f1f3f5 0%, #868e96 42%, #15161c 100%) !important; color: #fff !important; }
+.creature.mechanic { background: linear-gradient(160deg, #edf2ff 0%, #748ffc 42%, #343a40 100%) !important; }
+.creature.beast { background: linear-gradient(160deg, #ebfbee 0%, #82c91e 42%, #2b4b16 100%) !important; }
+.creature.mage { background: linear-gradient(160deg, #f3f0ff 0%, #9775fa 42%, #32105d 100%) !important; color: #fff !important; }
+.creature.pirate { background: linear-gradient(160deg, #fff4e6 0%, #ffa94d 42%, #5c3210 100%) !important; }
+.creature.demon { background: linear-gradient(160deg, #ffe3e3 0%, #ff6b6b 42%, #3b0505 100%) !important; color: #fff !important; }
+.creature.ice { background: linear-gradient(160deg, #e7f5ff 0%, #74c0fc 42%, #1c4f8f 100%) !important; }
+
+.creature.undead .card-name,
+.creature.undead .card-desc,
+.creature.mage .card-name,
+.creature.mage .card-desc,
+.creature.demon .card-name,
+.creature.demon .card-desc {
+  color: #fff !important;
+  text-shadow: 0 2px 6px rgba(0,0,0,.45);
+}
+
+@media (max-width: 700px) {
+  /* QUI puoi stringere/allargare i campi:
+     - minmax(116px...) = altezza dei due campi di gioco
+     - .field-zone min-height = altezza del contenitore campo
+     - .compact-field height = altezza interna dove stanno le carte
+  */
+  #gameScreen .battle-board {
+    grid-template-rows:
+      auto
+      minmax(116px, 1.22fr)
+      minmax(116px, 1.22fr)
+      minmax(108px, .9fr)
+      auto !important;
+  }
+
+  #gameScreen .field-zone {
+    min-height: 116px !important;
+    padding: 6px !important;
+  }
+
+  #gameScreen .compact-field {
+    min-height: 88px !important;
+    height: 88px !important;
+    max-height: 88px !important;
+  }
+
+  #gameScreen .empty-field {
+    height: 80px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #gameScreen .battle-board {
+    grid-template-rows:
+      auto
+      minmax(106px, 1.16fr)
+      minmax(106px, 1.16fr)
+      minmax(102px, .85fr)
+      auto !important;
+  }
+
+  #gameScreen .field-zone {
+    min-height: 106px !important;
+  }
+
+  #gameScreen .compact-field {
+    min-height: 80px !important;
+    height: 80px !important;
+    max-height: 80px !important;
+  }
+}

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=53" />
+  <link rel="stylesheet" href="style.css?v=54" />
   <style>
     #menuScreen.menu-screen.hidden, #lobbyScreen.lobby-screen.hidden, #gameScreen.game-screen.hidden { display: none !important; }
   </style>
@@ -123,6 +123,46 @@
           <button class="deck-btn light" data-deck="light">
             <b>☀️ Luce</b>
             <small>guardia e cura</small>
+          </button>
+
+          <button class="deck-btn dragon" data-deck="dragon">
+            <b>🐲 Drago</b>
+            <small>potenza alta</small>
+          </button>
+
+          <button class="deck-btn undead" data-deck="undead">
+            <b>💀 Non Morti</b>
+            <small>veleno e controllo</small>
+          </button>
+
+          <button class="deck-btn mechanic" data-deck="mechanic">
+            <b>🤖 Meccanico</b>
+            <small>difesa e combo</small>
+          </button>
+
+          <button class="deck-btn beast" data-deck="beast">
+            <b>🐺 Bestie</b>
+            <small>rapidità</small>
+          </button>
+
+          <button class="deck-btn mage" data-deck="mage">
+            <b>🧙 Maghi</b>
+            <small>pesca e magie</small>
+          </button>
+
+          <button class="deck-btn pirate" data-deck="pirate">
+            <b>🏴‍☠️ Pirati</b>
+            <small>caos e carte</small>
+          </button>
+
+          <button class="deck-btn demon" data-deck="demon">
+            <b>😈 Demoni</b>
+            <small>danni alti</small>
+          </button>
+
+          <button class="deck-btn ice" data-deck="ice">
+            <b>❄️ Ghiaccio</b>
+            <small>blocco e difesa</small>
           </button>
 
           <button class="deck-btn balanced selected" data-deck="balanced">
@@ -495,7 +535,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=53")
+        .register("./service-worker.js?v=54")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -503,6 +543,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=53"></script>
+<script type="module" src="script.js?v=54"></script>
 </body>
 </html>

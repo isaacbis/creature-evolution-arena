@@ -192,6 +192,14 @@ const deckLabels = {
   forest: "Foresta",
   shadow: "Ombra",
   light: "Luce",
+  dragon: "Drago",
+  undead: "Non Morti",
+  mechanic: "Meccanico",
+  beast: "Bestie",
+  mage: "Maghi",
+  pirate: "Pirati",
+  demon: "Demoni",
+  ice: "Ghiaccio",
   balanced: "Bilanciato",
   draft: "Draft"
 };
@@ -286,6 +294,98 @@ const families = {
   }
 };
 
+
+/* =========================
+   V54 - Nuove tipologie di mazzi
+   ========================= */
+families.dragon = {
+  label: "Drago",
+  icon: "🐲",
+  cards: [
+    c("dragon_1", "Cucciolo Drago", "dragon", 1, 3, 3, 1, "common", "Piccolo drago offensivo.", null, ["haste"]),
+    c("dragon_2", "Drago Cremisi", "dragon", 2, 6, 6, 3, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["flying"]),
+    c("dragon_3", "Signore dei Draghi", "dragon", 3, 10, 9, 5, "legendary", "Quando entra, colpisce il campo nemico.", "fireStorm", ["flying", "rage"]),
+    c("dragon_3b", "Drago Antico", "dragon", 3, 8, 11, 5, "epic", "Quando entra, cura 2 vita.", "healOwner", ["flying", "guard"])
+  ]
+};
+
+families.undead = {
+  label: "Non Morti",
+  icon: "💀",
+  cards: [
+    c("undead_1", "Scheletro Errante", "undead", 1, 2, 3, 1, "common", "Creatura semplice con veleno.", null, ["poison"]),
+    c("undead_2", "Necromante", "undead", 2, 4, 6, 3, "rare", "Quando entra, pesca 1 carta.", "drawOne", ["poison"]),
+    c("undead_3", "Re Lich", "undead", 3, 8, 8, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "guard"]),
+    c("undead_3b", "Abominio", "undead", 3, 7, 12, 5, "epic", "Quando entra, indebolisce un nemico.", "weakenEnemy", ["guard", "poison"])
+  ]
+};
+
+families.mechanic = {
+  label: "Meccanico",
+  icon: "🤖",
+  cards: [
+    c("mechanic_1", "Drone Base", "mechanic", 1, 2, 4, 1, "common", "Unità stabile da campo.", null, []),
+    c("mechanic_2", "Golem Meccanico", "mechanic", 2, 5, 7, 3, "rare", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["guard"]),
+    c("mechanic_3", "Titano d'Acciaio", "mechanic", 3, 8, 12, 5, "legendary", "Quando entra, potenzia il campo.", "buffTeamHp", ["guard"]),
+    c("mechanic_3b", "Modulo Assalto", "mechanic", 3, 9, 7, 4, "epic", "Quando entra, dà +1 ATK a un alleato.", "buffAllyAttack", ["rage"])
+  ]
+};
+
+families.beast = {
+  label: "Bestie",
+  icon: "🐺",
+  cards: [
+    c("beast_1", "Lupo Selvaggio", "beast", 1, 3, 2, 1, "common", "Rapido e aggressivo.", null, ["haste"]),
+    c("beast_2", "Tigre delle Rune", "beast", 2, 5, 5, 2, "rare", "Quando entra, dà +1 ATK a un alleato.", "buffAllyAttack", ["rage"]),
+    c("beast_3", "Re delle Bestie", "beast", 3, 9, 8, 4, "legendary", "Quando entra, potenzia il campo.", "buffTeamHp", ["rage"]),
+    c("beast_3b", "Mammut Antico", "beast", 3, 7, 12, 5, "epic", "Creatura enorme con Guardia.", null, ["guard", "rage"])
+  ]
+};
+
+families.mage = {
+  label: "Maghi",
+  icon: "🧙",
+  cards: [
+    c("mage_1", "Apprendista Arcano", "mage", 1, 1, 4, 1, "common", "Base arcana da controllo.", null, []),
+    c("mage_2", "Mago del Tempo", "mage", 2, 3, 6, 2, "rare", "Quando entra, pesca 1 carta.", "drawOne", []),
+    c("mage_3", "Arcimago", "mage", 3, 7, 8, 4, "legendary", "Quando entra, pesca 1 carta.", "drawOne", ["flying"]),
+    c("mage_3b", "Custode Astrale", "mage", 3, 6, 10, 5, "epic", "Quando entra, cura 4 vita.", "bigHealOwner", ["guard"])
+  ]
+};
+
+families.pirate = {
+  label: "Pirati",
+  icon: "🏴‍☠️",
+  cards: [
+    c("pirate_1", "Pirata Recluta", "pirate", 1, 2, 3, 1, "common", "Creatura economica da pressione.", null, ["haste"]),
+    c("pirate_2", "Capitano Corsaro", "pirate", 2, 5, 5, 3, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["rage"]),
+    c("pirate_3", "Re dei Mari", "pirate", 3, 8, 8, 4, "legendary", "Quando entra, pesca 1 carta.", "drawOne", ["guard"]),
+    c("pirate_3b", "Cannoniere", "pirate", 3, 7, 7, 4, "epic", "Quando entra, infligge 3 danni diretti.", "darkBlast", [])
+  ]
+};
+
+families.demon = {
+  label: "Demoni",
+  icon: "😈",
+  cards: [
+    c("demon_1", "Imp Minore", "demon", 1, 4, 2, 1, "common", "Tanto attacco, poca difesa.", null, ["rage"]),
+    c("demon_2", "Demone Rosso", "demon", 2, 6, 5, 3, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["rage"]),
+    c("demon_3", "Sovrano Infernale", "demon", 3, 11, 7, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["flying", "rage"]),
+    c("demon_3b", "Custode del Patto", "demon", 3, 8, 9, 4, "epic", "Quando entra, colpisce il campo nemico.", "fireStorm", ["poison"])
+  ]
+};
+
+families.ice = {
+  label: "Ghiaccio",
+  icon: "❄️",
+  cards: [
+    c("ice_1", "Spirito di Ghiaccio", "ice", 1, 1, 5, 1, "common", "Creatura difensiva con Guardia.", null, ["guard"]),
+    c("ice_2", "Cavaliere Gelido", "ice", 2, 4, 7, 3, "rare", "Quando entra, indebolisce un nemico.", "weakenEnemy", ["guard"]),
+    c("ice_3", "Drago Polare", "ice", 3, 7, 10, 5, "legendary", "Quando entra, indebolisce un nemico.", "weakenEnemy", ["flying", "guard"]),
+    c("ice_3b", "Titano Glaciale", "ice", 3, 6, 13, 5, "epic", "Quando entra, cura il campo di 1.", "healTeam", ["guard"])
+  ]
+};
+
 const spells = [
   s("spell_fireball", "Palla Fuoco", 2, "common", "☄️", "Infligge 3 danni a una creatura nemica o alla vita.", "spellFireball", ["fire", "balanced"]),
   s("spell_heal", "Cura Rapida", 2, "common", "💧", "Cura 4 vita.", "spellHeal", ["water", "light", "balanced"]),
@@ -366,6 +466,37 @@ terrains.push(
   t("terrain_eclipse", "Eclissi Totale", 3, "epic", "🌑", "Per 3 turni il veleno è più forte.", "swamp", ["shadow", "balanced"])
 );
 
+
+
+/* =========================
+   V54 - Magie, equip e terreni per i nuovi mazzi
+   ========================= */
+spells.push(
+  s("spell_dragon_breath", "Soffio Draconico", 3, "rare", "🐲", "Infligge 3 danni mirati.", "spellFireball", ["dragon"]),
+  s("spell_necro_ritual", "Rituale Oscuro", 2, "rare", "💀", "Pesca 2 carte.", "spellDrawTwo", ["undead", "demon"]),
+  s("spell_overload", "Sovraccarico", 0, "legendary", "⚙️", "+2 energia nel turno.", "spellGainEnergy", ["mechanic", "mage"]),
+  s("spell_pack", "Branco Coordinato", 3, "rare", "🐺", "+1 ATK e +1 HP al tuo campo.", "spellBlessing", ["beast"]),
+  s("spell_arcane", "Fulmine Arcano", 2, "rare", "🧙", "Infligge 3 danni mirati.", "spellFireball", ["mage"]),
+  s("spell_loot", "Bottino Rubato", 1, "rare", "🏴‍☠️", "Pesca 2 carte.", "spellDrawTwo", ["pirate"]),
+  s("spell_forbidden", "Fiamme Proibite", 4, "epic", "😈", "2 danni a tutte le creature nemiche.", "spellStorm", ["demon"]),
+  s("spell_blizzard", "Tempesta Artica", 3, "epic", "❄️", "2 danni a tutte le creature nemiche.", "spellStorm", ["ice"])
+);
+
+equipments.push(
+  e("eq_scales", "Scaglie Antiche", 2, "rare", "🛡️", "+3 HP e Guardia.", "equipShield", ["dragon", "ice"]),
+  e("eq_bone_blade", "Lama d'Ossa", 2, "rare", "☠️", "Dà Veleno.", "equipPoison", ["undead", "demon"]),
+  e("eq_power_armor", "Armatura Energetica", 2, "rare", "⚙️", "+3 HP e Guardia.", "equipShield", ["mechanic"]),
+  e("eq_claws", "Artigli Primordiali", 2, "rare", "🐾", "+2 ATK alla creatura.", "equipSword", ["beast"]),
+  e("eq_staff", "Bastone Arcano", 2, "rare", "🔮", "+2 ATK alla creatura.", "equipSword", ["mage"]),
+  e("eq_cutlass", "Sciabola Corsara", 2, "rare", "⚔️", "+2 ATK alla creatura.", "equipSword", ["pirate"])
+);
+
+terrains.push(
+  t("terrain_dragon_peak", "Picco dei Draghi", 2, "rare", "🐲", "Per 3 turni potenzia i draghi.", "sun", ["dragon"]),
+  t("terrain_crypt", "Cripta Maledetta", 3, "epic", "💀", "Per 3 turni il veleno è più forte.", "swamp", ["undead", "demon"]),
+  t("terrain_factory", "Fabbrica Antica", 2, "rare", "⚙️", "Per 3 turni dà più resistenza.", "tide", ["mechanic"]),
+  t("terrain_frozen", "Piana Gelata", 2, "rare", "❄️", "Per 2 turni blocca gli attacchi diretti.", "fog", ["ice", "mage"])
+);
 
 function c(cardId, name, family, stage, attack, hp, cost, rarity, desc, effect, abilities) {
   return { cardId, type: "creature", name, family, stage, attack, hp, cost, rarity, desc, effect, abilities };
@@ -588,7 +719,15 @@ function getFamiliesForDeck(deckType) {
     water: ["water"],
     forest: ["forest"],
     shadow: ["shadow"],
-    light: ["light"]
+    light: ["light"],
+    dragon: ["dragon"],
+    undead: ["undead"],
+    mechanic: ["mechanic"],
+    beast: ["beast"],
+    mage: ["mage"],
+    pirate: ["pirate"],
+    demon: ["demon"],
+    ice: ["ice"]
   };
 
   return map[deckType] || ["fire", "water", "forest", "shadow", "light"];
