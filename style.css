@@ -3391,9 +3391,9 @@ button:hover::after {
   #gameScreen .battle-board {
     grid-template-rows:
       auto
-      minmax(140px, 1.3fr)
-      minmax(140px, 1.3fr)
-      minmax(140px, .85fr)
+      minmax(118px, 1.3fr)
+      minmax(118px, 1.3fr)
+      minmax(102px, .85fr)
       auto !important;
   }
 
@@ -3805,5 +3805,75 @@ button:hover::after {
     max-height: 100% !important;
     font-size: 9px !important;
     border-radius: 10px !important;
+  }
+}
+
+
+/* =========================================================
+   V58 - Campi allargati + box tratteggiato a tutta area
+   ========================================================= */
+@media (max-width: 700px) {
+  #gameScreen .battle-board {
+    grid-template-rows: 20px 118px 118px minmax(120px, 1fr) !important;
+    gap: 4px !important;
+  }
+
+  #gameScreen .field-zone {
+    min-height: 118px !important;
+    height: 118px !important;
+    max-height: 118px !important;
+    padding: 5px !important;
+    border-radius: 16px !important;
+  }
+
+  #gameScreen .compact-field {
+    min-height: 86px !important;
+    height: 86px !important;
+    max-height: 86px !important;
+    padding: 2px !important;
+    align-items: stretch !important;
+  }
+
+  #gameScreen .compact-field .empty-field {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #gameScreen .battle-board {
+    grid-template-rows: 18px 106px 106px minmax(108px, 1fr) !important;
+    gap: 3px !important;
+  }
+
+  #gameScreen .field-zone {
+    min-height: 106px !important;
+    height: 106px !important;
+    max-height: 106px !important;
+    padding: 4px !important;
+  }
+
+  #gameScreen .compact-field {
+    min-height: 78px !important;
+    height: 78px !important;
+    max-height: 78px !important;
+  }
+
+  #gameScreen .compact-field .empty-field {
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    font-size: 10px !important;
   }
 }
