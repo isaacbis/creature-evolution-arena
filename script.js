@@ -143,19 +143,6 @@ const summaryArenaChip = $("summaryArenaChip");
 
 const enemyHudBox = $("enemyHudBox");
 
-const stableAvatar = $("stableAvatar");
-const stableProfileLine = $("stableProfileLine");
-const stableOptionsBtn = $("stableOptionsBtn");
-const stableNameInput = $("stableNameInput");
-const stableDeckText = $("stableDeckText");
-const stableLevelText = $("stableLevelText");
-const stableWinsText = $("stableWinsText");
-const stablePlayBtn = $("stablePlayBtn");
-const stableCardsBtn = $("stableCardsBtn");
-
-
-
-
 const appBottomNav = $("appBottomNav");
 const navHomeBtn = $("navHomeBtn");
 const navPlayBtn = $("navPlayBtn");
@@ -179,9 +166,6 @@ const rankModal = $("rankModal");
 const rankProfileBox = $("rankProfileBox");
 const closeRankBtn = $("closeRankBtn");
 const rankPlayBtn = $("rankPlayBtn");
-
-const coinText = $("coinText");
-const installHintCard = $("installHintCard");
 
 
 const STARTING_LIFE = 30;
@@ -219,28 +203,6 @@ let dragState = {
   currentY: 0,
   moved: false
 };
-
-
-/* =========================
-   V40 · ARTWORK COLLEGATI
-   ========================= */
-
-const CARD_ART_BY_ID = {
-  "fire_2": "assets/cards/fenice-reale.png",
-  "fire_3": "assets/cards/drakthar-il-drago-infernale.png",
-  "water_2": "assets/cards/mago-del-gelo.png",
-  "water_3": "assets/cards/leviatano-degli-abissi.png",
-  "forest_2": "assets/cards/arciera-elfea.png",
-  "forest_3": "assets/cards/guardiano-della-foresta.png",
-  "shadow_2": "assets/cards/stregone-del-chaos.png",
-  "shadow_3": "assets/cards/necromante-del-vuoto.png",
-  "light_2": "assets/cards/golem-di-pietra.png",
-  "light_3": "assets/cards/aurelia-angelo-solare.png"
-};
-
-function getCardArtwork(card) {
-  return CARD_ART_BY_ID[card?.cardId] || "";
-}
 
 const abilityLabels = {
   guard: "Guardia",
@@ -284,14 +246,14 @@ const bossData = {
     power: "Ogni 3 turni cura 2 vita."
   },
   dragon: {
-    name: "Drakthar",
+    name: "Drago Solare",
     avatar: "🐉",
     life: 36,
     deck: "fire",
     power: "Ogni 3 turni infligge 2 danni diretti."
   },
   eclipse: {
-    name: "Necromante del Vuoto",
+    name: "Signore Eclissi",
     avatar: "🌑",
     life: 38,
     deck: "shadow",
@@ -312,8 +274,8 @@ const families = {
     icon: "🔥",
     cards: [
       c("fire_1", "Scintilla", "fire", 1, 2, 3, 1, "common", "Piccola creatura di fuoco.", null, []),
-      c("fire_2", "Fenice Reale", "fire", 2, 4, 5, 2, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["haste"]),
-      c("fire_3", "Drakthar", "fire", 3, 7, 8, 4, "legendary", "Quando entra, infligge 2 danni a tutte le creature nemiche.", "fireStorm", ["flying"])
+      c("fire_2", "Lupo Ardente", "fire", 2, 4, 5, 2, "rare", "Quando entra, infligge 1 danno diretto.", "burnEnemy", ["haste"]),
+      c("fire_3", "Drago Solare", "fire", 3, 7, 8, 4, "legendary", "Quando entra, infligge 2 danni a tutte le creature nemiche.", "fireStorm", ["flying"])
     ]
   },
 
@@ -322,8 +284,8 @@ const families = {
     icon: "🌊",
     cards: [
       c("water_1", "Goccia Viva", "water", 1, 1, 4, 1, "common", "Creatura resistente con Guardia.", null, ["guard"]),
-      c("water_2", "Mago del Gelo", "water", 2, 3, 7, 2, "rare", "Quando entra, cura 2 vita.", "healOwner", ["guard"]),
-      c("water_3", "Leviatano degli Abissi", "water", 3, 6, 11, 4, "epic", "Quando entra, pesca una carta.", "drawOne", ["guard"])
+      c("water_2", "Serpente Marino", "water", 2, 3, 7, 2, "rare", "Quando entra, cura 2 vita.", "healOwner", ["guard"]),
+      c("water_3", "Titano Abissale", "water", 3, 6, 11, 4, "epic", "Quando entra, pesca una carta.", "drawOne", ["guard"])
     ]
   },
 
@@ -332,8 +294,8 @@ const families = {
     icon: "🌿",
     cards: [
       c("forest_1", "Radice", "forest", 1, 2, 2, 1, "common", "Economica e veloce.", null, []),
-      c("forest_2", "Arciera Elfea", "forest", 2, 5, 4, 2, "rare", "Quando entra, dà +1 ATK a un alleato.", "buffAllyAttack", ["rage"]),
-      c("forest_3", "Guardiano della Foresta", "forest", 3, 8, 7, 4, "epic", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["rage"])
+      c("forest_2", "Guardiano Verde", "forest", 2, 5, 4, 2, "rare", "Quando entra, dà +1 ATK a un alleato.", "buffAllyAttack", ["rage"]),
+      c("forest_3", "Antico Verde", "forest", 3, 8, 7, 4, "epic", "Quando entra, dà +2 HP al campo.", "buffTeamHp", ["rage"])
     ]
   },
 
@@ -342,8 +304,8 @@ const families = {
     icon: "🌑",
     cards: [
       c("shadow_1", "Ombra Minore", "shadow", 1, 3, 2, 1, "common", "Avvelena chi combatte contro di lei.", null, ["poison"]),
-      c("shadow_2", "Stregone del Chaos", "shadow", 2, 5, 5, 3, "rare", "Quando entra, toglie 1 ATK a un nemico.", "weakenEnemy", ["poison"]),
-      c("shadow_3", "Necromante del Vuoto", "shadow", 3, 9, 6, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "flying"])
+      c("shadow_2", "Spettro Nero", "shadow", 2, 5, 5, 3, "rare", "Quando entra, toglie 1 ATK a un nemico.", "weakenEnemy", ["poison"]),
+      c("shadow_3", "Signore Eclissi", "shadow", 3, 9, 6, 5, "legendary", "Quando entra, infligge 3 danni diretti.", "darkBlast", ["poison", "flying"])
     ]
   },
 
@@ -352,8 +314,8 @@ const families = {
     icon: "☀️",
     cards: [
       c("light_1", "Lumina", "light", 1, 1, 5, 1, "common", "Base difensiva con Guardia.", null, ["guard"]),
-      c("light_2", "Golem di Pietra", "light", 2, 4, 6, 3, "rare", "Quando entra, cura il campo di 1.", "healTeam", []),
-      c("light_3", "Aurelia", "light", 3, 7, 9, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["flying", "guard"])
+      c("light_2", "Cavaliere Alba", "light", 2, 4, 6, 3, "rare", "Quando entra, cura il campo di 1.", "healTeam", []),
+      c("light_3", "Arcangelo Aureo", "light", 3, 7, 9, 5, "legendary", "Quando entra, cura 4 vita.", "bigHealOwner", ["flying", "guard"])
     ]
   }
 };
@@ -457,8 +419,7 @@ function getProfile() {
     xp: 0,
     wins: 0,
     losses: 0,
-    missions: {},
-    coins: 0
+    missions: {}
   };
 }
 
@@ -490,7 +451,6 @@ function renderProfile() {
   }
 
   updateHomeSummary();
-  updateEconomyUi();
 }
 
 function getAvatarLabel(avatar) {
@@ -537,7 +497,7 @@ function updateHomeSummary() {
 }
 
 function showOnly(screen) {
-  if (!screen || !menuScreen || !lobbyScreen || !gameScreen) return;
+  if (!screen) return;
 
   menuScreen.classList.add("hidden");
   lobbyScreen.classList.add("hidden");
@@ -545,8 +505,7 @@ function showOnly(screen) {
   screen.classList.remove("hidden");
 
   if (screen === menuScreen) setActiveNav("home");
-  if (screen === gameScreen) setActiveNav("play");
-  updateBottomNavVisibility();
+  if (screen === lobbyScreen || screen === gameScreen) setActiveNav("play");
 }
 
 function setMessage(text) {
@@ -1880,9 +1839,7 @@ function saveMatchResult() {
   else profile.losses = (profile.losses || 0) + 1;
 
   const xp = won ? 35 : 15;
-  const coins = won ? 50 : 18;
   profile.xp += xp;
-  profile.coins = (profile.coins || 0) + coins;
 
   saveProfile(profile);
   saveHistory(won);
@@ -1955,7 +1912,7 @@ if (modalCard) {
 playResultFx(won);
   resultIcon.textContent = won ? "🏆" : "💀";
   resultTitle.textContent = won ? "Vittoria!" : "Sconfitta";
-  resultText.textContent = won ? "Hai vinto la partita. +35 XP · +50 monete" : "Hai perso la partita. +15 XP · +18 monete";
+  resultText.textContent = won ? "Hai vinto la partita. +35 XP" : "Hai perso la partita. +15 XP";
 
   matchStatsBox.innerHTML = `
     <div>⏱️ Turni: <strong>${stats.turns}</strong></div>
@@ -2437,12 +2394,6 @@ function addEnemyFieldCardEvents(cardEl, card, index) {
 function createCardEl(card, extraClass) {
   const el = document.createElement("div");
 
-  const artworkUrl = getCardArtwork(card);
-  if (artworkUrl) {
-    el.style.setProperty("--card-art", `url("${artworkUrl}")`);
-    el.classList.add("has-created-art");
-  }
-
   if (card.type === "creature") {
     el.className = `card creature ${card.family} ${card.rarity} ${extraClass}`;
 
@@ -2543,18 +2494,6 @@ function createCardEl(card, extraClass) {
 }
 
 function showCardDetail(card) {
-  const detailArt = getCardArtwork(card);
-  const detailCard = cardDetailModal?.querySelector(".detail-card");
-  if (detailCard) {
-    if (detailArt) {
-      detailCard.style.setProperty("--detail-art", `url("${detailArt}")`);
-      detailCard.classList.add("detail-card-has-art");
-    } else {
-      detailCard.classList.remove("detail-card-has-art");
-      detailCard.style.removeProperty("--detail-art");
-    }
-  }
-
   detailIcon.textContent = card.icon || "🃏";
   detailName.textContent = card.name;
   detailCost.textContent = card.cost;
@@ -3001,7 +2940,7 @@ function applyArenaSkin(value) {
 
 
 /* =========================
-   V40 · APP UI SICURA
+   V47 · HELPERS SICURI
    ========================= */
 
 function safeOn(el, eventName, handler) {
@@ -3009,25 +2948,19 @@ function safeOn(el, eventName, handler) {
   el.addEventListener(eventName, handler);
 }
 
-function closeModalSafe(modal) {
-  if (modal) modal.classList.add("hidden");
-}
-
 function openModalSafe(modal) {
   if (modal) modal.classList.remove("hidden");
+}
+
+function closeModalSafe(modal) {
+  if (modal) modal.classList.add("hidden");
 }
 
 function isVisible(el) {
   return Boolean(el && !el.classList.contains("hidden"));
 }
 
-function hapticTap(strong = false) {
-  if (navigator.vibrate) navigator.vibrate(strong ? 22 : 8);
-}
-
 function setActiveNav(name) {
-  if (!appBottomNav) return;
-
   const map = {
     home: navHomeBtn,
     play: navPlayBtn,
@@ -3038,16 +2971,11 @@ function setActiveNav(name) {
 
   Object.values(map).forEach(btn => btn && btn.classList.remove("active"));
   if (map[name]) map[name].classList.add("active");
+
+  document.body.classList.toggle("is-game", isVisible(gameScreen));
 }
 
-function updateBottomNavVisibility() {
-  if (!appBottomNav) return;
-  const inGame = isVisible(gameScreen);
-  appBottomNav.classList.toggle("compact", inGame);
-  document.body.classList.toggle("is-playing", inGame);
-}
-
-function closeAllAppSheets() {
+function closeAllAppPanels() {
   closeModalSafe(playModesModal);
   closeModalSafe(collectionModal);
   closeModalSafe(rankModal);
@@ -3055,17 +2983,15 @@ function closeAllAppSheets() {
 }
 
 function openPlayModes() {
-  if (playModesModal) {
-    openModalSafe(playModesModal);
-    setActiveNav("play");
-  } else {
-    startBotGame();
-  }
+  closeAllAppPanels();
+  openModalSafe(playModesModal);
+  setActiveNav("play");
 }
 
 function openCollection(filter = "all") {
   if (!collectionModal || !collectionGrid || !collectionStats) return;
 
+  closeAllAppPanels();
   openModalSafe(collectionModal);
   setActiveNav("cards");
 
@@ -3076,9 +3002,6 @@ function openCollection(filter = "all") {
 
   const cards = allDraftTemplates();
   const filtered = filter === "all" ? cards : cards.filter(card => card.type === filter);
-  const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
-
-  filtered.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0));
 
   collectionStats.innerHTML = `
     <div><strong>${cards.length}</strong><span>Totali</span></div>
@@ -3088,14 +3011,12 @@ function openCollection(filter = "all") {
 
   collectionGrid.innerHTML = filtered.map(card => {
     const icon = card.icon || families[card.family]?.icon || "🃏";
-    const art = getCardArtwork(card);
     const family = card.family ? families[card.family]?.label || card.family : card.type;
     const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
-    const artStyle = art ? `background-image: linear-gradient(to bottom, transparent, rgba(0,0,0,.72)), url('${art}')` : "";
 
     return `
       <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
-        <div class="mini-card-art" style="${artStyle}">${art ? "" : icon}</div>
+        <div class="mini-card-art">${icon}</div>
         <strong>${card.name}</strong>
         <span>${family} · ${type}</span>
         <small>${shortRarity(card.rarity || "common")}</small>
@@ -3142,162 +3063,7 @@ function openRankPanel() {
     </div>
   `;
 
-  openModalSafe(rankModal);
-  setActiveNav("rank");
-}
-
-function updateEconomyUi() {
-  const profile = getProfile();
-  if (coinText) coinText.textContent = `${profile.coins || 0} monete`;
-}
-
-function updateInstallHint() {
-  if (!installHintCard) return;
-
-  const standalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-
-  installHintCard.classList.toggle("hidden", standalone);
-}
-
-function showPremiumToast(text) {
-  const toast = document.createElement("div");
-  toast.className = "premium-toast";
-  toast.textContent = text;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 1400);
-}
-
-
-
-/* =========================
-   V42 · NAV / MODALI SICURE
-   ========================= */
-
-function safeOn(el, eventName, handler) {
-  if (!el || typeof handler !== "function") return;
-  el.addEventListener(eventName, handler);
-}
-
-function closeModalSafe(modal) {
-  if (modal) modal.classList.add("hidden");
-}
-
-function openModalSafe(modal) {
-  if (modal) modal.classList.remove("hidden");
-}
-
-function isVisible(el) {
-  return Boolean(el && !el.classList.contains("hidden"));
-}
-
-function setActiveNav(name) {
-  const map = {
-    home: navHomeBtn,
-    play: navPlayBtn,
-    cards: navCollectionBtn,
-    rank: navRankBtn,
-    settings: navSettingsBtn
-  };
-
-  Object.values(map).forEach(btn => btn && btn.classList.remove("active"));
-  if (map[name]) map[name].classList.add("active");
-}
-
-function updateScreenClass() {
-  document.body.classList.toggle("is-game", isVisible(gameScreen));
-  document.body.classList.toggle("is-home", isVisible(menuScreen));
-}
-
-function closeAllSheets() {
-  closeModalSafe(playModesModal);
-  closeModalSafe(collectionModal);
-  closeModalSafe(rankModal);
-  closeModalSafe(optionsHubModal);
-}
-
-function openPlayModesV42() {
-  closeAllSheets();
-  openModalSafe(playModesModal);
-  setActiveNav("play");
-}
-
-function openCollectionV42(filter = "all") {
-  if (!collectionModal || !collectionGrid || !collectionStats) return;
-
-  closeAllSheets();
-  openModalSafe(collectionModal);
-  setActiveNav("cards");
-
-  document.querySelectorAll(".collection-filter").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.filter === filter);
-    btn.onclick = () => openCollectionV42(btn.dataset.filter || "all");
-  });
-
-  const cards = allDraftTemplates();
-  const filtered = filter === "all" ? cards : cards.filter(card => card.type === filter);
-
-  collectionStats.innerHTML = `
-    <div><strong>${cards.length}</strong><span>Totali</span></div>
-    <div><strong>${cards.filter(c => c.type === "creature").length}</strong><span>Creature</span></div>
-    <div><strong>${cards.filter(c => c.rarity === "legendary").length}</strong><span>Leggendarie</span></div>
-  `;
-
-  collectionGrid.innerHTML = filtered.map(card => {
-    const icon = card.icon || families[card.family]?.icon || "🃏";
-    const family = card.family ? families[card.family]?.label || card.family : card.type;
-    const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
-
-    return `
-      <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
-        <div class="mini-card-art">${icon}</div>
-        <strong>${card.name}</strong>
-        <span>${family} · ${type}</span>
-        <small>${shortRarity(card.rarity || "common")}</small>
-      </button>
-    `;
-  }).join("");
-
-  document.querySelectorAll(".collection-card-mini").forEach(button => {
-    button.onclick = () => {
-      const card = cards.find(item => item.cardId === button.dataset.cardId);
-      if (!card) return;
-      if (card.type === "creature") showCardDetail(createCreatureCard(card));
-      else showCardDetail({ ...card, id: uid() });
-    };
-  });
-}
-
-function openRankV42() {
-  if (!rankModal || !rankProfileBox) return;
-
-  const profile = getProfile();
-  const total = (profile.wins || 0) + (profile.losses || 0);
-  const winrate = total ? Math.round(((profile.wins || 0) / total) * 100) : 0;
-  const level = getLevelFromXp(profile.xp || 0);
-
-  const rankName =
-    (profile.wins || 0) >= 40 ? "Master" :
-    (profile.wins || 0) >= 25 ? "Diamante" :
-    (profile.wins || 0) >= 14 ? "Oro" :
-    (profile.wins || 0) >= 6 ? "Argento" :
-    "Bronzo";
-
-  rankProfileBox.innerHTML = `
-    <div class="rank-avatar">${selectedAvatar}</div>
-    <div>
-      <strong>${playerNameInput?.value?.trim() || localStorage.getItem("playerName") || "Giocatore"}</strong>
-      <span>Livello ${level} · Rank ${rankName}</span>
-    </div>
-    <div class="rank-mini-stats">
-      <span>V ${profile.wins || 0}</span>
-      <span>S ${profile.losses || 0}</span>
-      <span>${winrate}%</span>
-    </div>
-  `;
-
-  closeAllSheets();
+  closeAllAppPanels();
   openModalSafe(rankModal);
   setActiveNav("rank");
 }
@@ -3343,7 +3109,7 @@ if (createOnlineBtn) createOnlineBtn.onclick = createOnlineGame;
 if (joinOnlineBtn) joinOnlineBtn.onclick = joinOnlineGame;
 if (endTurnBtn) endTurnBtn.onclick = endTurn;
 
-if (campaignBtn) campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
+if (campaignBtn && campaignModal) campaignBtn.onclick = () => campaignModal.classList.remove("hidden");
 if (draftBtn) draftBtn.onclick = startDraft;
 if (openOptionsHubBtn) openOptionsHubBtn.onclick = openOptionsHub;
 if (closeOptionsHubBtn) closeOptionsHubBtn.onclick = closeOptionsHub;
@@ -3469,14 +3235,14 @@ if (closePackBtn && packModal) closePackBtn.onclick = () => packModal.classList.
 if (quickChatBtn && quickChatModal) quickChatBtn.onclick = () => quickChatModal.classList.remove("hidden");
 if (closeQuickChatBtn && quickChatModal) closeQuickChatBtn.onclick = () => quickChatModal.classList.add("hidden");
 
-historyBtn.onclick = () => {
+if (historyBtn) historyBtn.onclick = () => {
   renderHistory();
   historyModal.classList.remove("hidden");
 };
 
 if (closeHistoryBtn && historyModal) closeHistoryBtn.onclick = () => historyModal.classList.add("hidden");
 
-replayBtn.onclick = () => {
+if (replayBtn) replayBtn.onclick = () => {
   renderReplay();
   replayModal.classList.remove("hidden");
 };
@@ -3539,115 +3305,29 @@ if (optionsHubModal) {
 
 
 /* =========================
-   V40 · EVENTI APP SICURI
+   V47 · EVENTI BARRA APP
    ========================= */
 
 safeOn(navHomeBtn, "click", () => {
-  closeAllAppSheets();
+  closeAllAppPanels();
   showOnlyMenu(true);
   setActiveNav("home");
 });
 
 safeOn(navPlayBtn, "click", () => {
-  closeAllAppSheets();
   openPlayModes();
 });
 
-safeOn(navCollectionBtn, "click", () => openCollection("all"));
-safeOn(navRankBtn, "click", () => openRankPanel());
-
-safeOn(navSettingsBtn, "click", () => {
-  closeAllAppSheets();
-  openOptionsHub();
-  setActiveNav("settings");
-});
-
-safeOn(closePlayModesBtn, "click", () => closeModalSafe(playModesModal));
-safeOn(playModesModal, "click", event => {
-  if (event.target === playModesModal) closeModalSafe(playModesModal);
-});
-safeOn(modeBotBtn, "click", () => {
-  hapticTap(true);
-  closeModalSafe(playModesModal);
-  startBotGame();
-});
-safeOn(modeOnlineBtn, "click", () => {
-  hapticTap(true);
-  closeModalSafe(playModesModal);
-  createOnlineGame();
-});
-safeOn(modeCampaignBtn, "click", () => {
-  hapticTap(true);
-  closeModalSafe(playModesModal);
-  openModalSafe(campaignModal);
-});
-safeOn(modeDraftBtn, "click", () => {
-  hapticTap(true);
-  closeModalSafe(playModesModal);
-  startDraft();
-});
-
-safeOn(closeCollectionBtn, "click", () => {
-  closeModalSafe(collectionModal);
-  setActiveNav(isVisible(gameScreen) ? "play" : "home");
-});
-safeOn(collectionModal, "click", event => {
-  if (event.target === collectionModal) {
-    closeModalSafe(collectionModal);
-    setActiveNav(isVisible(gameScreen) ? "play" : "home");
-  }
-});
-
-safeOn(closeRankBtn, "click", () => {
-  closeModalSafe(rankModal);
-  setActiveNav(isVisible(gameScreen) ? "play" : "home");
-});
-safeOn(rankModal, "click", event => {
-  if (event.target === rankModal) {
-    closeModalSafe(rankModal);
-    setActiveNav(isVisible(gameScreen) ? "play" : "home");
-  }
-});
-safeOn(rankPlayBtn, "click", () => {
-  closeModalSafe(rankModal);
-  startBotGame();
-});
-
-safeOn(document, "click", event => {
-  if (event.target.closest("button")) hapticTap(false);
-});
-
-updateInstallHint();
-updateBottomNavVisibility();
-updateEconomyUi();
-setActiveNav("home");
-
-
-/* =========================
-   V42 · EVENTI NAV SICURI
-   ========================= */
-
-safeOn(navHomeBtn, "click", () => {
-  closeAllSheets();
-  showOnlyMenu(true);
-  setActiveNav("home");
-  updateScreenClass();
-});
-
-safeOn(navPlayBtn, "click", () => {
-  openPlayModesV42();
-});
-
 safeOn(navCollectionBtn, "click", () => {
-  openCollectionV42("all");
+  openCollection("all");
 });
 
 safeOn(navRankBtn, "click", () => {
-  openRankV42();
+  openRankPanel();
 });
 
 safeOn(navSettingsBtn, "click", () => {
-  closeAllSheets();
+  closeAllAppPanels();
   openOptionsHub();
   setActiveNav("settings");
 });
@@ -3681,6 +3361,7 @@ safeOn(closeCollectionBtn, "click", () => {
   closeModalSafe(collectionModal);
   setActiveNav(isVisible(gameScreen) ? "play" : "home");
 });
+
 safeOn(collectionModal, "click", event => {
   if (event.target === collectionModal) {
     closeModalSafe(collectionModal);
@@ -3692,172 +3373,25 @@ safeOn(closeRankBtn, "click", () => {
   closeModalSafe(rankModal);
   setActiveNav(isVisible(gameScreen) ? "play" : "home");
 });
+
 safeOn(rankModal, "click", event => {
   if (event.target === rankModal) {
     closeModalSafe(rankModal);
     setActiveNav(isVisible(gameScreen) ? "play" : "home");
   }
 });
+
 safeOn(rankPlayBtn, "click", () => {
   closeModalSafe(rankModal);
   startBotGame();
 });
 
-updateScreenClass();
-setActiveNav(isVisible(gameScreen) ? "play" : "home");
-
-
-/* =========================
-   V43 · GUARDIA ERRORI
-   ========================= */
 window.addEventListener("error", event => {
   console.error("Errore app:", event.error || event.message);
-  document.body.classList.add("app-error-soft");
 });
 
 window.addEventListener("unhandledrejection", event => {
-  console.error("Errore promise:", event.reason);
-  document.body.classList.add("app-error-soft");
+  console.error("Promise non gestita:", event.reason);
 });
 
-
-
-/* =========================
-   V45 · HOME STABILE
-   ========================= */
-
-function syncStableHome() {
-  try {
-    const profile = getProfile();
-    const level = getLevelFromXp(profile.xp || 0);
-    const currentName =
-      playerNameInput?.value?.trim() ||
-      localStorage.getItem("playerName") ||
-      "Giocatore";
-
-    if (stableAvatar) stableAvatar.textContent = selectedAvatar || "🧙";
-    if (stableProfileLine) stableProfileLine.textContent = `${currentName} · Livello ${level}`;
-    if (stableNameInput && document.activeElement !== stableNameInput) stableNameInput.value = currentName;
-    if (stableDeckText) stableDeckText.textContent = deckConfigs?.[selectedDeck]?.label || selectedDeck || "Mazzo";
-    if (stableLevelText) stableLevelText.textContent = String(level);
-    if (stableWinsText) stableWinsText.textContent = String(profile.wins || 0);
-  } catch (error) {
-    console.warn("syncStableHome:", error);
-  }
-}
-
-if (stableNameInput) {
-  stableNameInput.addEventListener("input", () => {
-    if (playerNameInput) {
-      playerNameInput.value = stableNameInput.value;
-      localStorage.setItem("playerName", stableNameInput.value.trim() || "Giocatore");
-      renderProfile();
-    }
-    syncStableHome();
-  });
-}
-
-if (stableOptionsBtn) {
-  stableOptionsBtn.addEventListener("click", () => {
-    if (typeof openOptionsHub === "function") openOptionsHub();
-  });
-}
-
-if (stablePlayBtn) {
-  stablePlayBtn.addEventListener("click", () => {
-    if (typeof openPlayModesV42 === "function") openPlayModesV42();
-    else if (typeof startBotGame === "function") startBotGame();
-  });
-}
-
-if (stableCardsBtn) {
-  stableCardsBtn.addEventListener("click", () => {
-    if (typeof openCollectionV42 === "function") openCollectionV42("all");
-  });
-}
-
-const originalRenderProfileV45 = typeof renderProfile === "function" ? renderProfile : null;
-if (originalRenderProfileV45) {
-  renderProfile = function() {
-    originalRenderProfileV45();
-    syncStableHome();
-  };
-}
-
-const originalShowOnlyV45 = typeof showOnly === "function" ? showOnly : null;
-if (originalShowOnlyV45) {
-  showOnly = function(screen) {
-    originalShowOnlyV45(screen);
-    syncStableHome();
-  };
-}
-
-window.addEventListener("load", syncStableHome);
-setTimeout(syncStableHome, 100);
-
-
-
-/* =========================
-   V46 · HOME STABILE REALE
-   ========================= */
-
-function syncStableHomeV46() {
-  try {
-    const profile = typeof getProfile === "function" ? getProfile() : {};
-    const level = typeof getLevelFromXp === "function" ? getLevelFromXp(profile.xp || 0) : 1;
-    const currentName =
-      playerNameInput?.value?.trim() ||
-      localStorage.getItem("playerName") ||
-      "Giocatore";
-
-    if (stableAvatar) stableAvatar.textContent = selectedAvatar || "🧙";
-    if (stableProfileLine) stableProfileLine.textContent = `${currentName} · Livello ${level}`;
-    if (stableNameInput && document.activeElement !== stableNameInput) stableNameInput.value = currentName;
-    if (stableDeckText) stableDeckText.textContent = deckConfigs?.[selectedDeck]?.label || selectedDeck || "Mazzo";
-    if (stableLevelText) stableLevelText.textContent = String(level);
-    if (stableWinsText) stableWinsText.textContent = String(profile.wins || 0);
-  } catch (error) {
-    console.warn("syncStableHomeV46:", error);
-  }
-}
-
-safeOn(stableNameInput, "input", () => {
-  if (playerNameInput) {
-    playerNameInput.value = stableNameInput.value;
-    localStorage.setItem("playerName", stableNameInput.value.trim() || "Giocatore");
-    renderProfile();
-  }
-  syncStableHomeV46();
-});
-
-safeOn(stableOptionsBtn, "click", () => {
-  if (typeof openOptionsHub === "function") openOptionsHub();
-});
-
-safeOn(stablePlayBtn, "click", () => {
-  if (typeof openPlayModesV42 === "function") openPlayModesV42();
-  else if (typeof startBotGame === "function") startBotGame();
-});
-
-safeOn(stableCardsBtn, "click", () => {
-  if (typeof openCollectionV42 === "function") openCollectionV42("all");
-});
-
-const originalRenderProfileV46 = typeof renderProfile === "function" ? renderProfile : null;
-if (originalRenderProfileV46) {
-  renderProfile = function() {
-    originalRenderProfileV46();
-    syncStableHomeV46();
-  };
-}
-
-const originalShowOnlyV46 = typeof showOnly === "function" ? showOnly : null;
-if (originalShowOnlyV46) {
-  showOnly = function(screen) {
-    originalShowOnlyV46(screen);
-    syncStableHomeV46();
-  };
-}
-
-window.addEventListener("load", syncStableHomeV46);
-setTimeout(syncStableHomeV46, 100);
+setActiveNav("home");

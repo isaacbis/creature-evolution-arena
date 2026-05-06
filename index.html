@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=46" />
+  <link rel="stylesheet" href="style.css?v=47" />
 <link rel="manifest" href="manifest.json" />
 
   <meta name="theme-color" content="#ff9f43" />
@@ -15,7 +15,7 @@
 
   <link rel="apple-touch-icon" href="app-icon.svg" />
 </head>
-<body class="app-v46">
+<body class="app-v47">
 
   <script>
     function setAppViewportHeight() {
@@ -26,76 +26,72 @@
     window.addEventListener("orientationchange", setAppViewportHeight);
   </script>
 
-<!-- MENU PRINCIPALE -->
-  <div id="menuScreen" class="screen menu-screen stable-menu-screen">
-    <div id="legacyHomeControls" class="legacy-home-controls" aria-hidden="true">
-      <input id="playerNameInput" type="text" maxlength="18" />
-      <button id="openMissionsBtn" type="button">Missioni</button>
-      <button id="summaryAvatarChip" type="button"><span id="summaryAvatar">🧙 Mago</span></button>
-      <button id="summaryDeckChip" type="button"><span id="summaryDeck">⚔️ Bilanciato</span></button>
-      <button id="summaryArenaChip" type="button"><span id="summaryArena">Arena mistica</span></button>
-      <button id="playBotBtn" type="button">Gioca subito</button>
-      <button id="createOnlineBtn" type="button">Online</button>
-      <button id="campaignBtn" type="button">Campagna</button>
-      <button id="draftBtn" type="button">Draft</button>
-      <button id="openOptionsHubBtn" type="button">Opzioni</button>
-      <span id="profileNameText">Profilo giocatore</span>
-      <span id="profileLevelText">Livello 1 · XP 0/100</span>
-      <span id="coinText">0 monete</span>
+
+  <!-- MENU PRINCIPALE -->
+  <div id="menuScreen" class="screen menu-screen compact-menu-screen">
+    <div class="menu-shell compact-home-shell">
+      <div class="home-hero-card">
+        <div class="home-hero-bg home-hero-bg-one"></div>
+        <div class="home-hero-bg home-hero-bg-two"></div>
+
+        <div class="home-topbar">
+          <div class="profile-strip home-profile-strip">
+            <div>
+              <strong id="profileNameText">Profilo giocatore</strong>
+              <span id="profileLevelText">Livello 1 · XP 0/100</span>
+            </div>
+          </div>
+
+          <button id="openMissionsBtn" class="icon-pill">🎯 Missioni</button>
+        </div>
+
+        <div class="home-brand-block">
+          <div class="home-logo-mark">⚔️</div>
+          <div class="home-brand-copy">
+            <p class="eyebrow">Card battle mobile game</p>
+            <h1>Creature Evolution Arena</h1>
+            <p class="home-subtitle">Una home semplice, pulita e d'impatto. Le opzioni avanzate le trovi in un pannello dedicato.</p>
+          </div>
+        </div>
+
+        <label class="input-label home-name-label">
+          Il tuo nome
+          <input id="playerNameInput" type="text" placeholder="Es. Isaac" maxlength="18" />
+        </label>
+
+        <div class="home-summary-grid">
+          <button id="summaryAvatarChip" class="summary-chip" type="button">
+            <span>Avatar</span>
+            <strong id="summaryAvatar">🧙 Mago</strong>
+          </button>
+
+          <button id="summaryDeckChip" class="summary-chip" type="button">
+            <span>Mazzo</span>
+            <strong id="summaryDeck">⚔️ Bilanciato</strong>
+          </button>
+
+          <button id="summaryArenaChip" class="summary-chip" type="button">
+            <span>Arena</span>
+            <strong id="summaryArena">Arena mistica</strong>
+          </button>
+        </div>
+
+        <div class="main-actions hero-main-actions">
+          <button id="playBotBtn" class="primary-action home-primary-action">Gioca subito</button>
+          <button id="createOnlineBtn" class="glass-action home-secondary-main">Online</button>
+        </div>
+
+        <div class="main-actions hero-secondary-actions">
+          <button id="campaignBtn" class="glass-action">Campagna</button>
+          <button id="draftBtn" class="glass-action">Draft</button>
+        </div>
+
+        <button id="openOptionsHubBtn" class="full-glass-btn options-trigger-btn">Personalizza · Entra con codice · Altre opzioni</button>
+      </div>
     </div>
-
-    <main class="home-app">
-      <header class="home-app-profile">
-        <div class="home-app-avatar" id="stableAvatar">🧙</div>
-        <div class="home-app-profile-text">
-          <strong>Profilo giocatore</strong>
-          <span id="stableProfileLine">Giocatore · Livello 1</span>
-        </div>
-        <button id="stableOptionsBtn" class="home-icon-btn" type="button">⚙️</button>
-      </header>
-
-      <section class="home-app-brand">
-        <div class="home-app-logo">⚔️</div>
-        <div>
-          <small>CREATURE EVOLUTION</small>
-          <h1>Arena</h1>
-          <p>Carte, evoluzioni, boss e battaglie rapide.</p>
-        </div>
-      </section>
-
-      <label class="home-app-name">
-        <span>Nome giocatore</span>
-        <input id="stableNameInput" placeholder="Il tuo nome" autocomplete="off" />
-      </label>
-
-      <section class="home-app-stats">
-        <div>
-          <span>🔥</span>
-          <strong id="stableDeckText">Mazzo</strong>
-          <small>Deck</small>
-        </div>
-        <div>
-          <span>⭐</span>
-          <strong id="stableLevelText">1</strong>
-          <small>Livello</small>
-        </div>
-        <div>
-          <span>🏆</span>
-          <strong id="stableWinsText">0</strong>
-          <small>Vittorie</small>
-        </div>
-      </section>
-
-      <section class="home-app-actions">
-        <button id="stablePlayBtn" class="home-play-btn" type="button">⚔️ Gioca</button>
-        <button id="stableCardsBtn" class="home-secondary-btn" type="button">🃏 Carte</button>
-      </section>
-
-      <footer class="home-app-footer">Usa la barra in basso per cambiare schermata.</footer>
-    </main>
   </div>
 
-<!-- HUB OPZIONI -->
+  <!-- HUB OPZIONI -->
   <div id="optionsHubModal" class="modal hidden">
     <div class="modal-card settings-hub-card">
       <div class="settings-hub-head">
@@ -413,7 +409,6 @@
       </div>
 
       <div id="rankProfileBox" class="rank-profile-box"></div>
-
       <div class="rank-road">
         <div class="rank-step active">🥉 Bronzo</div>
         <div class="rank-step">🥈 Argento</div>
@@ -618,7 +613,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=46")
+        .register("./service-worker.js?v=47")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -626,6 +621,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=46"></script>
+<script type="module" src="script.js?v=47"></script>
 </body>
 </html>

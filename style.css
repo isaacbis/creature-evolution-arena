@@ -2739,16 +2739,8 @@ body.screen-shake {
 
 
 
-
-
-
-
-
-
-
-
 /* ==========================================================
-   V46 · HOME REBUILT - FINAL LAYOUT
+   V47 · STABLE WORKING APP LAYOUT
    ========================================================== */
 
 :root {
@@ -2768,18 +2760,14 @@ body {
   overflow: hidden;
 }
 
-body.app-v46 {
+body.app-v47 {
   width: 100vw;
   height: var(--app-height);
   min-height: var(--app-height);
   overflow: hidden;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(255,159,67,.15), transparent 28%),
-    radial-gradient(circle at 90% 16%, rgba(89,209,255,.12), transparent 30%),
-    linear-gradient(160deg, #111827 0%, #05060b 100%);
 }
 
-/* screens */
+/* schermate */
 #menuScreen,
 #lobbyScreen,
 #gameScreen {
@@ -2798,13 +2786,9 @@ body.app-v46 {
   display: none !important;
 }
 
-#menuScreen:not(.hidden) {
-  display: block !important;
-}
-
+#menuScreen:not(.hidden),
 #lobbyScreen:not(.hidden) {
   display: block !important;
-  padding: 8px !important;
 }
 
 #gameScreen:not(.hidden) {
@@ -2814,310 +2798,158 @@ body.app-v46 {
   padding: 6px !important;
 }
 
-/* hide legacy controls */
-.legacy-home-controls {
-  position: absolute !important;
-  left: -10000px !important;
-  top: -10000px !important;
-  width: 1px !important;
-  height: 1px !important;
+/* HOME pulita senza spazio alto */
+#menuScreen .menu-shell,
+#menuScreen .compact-home-shell {
+  width: min(760px, 100vw) !important;
+  height: 100% !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
   overflow: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
 }
 
-/* home real */
-.home-app {
-  width: 100%;
-  height: 100%;
-  max-height: 100%;
-  padding: 8px 12px 10px;
-  display: grid;
-  grid-template-rows: auto auto auto auto auto 1fr;
-  gap: 8px;
-  overflow: hidden;
-  border-radius: 0 0 28px 28px;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.045)),
-    rgba(7,9,18,.52);
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
-}
-
-.home-app-profile,
-.home-app-brand,
-.home-app-name,
-.home-app-stats > div,
-.home-app-actions button {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.055)),
-    rgba(7,9,18,.54);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 12px 28px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.08);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-}
-
-.home-app-profile {
-  min-height: 50px;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 9px;
-  border-radius: 18px;
-}
-
-.home-app-avatar {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  font-size: 20px;
-  background: linear-gradient(145deg, #ffe066, #ff922b);
-  color: #1b1207;
-}
-
-.home-app-profile-text strong,
-.home-app-profile-text span {
-  display: block;
-}
-
-.home-app-profile-text strong {
-  color: #fff;
-  font-size: 14px;
-  line-height: 1.05;
-}
-
-.home-app-profile-text span {
-  margin-top: 2px;
-  color: rgba(255,255,255,.66);
-  font-size: 11px;
-}
-
-.home-icon-btn {
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  border-radius: 14px;
-  color: #fff;
-  background: rgba(255,255,255,.09);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: none;
-}
-
-.home-app-brand {
-  display: grid;
-  grid-template-columns: 58px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 22px;
-}
-
-.home-app-logo {
-  width: 58px;
-  height: 58px;
-  display: grid;
-  place-items: center;
-  border-radius: 20px;
-  font-size: 30px;
-  background: linear-gradient(145deg, #ffe066, #ff922b);
-  color: #1b1207;
-}
-
-.home-app-brand small,
-.home-app-brand h1,
-.home-app-brand p {
-  display: block;
-  margin: 0;
-}
-
-.home-app-brand small {
-  color: rgba(255,255,255,.62);
-  font-size: 10px;
-  font-weight: 950;
-  letter-spacing: .12em;
-}
-
-.home-app-brand h1 {
-  margin-top: 1px;
-  color: #fff;
-  font-size: clamp(34px, 8vw, 54px);
-  line-height: .88;
-  letter-spacing: -.06em;
-}
-
-.home-app-brand p {
-  margin-top: 4px;
-  color: rgba(255,255,255,.56);
-  font-size: 12px;
-}
-
-.home-app-name {
-  display: block;
-  padding: 8px 10px;
-  border-radius: 18px;
-  color: rgba(255,255,255,.72);
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.home-app-name span {
-  display: block;
-}
-
-.home-app-name input {
-  width: 100%;
-  height: 38px;
-  margin-top: 5px;
-  padding: 8px 10px;
-  border: 0;
-  outline: none;
-  border-radius: 13px;
-  color: white;
-  font-size: 15px;
-  font-weight: 850;
-  background: rgba(0,0,0,.26);
-}
-
-.home-app-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.home-app-stats > div {
-  min-height: 66px;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  padding: 8px;
-  border-radius: 18px;
-}
-
-.home-app-stats span,
-.home-app-stats strong,
-.home-app-stats small {
-  display: block;
-}
-
-.home-app-stats span {
-  font-size: 18px;
-}
-
-.home-app-stats strong {
-  color: #fff;
-  font-size: 13px;
-  line-height: 1.05;
-  margin-top: 3px;
-}
-
-.home-app-stats small {
-  color: rgba(255,255,255,.54);
-  font-size: 9px;
-  font-weight: 950;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-
-.home-app-actions {
-  display: grid;
-  grid-template-columns: 1.35fr .85fr;
-  gap: 8px;
-}
-
-.home-app-actions button {
-  height: 48px;
-  border-radius: 18px;
-  color: white;
-  font-size: 14px;
-  font-weight: 950;
-}
-
-.home-play-btn {
-  color: #1b1207 !important;
-  background: linear-gradient(145deg, #ffe066, #ff922b) !important;
-  border: 0 !important;
-  box-shadow: 0 18px 36px rgba(255,159,67,.28) !important;
-}
-
-.home-secondary-btn {
-  color: #fff !important;
-}
-
-.home-app-footer {
-  align-self: start;
-  color: rgba(255,255,255,.48);
-  text-align: center;
-  font-size: 11px;
-}
-
-/* Bottom nav stable */
-.app-bottom-nav {
-  position: fixed !important;
-  left: 50% !important;
-  bottom: max(6px, env(safe-area-inset-bottom)) !important;
-  transform: translateX(-50%) !important;
-  z-index: 100 !important;
-  width: min(480px, calc(100vw - 14px)) !important;
-  min-height: 56px !important;
+#menuScreen .home-hero-card {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 8px 12px 10px !important;
+  border-radius: 0 0 28px 28px !important;
   display: grid !important;
-  grid-template-columns: repeat(5, 1fr) !important;
+  grid-template-rows: auto auto auto auto auto auto;
+  align-content: start !important;
+  justify-content: stretch !important;
+  gap: 7px !important;
+  overflow: hidden !important;
+}
+
+#menuScreen .home-topbar {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+}
+
+#menuScreen .profile-strip,
+#menuScreen .home-profile-strip {
+  margin: 0 !important;
+  padding: 8px 10px !important;
+  min-height: 46px !important;
+  border-radius: 17px !important;
+}
+
+#menuScreen .profile-strip strong {
+  font-size: 13px !important;
+  line-height: 1.05 !important;
+}
+
+#menuScreen .profile-strip span {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  margin-top: 2px !important;
+}
+
+#menuScreen .icon-pill {
+  min-height: 46px !important;
+  height: 46px !important;
+  padding: 8px 11px !important;
+  border-radius: 16px !important;
+  font-size: 11px !important;
+}
+
+#menuScreen .home-brand-block {
+  margin: 2px 0 0 !important;
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+#menuScreen .home-logo-mark {
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 18px !important;
+  font-size: 27px !important;
+}
+
+#menuScreen .eyebrow {
+  margin: 0 0 2px !important;
+  font-size: 8px !important;
+  letter-spacing: .13em !important;
+}
+
+#menuScreen .home-brand-copy h1 {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: clamp(24px, 6vw, 36px) !important;
+  line-height: .9 !important;
+}
+
+#menuScreen .home-subtitle {
+  display: none !important;
+}
+
+#menuScreen .home-name-label {
+  margin: 0 !important;
   gap: 4px !important;
-  padding: 5px !important;
-  border-radius: 24px !important;
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.17), rgba(255,255,255,.07)),
-    rgba(7,9,18,.92) !important;
-  border: 1px solid rgba(255,255,255,.16) !important;
-  box-shadow: 0 18px 55px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14) !important;
-  -webkit-backdrop-filter: blur(18px) !important;
-  backdrop-filter: blur(18px) !important;
+  font-size: 10px !important;
 }
 
-.app-nav-item {
-  min-height: 42px !important;
-  padding: 4px 2px !important;
+#menuScreen .home-name-label input {
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 8px 10px !important;
+  border-radius: 13px !important;
+  font-size: 14px !important;
+}
+
+#menuScreen .home-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+#menuScreen .summary-chip {
+  min-height: 48px !important;
+  padding: 7px !important;
   border-radius: 15px !important;
-  display: grid !important;
-  place-items: center !important;
-  gap: 1px !important;
-  color: rgba(255,255,255,.68) !important;
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  box-shadow: none !important;
+  gap: 2px !important;
 }
 
-.app-nav-item span {
-  display: block !important;
-  font-size: 17px !important;
-  line-height: 1 !important;
-}
-
-.app-nav-item small {
-  display: block !important;
+#menuScreen .summary-chip span {
   font-size: 7.5px !important;
-  line-height: 1 !important;
-  font-weight: 950 !important;
 }
 
-.app-nav-item.active {
-  color: #fff !important;
-  background:
-    radial-gradient(circle at top, rgba(255,212,59,.24), transparent 54%),
-    linear-gradient(145deg, rgba(255,255,255,.15), rgba(255,255,255,.055)) !important;
-  border-color: rgba(255,212,59,.22) !important;
+#menuScreen .summary-chip strong {
+  font-size: 10px !important;
+  line-height: 1.05 !important;
 }
 
-.app-nav-item.primary {
-  color: #1b1207 !important;
-  background: linear-gradient(145deg, #ffe066, #ff922b) !important;
-  transform: translateY(-6px) !important;
+#menuScreen .hero-main-actions,
+#menuScreen .hero-secondary-actions {
+  margin: 0 !important;
+  gap: 7px !important;
 }
 
-/* Game stable */
+#menuScreen .home-primary-action,
+#menuScreen .home-secondary-main,
+#menuScreen .hero-secondary-actions .glass-action,
+#menuScreen .options-trigger-btn {
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 7px 9px !important;
+  border-radius: 15px !important;
+  font-size: 12px !important;
+}
+
+#menuScreen .options-trigger-btn {
+  margin-top: 0 !important;
+}
+
+/* GAME in una schermata */
 #gameScreen .app-topbar {
   min-height: 42px !important;
   margin: 0 !important;
@@ -3188,12 +3020,21 @@ body.app-v46 {
   border-radius: 11px !important;
 }
 
+#gameScreen .terrain-zone span,
+#gameScreen .terrain-zone strong {
+  font-size: 8.5px !important;
+}
+
 #gameScreen .field-zone,
 #gameScreen .hand-zone {
   padding: 5px !important;
   border-radius: 13px !important;
   min-height: 0 !important;
   overflow: hidden !important;
+}
+
+#gameScreen .log-wrapper {
+  display: none !important;
 }
 
 #gameScreen .zone-title {
@@ -3229,10 +3070,6 @@ body.app-v46 {
   padding: 0 !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
-}
-
-#gameScreen .log-wrapper {
-  display: none !important;
 }
 
 #gameScreen .card {
@@ -3285,70 +3122,288 @@ body.app-v46 {
   display: none !important;
 }
 
-.modal {
-  z-index: 200 !important;
+/* Bottom nav */
+.app-bottom-nav {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: max(6px, env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  z-index: 100 !important;
+  width: min(480px, calc(100vw - 14px)) !important;
+  min-height: 56px !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 4px !important;
+  padding: 5px !important;
+  border-radius: 24px !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.17), rgba(255,255,255,.07)),
+    rgba(7,9,18,.92) !important;
+  border: 1px solid rgba(255,255,255,.16) !important;
+  box-shadow: 0 18px 55px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  backdrop-filter: blur(18px) !important;
 }
 
+.app-nav-item {
+  min-height: 42px !important;
+  padding: 4px 2px !important;
+  border-radius: 15px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 1px !important;
+  color: rgba(255,255,255,.68) !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+.app-nav-item span {
+  display: block !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+}
+
+.app-nav-item small {
+  display: block !important;
+  font-size: 7.5px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+}
+
+.app-nav-item.active {
+  color: #fff !important;
+  background:
+    radial-gradient(circle at top, rgba(255,212,59,.24), transparent 54%),
+    linear-gradient(145deg, rgba(255,255,255,.15), rgba(255,255,255,.055)) !important;
+  border-color: rgba(255,212,59,.22) !important;
+}
+
+.app-nav-item.primary {
+  color: #1b1207 !important;
+  background: linear-gradient(145deg, #ffe066, #ff922b) !important;
+  transform: translateY(-6px) !important;
+}
+
+/* App sheets */
 .app-sheet-card {
   width: min(760px, calc(100vw - 18px)) !important;
   max-height: calc(var(--app-height) - 24px - env(safe-area-inset-bottom)) !important;
+  text-align: left !important;
   overflow: auto !important;
 }
 
-@media (min-width: 760px) {
-  #gameScreen .card {
-    flex-basis: 68px !important;
-    width: 68px !important;
-    min-height: 82px !important;
-  }
+.sheet-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+}
 
-  #gameScreen .compact-field {
-    height: 64px !important;
-    min-height: 64px !important;
-  }
+.sheet-head .result-icon,
+.sheet-head h2,
+.sheet-head p {
+  text-align: left !important;
+}
 
-  #gameScreen .hand {
-    height: 92px !important;
-    min-height: 92px !important;
-  }
+.sheet-close-btn {
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  border-radius: 13px !important;
+  color: white !important;
+  background: rgba(255,255,255,.10) !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+}
+
+.play-mode-grid,
+.collection-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+.play-mode-card {
+  min-height: 112px !important;
+  text-align: left !important;
+  padding: 12px !important;
+  border-radius: 20px !important;
+  color: white !important;
+  display: grid !important;
+  align-content: space-between !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+}
+
+.play-mode-card span {
+  font-size: 28px !important;
+}
+
+.play-mode-card strong,
+.play-mode-card small {
+  display: block !important;
+}
+
+.fire-mode { background: linear-gradient(145deg, #ff922b, #842020) !important; }
+.water-mode { background: linear-gradient(145deg, #339af0, #0b3d91) !important; }
+.shadow-mode { background: linear-gradient(145deg, #845ef7, #240046) !important; }
+.forest-mode { background: linear-gradient(145deg, #51cf66, #1b5e2b) !important; }
+
+.collection-toolbar {
+  display: flex !important;
+  gap: 7px !important;
+  overflow-x: auto !important;
+  padding-bottom: 8px !important;
+}
+
+.collection-filter {
+  flex: 0 0 auto !important;
+  min-height: 32px !important;
+  padding: 7px 11px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  color: rgba(255,255,255,.75) !important;
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+
+.collection-filter.active {
+  color: #1b1207 !important;
+  background: linear-gradient(145deg, #ffe066, #ff922b) !important;
+}
+
+.collection-stats {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 7px !important;
+  margin: 10px 0 !important;
+}
+
+.collection-stats div,
+.rank-profile-box,
+.rank-step {
+  padding: 10px !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+
+.collection-stats strong,
+.collection-stats span {
+  display: block !important;
+}
+
+.collection-stats strong {
+  font-size: 18px !important;
+}
+
+.collection-stats span {
+  font-size: 9px !important;
+  color: rgba(255,255,255,.62) !important;
+}
+
+.collection-grid {
+  max-height: 50dvh !important;
+  overflow: auto !important;
+}
+
+.collection-card-mini {
+  min-height: 106px !important;
+  text-align: left !important;
+  padding: 9px !important;
+  border-radius: 17px !important;
+  color: white !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.11), rgba(255,255,255,.045)) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+}
+
+.mini-card-art {
+  width: 40px !important;
+  height: 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 13px !important;
+  font-size: 22px !important;
+  background: rgba(0,0,0,.20) !important;
+}
+
+.collection-card-mini strong,
+.collection-card-mini span,
+.collection-card-mini small {
+  display: block !important;
+}
+
+.collection-card-mini strong {
+  margin-top: 4px !important;
+  font-size: 12px !important;
+}
+
+.collection-card-mini span,
+.collection-card-mini small {
+  font-size: 9px !important;
+  color: rgba(255,255,255,.66) !important;
+}
+
+.rank-profile-box {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 10px !important;
+}
+
+.rank-avatar {
+  width: 54px !important;
+  height: 54px !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 28px !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.10) !important;
+}
+
+.rank-mini-stats {
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.rank-mini-stats span {
+  min-width: 42px !important;
+  text-align: center !important;
+  padding: 4px 6px !important;
+  border-radius: 999px !important;
+  font-size: 9px !important;
+  font-weight: 950 !important;
+  background: rgba(0,0,0,.24) !important;
+}
+
+.rank-road {
+  display: grid !important;
+  gap: 7px !important;
+  margin: 10px 0 !important;
 }
 
 @media (max-width: 420px) {
-  .home-app {
-    gap: 6px;
-    padding: 7px 10px 8px;
+  #menuScreen .home-hero-card {
+    gap: 6px !important;
+    padding: 7px 10px 8px !important;
   }
 
-  .home-app-profile {
-    min-height: 48px;
-    padding: 7px 9px;
+  #menuScreen .home-brand-block {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
   }
 
-  .home-app-brand {
-    grid-template-columns: 50px minmax(0, 1fr);
-    padding: 9px;
+  #menuScreen .home-logo-mark {
+    width: 50px !important;
+    height: 50px !important;
+    font-size: 24px !important;
   }
 
-  .home-app-logo {
-    width: 50px;
-    height: 50px;
-    font-size: 26px;
+  #menuScreen .home-brand-copy h1 {
+    font-size: 24px !important;
   }
 
-  .home-app-brand h1 {
-    font-size: 34px;
-  }
-
-  .home-app-brand p {
-    display: none;
-  }
-
-  .home-app-stats > div {
-    min-height: 60px;
-  }
-
-  .home-app-actions button {
-    height: 44px;
+  #menuScreen .hero-secondary-actions {
+    display: none !important;
   }
 
   #gameScreen .battle-board {
@@ -3359,5 +3414,9 @@ body.app-v46 {
     flex-basis: 52px !important;
     width: 52px !important;
     min-height: 64px !important;
+  }
+
+  .play-mode-grid {
+    grid-template-columns: 1fr 1fr !important;
   }
 }

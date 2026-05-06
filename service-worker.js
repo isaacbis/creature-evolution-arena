@@ -1,4 +1,4 @@
-const CACHE_NAME = "creature-evolution-arena-v46";
+const CACHE_NAME = "creature-evolution-arena-v47";
 
 const APP_SHELL = [
   "./",
@@ -7,17 +7,7 @@ const APP_SHELL = [
   "./script.js",
   "./firebase.js",
   "./manifest.json",
-  "./app-icon.svg",
-  "./assets/cards/arciera-elfea.png",
-  "./assets/cards/aurelia-angelo-solare.png",
-  "./assets/cards/drakthar-il-drago-infernale.png",
-  "./assets/cards/fenice-reale.png",
-  "./assets/cards/golem-di-pietra.png",
-  "./assets/cards/guardiano-della-foresta.png",
-  "./assets/cards/leviatano-degli-abissi.png",
-  "./assets/cards/mago-del-gelo.png",
-  "./assets/cards/necromante-del-vuoto.png",
-  "./assets/cards/stregone-del-chaos.png"
+  "./app-icon.svg"
 ];
 
 self.addEventListener("install", event => {
