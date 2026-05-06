@@ -5139,3 +5139,329 @@ body.app-error-soft::after {
     min-height: 64px !important;
   }
 }
+
+
+
+/* ==========================================================
+   V44 · HOME HARD FIX
+   Nasconde la vecchia home che produceva il riquadro vuoto e
+   mostra una home pulita, fissa, tutta in una schermata.
+   ========================================================== */
+
+:root {
+  --app-height: 100dvh;
+  --bottom-nav-h: 66px;
+}
+
+html,
+body {
+  width: 100% !important;
+  height: var(--app-height) !important;
+  min-height: var(--app-height) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+body.app-v44 {
+  width: 100vw !important;
+  height: var(--app-height) !important;
+  min-height: var(--app-height) !important;
+  overflow: hidden !important;
+}
+
+/* La vecchia home resta nel DOM per non rompere il JS, ma non si vede più */
+body.app-v44 #menuScreen {
+  position: fixed !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Quando non siamo in home la home pulita sparisce */
+.v44-home.hidden,
+body.is-game .v44-home {
+  display: none !important;
+}
+
+.v44-home {
+  position: fixed !important;
+  inset: 0 0 calc(var(--bottom-nav-h) + env(safe-area-inset-bottom)) 0 !important;
+  z-index: 5 !important;
+  width: 100vw !important;
+  height: calc(var(--app-height) - var(--bottom-nav-h) - env(safe-area-inset-bottom)) !important;
+  padding: 8px 12px 10px !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  display: grid !important;
+  grid-template-rows: auto auto auto auto auto 1fr !important;
+  align-content: start !important;
+  gap: 8px !important;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,159,67,0.16), transparent 30%),
+    radial-gradient(circle at 90% 18%, rgba(89,209,255,0.13), transparent 34%),
+    linear-gradient(160deg, #111827 0%, #05060b 100%) !important;
+}
+
+.v44-home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.035)),
+    rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+
+.v44-profile,
+.v44-brand,
+.v44-stats > div,
+.v44-name,
+.v44-actions button {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.055)),
+    rgba(7,9,18,0.54) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.09) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.v44-profile {
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 18px;
+}
+
+.v44-avatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  font-size: 20px;
+  background: linear-gradient(145deg, #ffe066, #ff922b);
+  color: #1b1207;
+}
+
+.v44-profile strong,
+.v44-profile span,
+.v44-brand small,
+.v44-brand h1,
+.v44-name,
+.v44-stats strong,
+.v44-stats small {
+  display: block;
+}
+
+.v44-profile strong {
+  color: white;
+  font-size: 14px;
+  line-height: 1.05;
+}
+
+.v44-profile span {
+  margin-top: 2px;
+  color: rgba(255,255,255,0.66);
+  font-size: 11px;
+}
+
+.v44-brand {
+  display: grid;
+  grid-template-columns: 58px minmax(0,1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 22px;
+}
+
+.v44-logo {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  font-size: 30px;
+  background: linear-gradient(145deg, #ffe066, #ff922b);
+  color: #1b1207;
+  box-shadow: 0 18px 38px rgba(255,159,67,0.24);
+}
+
+.v44-brand small {
+  color: rgba(255,255,255,0.62);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.v44-brand h1 {
+  margin: 0;
+  color: white;
+  font-size: clamp(34px, 8vw, 54px);
+  line-height: .88;
+  letter-spacing: -0.06em;
+}
+
+.v44-name {
+  padding: 8px 10px;
+  border-radius: 18px;
+  color: rgba(255,255,255,0.72);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.v44-name input {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 5px;
+  padding: 8px 10px;
+  border: 0;
+  outline: none;
+  border-radius: 13px;
+  color: white;
+  font-size: 15px;
+  font-weight: 800;
+  background: rgba(0,0,0,0.26);
+}
+
+.v44-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.v44-stats > div {
+  min-height: 70px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 8px;
+  border-radius: 18px;
+}
+
+.v44-stats span {
+  font-size: 18px;
+}
+
+.v44-stats strong {
+  color: white;
+  font-size: 13px;
+  line-height: 1.05;
+  margin-top: 3px;
+}
+
+.v44-stats small {
+  color: rgba(255,255,255,0.54);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.v44-actions {
+  display: grid;
+  grid-template-columns: 1.35fr .85fr;
+  gap: 8px;
+}
+
+.v44-actions button {
+  min-height: 48px;
+  border-radius: 18px;
+  color: white;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.v44-actions .v44-primary {
+  color: #1b1207 !important;
+  background: linear-gradient(145deg, #ffe066, #ff922b) !important;
+  border: 0 !important;
+  box-shadow: 0 18px 36px rgba(255,159,67,0.28) !important;
+}
+
+.v44-hint {
+  margin: 2px 0 0;
+  color: rgba(255,255,255,0.50);
+  text-align: center;
+  font-size: 11px;
+}
+
+/* Barra sotto sopra tutto */
+.app-bottom-nav {
+  z-index: 100 !important;
+}
+
+/* Gioco: resta visibile sopra home quando attivo */
+body.app-v44 #gameScreen.game-screen:not(.hidden),
+body.app-v44 #lobbyScreen.lobby-screen:not(.hidden) {
+  position: fixed !important;
+  inset: 0 0 calc(var(--bottom-nav-h) + env(safe-area-inset-bottom)) 0 !important;
+  z-index: 20 !important;
+  width: 100vw !important;
+  height: calc(var(--app-height) - var(--bottom-nav-h) - env(safe-area-inset-bottom)) !important;
+  max-height: calc(var(--app-height) - var(--bottom-nav-h) - env(safe-area-inset-bottom)) !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+
+body.app-v44 #gameScreen.game-screen:not(.hidden) {
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0,1fr) !important;
+  gap: 4px !important;
+  padding: 4px 5px !important;
+}
+
+/* Desktop evita card gigante vuota */
+@media (min-width: 760px) {
+  .v44-home {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: min(780px, 100vw) !important;
+    border-radius: 0 0 28px 28px;
+  }
+}
+
+@media (max-width: 420px) {
+  .v44-home {
+    gap: 6px !important;
+    padding: 7px 10px 8px !important;
+  }
+
+  .v44-profile {
+    min-height: 48px;
+    padding: 7px 9px;
+  }
+
+  .v44-brand {
+    grid-template-columns: 50px minmax(0,1fr);
+    padding: 9px;
+  }
+
+  .v44-logo {
+    width: 50px;
+    height: 50px;
+    font-size: 26px;
+  }
+
+  .v44-brand h1 {
+    font-size: 34px;
+  }
+
+  .v44-stats > div {
+    min-height: 62px;
+  }
+
+  .v44-actions button {
+    min-height: 44px;
+  }
+}

@@ -143,6 +143,17 @@ const summaryArenaChip = $("summaryArenaChip");
 
 const enemyHudBox = $("enemyHudBox");
 
+const v44Home = $("v44Home");
+const v44Avatar = $("v44Avatar");
+const v44PlayerLine = $("v44PlayerLine");
+const v44PlayerNameInput = $("v44PlayerNameInput");
+const v44DeckText = $("v44DeckText");
+const v44CoinsText = $("v44CoinsText");
+const v44WinsText = $("v44WinsText");
+const v44PlayBtn = $("v44PlayBtn");
+const v44OptionsBtn = $("v44OptionsBtn");
+
+
 const appBottomNav = $("appBottomNav");
 const navHomeBtn = $("navHomeBtn");
 const navPlayBtn = $("navPlayBtn");
@@ -3706,3 +3717,80 @@ window.addEventListener("unhandledrejection", event => {
   console.error("Errore promise:", event.reason);
   document.body.classList.add("app-error-soft");
 });
+
+
+
+/* =========================
+   V44 · HOME HARD FIX
+   ========================= */
+
+function syncV44Home() {
+  if (!v44Home) return;
+
+  const profile = getProfile ? getProfile() : {};
+  const savedName = localStorage.getItem("playerName") || "Giocatore";
+  const level = getLevelFromXp ? getLevelFromXp(profile.xp || 0) : 1;
+
+  if (v44Avatar) v44Avatar.textContent = selectedAvatar || "🧙";
+  if (v44PlayerLine) v44PlayerLine.textContent = `${savedName} · Livello ${level}`;
+  if (v44PlayerNameInput && document.activeElement !== v44PlayerNameInput) {
+    v44PlayerNameInput.value = playerNameInput?.value || savedName;
+  }
+
+  if (v44DeckText) {
+    const deckLabel = deckConfigs?.[selectedDeck]?.label || selectedDeck || "Mazzo";
+    v44DeckText.textContent = deckLabel;
+  }
+
+  if (v44CoinsText) v44CoinsText.textContent = profile.coins || 0;
+  if (v44WinsText) v44WinsText.textContent = `${profile.wins || 0} V`;
+}
+
+function showV44Home(show = true) {
+  if (!v44Home) return;
+  v44Home.classList.toggle("hidden", !show);
+}
+
+if (v44PlayerNameInput) {
+  v44PlayerNameInput.addEventListener("input", () => {
+    if (playerNameInput) {
+      playerNameInput.value = v44PlayerNameInput.value;
+      localStorage.setItem("playerName", v44PlayerNameInput.value.trim() || "Giocatore");
+      renderProfile();
+    }
+    syncV44Home();
+  });
+}
+
+if (v44PlayBtn) {
+  v44PlayBtn.addEventListener("click", () => {
+    if (typeof openPlayModesV42 === "function") openPlayModesV42();
+    else if (typeof startBotGame === "function") startBotGame();
+  });
+}
+
+if (v44OptionsBtn) {
+  v44OptionsBtn.addEventListener("click", () => {
+    if (typeof openOptionsHub === "function") openOptionsHub();
+  });
+}
+
+const originalShowOnlyV44 = typeof showOnly === "function" ? showOnly : null;
+if (originalShowOnlyV44) {
+  showOnly = function(screen) {
+    originalShowOnlyV44(screen);
+    showV44Home(screen === menuScreen);
+    syncV44Home();
+  };
+}
+
+const originalRenderProfileV44 = typeof renderProfile === "function" ? renderProfile : null;
+if (originalRenderProfileV44) {
+  renderProfile = function() {
+    originalRenderProfileV44();
+    syncV44Home();
+  };
+}
+
+syncV44Home();
+showV44Home(menuScreen && !menuScreen.classList.contains("hidden"));
