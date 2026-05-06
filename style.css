@@ -3041,3 +3041,517 @@ body.arena-beach::before {
     animation-duration: .01ms !important;
   }
 }
+
+
+
+/* =========================
+   V34 · MOBILE APP SHELL / BOTTOM NAV
+   ========================= */
+
+body.has-app-nav {
+  padding-bottom: calc(82px + env(safe-area-inset-bottom));
+}
+
+.app-bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(520px, calc(100vw - 18px));
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 7px;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.075)),
+    rgba(7, 9, 18, 0.86);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow:
+    0 18px 55px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.14);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.app-nav-item {
+  min-width: 0;
+  min-height: 50px;
+  padding: 6px 3px;
+  border-radius: 18px;
+  color: rgba(255,255,255,0.62);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  display: grid;
+  place-items: center;
+  gap: 1px;
+}
+
+.app-nav-item span {
+  display: block;
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,0.35));
+}
+
+.app-nav-item small {
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+}
+
+.app-nav-item.active {
+  color: #fff;
+  background:
+    radial-gradient(circle at top, rgba(255,212,59,0.24), transparent 54%),
+    linear-gradient(145deg, rgba(255,255,255,0.15), rgba(255,255,255,0.055));
+  border-color: rgba(255,212,59,0.22);
+  box-shadow: 0 0 22px rgba(255,159,67,0.16);
+}
+
+.app-nav-item.primary {
+  color: #1b1207;
+  background: linear-gradient(145deg, #ffe066, #ff922b);
+  transform: translateY(-10px);
+  box-shadow:
+    0 16px 32px rgba(255,159,67,0.24),
+    0 14px 28px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.34);
+}
+
+.app-nav-item.primary span {
+  font-size: 25px;
+}
+
+.app-bottom-nav.compact {
+  opacity: 0.96;
+}
+
+.app-bottom-nav.compact .app-nav-item small {
+  display: none;
+}
+
+.app-bottom-nav.compact {
+  min-height: 56px;
+  width: min(440px, calc(100vw - 18px));
+}
+
+.app-bottom-nav.compact .app-nav-item {
+  min-height: 42px;
+}
+
+.app-bottom-nav.compact .app-nav-item.primary {
+  transform: translateY(-7px);
+}
+
+.app-shell-status {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 8px;
+  margin: 14px 0 0;
+}
+
+.app-shell-status div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 17px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.11), rgba(255,255,255,0.045));
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.app-shell-status strong {
+  font-size: 16px;
+}
+
+.app-shell-status span {
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Fix home più app e meno lunga */
+.home-hero-card {
+  justify-content: flex-start !important;
+  gap: 10px;
+  padding-bottom: 86px !important;
+}
+
+.home-brand-block {
+  margin: 14px 0 10px !important;
+}
+
+.home-subtitle {
+  display: none;
+}
+
+.home-summary-grid {
+  margin: 8px 0 10px !important;
+}
+
+.options-trigger-btn {
+  min-height: 50px !important;
+}
+
+/* Collection / Rank */
+.app-sheet-card {
+  width: min(760px, calc(100vw - 18px));
+  max-height: min(86dvh, 840px);
+  text-align: left;
+  padding: 16px;
+  border-radius: 28px;
+}
+
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sheet-head .result-icon,
+.sheet-head h2,
+.sheet-head p {
+  text-align: left;
+}
+
+.sheet-head .result-icon {
+  font-size: 42px;
+}
+
+.sheet-head h2 {
+  margin: 4px 0;
+  font-size: 28px;
+}
+
+.sheet-head p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255,255,255,0.66);
+}
+
+.sheet-close-btn {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 14px;
+  color: white;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.13);
+}
+
+.collection-toolbar {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.collection-filter {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.collection-filter.active {
+  color: #1b1207;
+  background: linear-gradient(145deg, #ffe066, #ff922b);
+}
+
+.collection-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.collection-stats div {
+  padding: 11px;
+  border-radius: 17px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.collection-stats strong,
+.collection-stats span {
+  display: block;
+}
+
+.collection-stats strong {
+  font-size: 20px;
+}
+
+.collection-stats span {
+  font-size: 10px;
+  color: rgba(255,255,255,0.62);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 9px;
+  max-height: 48dvh;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.collection-card-mini {
+  min-height: 118px;
+  text-align: left;
+  padding: 10px;
+  border-radius: 18px;
+  color: white;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.14), transparent 42%),
+    linear-gradient(145deg, rgba(255,255,255,0.11), rgba(255,255,255,0.045));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+  display: grid;
+  gap: 3px;
+  align-content: start;
+}
+
+.collection-card-mini.legendary {
+  border-color: rgba(255,212,59,0.52);
+  box-shadow:
+    0 0 24px rgba(255,212,59,0.18),
+    0 12px 28px rgba(0,0,0,0.25);
+}
+
+.collection-card-mini.epic {
+  border-color: rgba(177,151,252,0.48);
+}
+
+.collection-card-mini.rare {
+  border-color: rgba(89,209,255,0.44);
+}
+
+.mini-card-art {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  font-size: 24px;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,0.18), transparent 48%),
+    rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.collection-card-mini strong {
+  font-size: 13px;
+  line-height: 1.05;
+}
+
+.collection-card-mini span,
+.collection-card-mini small {
+  font-size: 10px;
+  color: rgba(255,255,255,0.66);
+}
+
+.rank-profile-box {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 0 0, rgba(255,212,59,0.18), transparent 44%),
+    rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 12px;
+}
+
+.rank-avatar {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.rank-profile-box strong,
+.rank-profile-box span {
+  display: block;
+}
+
+.rank-profile-box span {
+  color: rgba(255,255,255,0.66);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.rank-mini-stats {
+  display: grid;
+  gap: 4px;
+}
+
+.rank-mini-stats span {
+  min-width: 46px;
+  text-align: center;
+  padding: 5px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 950;
+  background: rgba(0,0,0,0.24);
+  color: white;
+}
+
+.rank-road {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.rank-step {
+  padding: 11px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.075);
+  border: 1px solid rgba(255,255,255,0.10);
+  font-weight: 900;
+  color: rgba(255,255,255,0.68);
+}
+
+.rank-step.active {
+  color: #fff;
+  border-color: rgba(255,212,59,0.30);
+  background:
+    linear-gradient(90deg, rgba(255,212,59,0.18), rgba(255,255,255,0.06));
+}
+
+.premium-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 11px 15px;
+  border-radius: 999px;
+  color: white;
+  font-weight: 950;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.075)),
+    rgba(7,9,18,0.92);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.45);
+  animation: toastInOut 1.35s ease forwards;
+}
+
+@keyframes toastInOut {
+  0% { opacity: 0; transform: translate(-50%, 14px) scale(.95); }
+  15% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  82% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, 8px) scale(.96); }
+}
+
+/* Fix bug: in gioco la bottom nav non deve coprire la mano */
+@media (max-width: 700px) {
+  body.has-app-nav:has(.game-screen:not(.hidden)) {
+    padding-bottom: 66px;
+  }
+
+  .game-screen:not(.hidden) {
+    padding-bottom: 64px !important;
+  }
+
+  .battle-board {
+    grid-template-rows: auto auto auto minmax(112px, 1fr) auto !important;
+  }
+
+  .home-hero-card {
+    min-height: calc(100dvh - 105px) !important;
+  }
+
+  .app-shell-status {
+    gap: 6px;
+  }
+
+  .app-shell-status div {
+    padding: 8px;
+    grid-template-columns: 1fr;
+    place-items: center;
+    text-align: center;
+  }
+
+  .app-shell-status span {
+    font-size: 9px;
+    max-width: 100%;
+  }
+
+  .home-brand-copy h1 {
+    font-size: clamp(30px, 9.2vw, 42px) !important;
+  }
+
+  .home-logo-mark {
+    width: 66px !important;
+    height: 66px !important;
+  }
+
+  .home-name-label {
+    margin: 4px 0 6px !important;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    max-height: 52dvh;
+  }
+
+  .rank-profile-box {
+    grid-template-columns: auto 1fr;
+  }
+
+  .rank-mini-stats {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 380px) {
+  .app-bottom-nav {
+    width: calc(100vw - 12px);
+    border-radius: 22px;
+  }
+
+  .app-nav-item small {
+    font-size: 8px;
+  }
+
+  .collection-grid {
+    gap: 7px;
+  }
+
+  .collection-card-mini {
+    min-height: 108px;
+    padding: 9px;
+  }
+}

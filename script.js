@@ -147,6 +147,24 @@ const summaryArenaChip = $("summaryArenaChip");
 
 const enemyHudBox = $("enemyHudBox");
 
+const appBottomNav = $("appBottomNav");
+const navHomeBtn = $("navHomeBtn");
+const navPlayBtn = $("navPlayBtn");
+const navCollectionBtn = $("navCollectionBtn");
+const navRankBtn = $("navRankBtn");
+const navSettingsBtn = $("navSettingsBtn");
+
+const collectionModal = $("collectionModal");
+const collectionGrid = $("collectionGrid");
+const collectionStats = $("collectionStats");
+const closeCollectionBtn = $("closeCollectionBtn");
+
+const rankModal = $("rankModal");
+const rankProfileBox = $("rankProfileBox");
+const closeRankBtn = $("closeRankBtn");
+const rankPlayBtn = $("rankPlayBtn");
+
+
 const STARTING_LIFE = 30;
 const STARTING_HAND = 5;
 const MAX_FIELD_SIZE = 5;
@@ -509,6 +527,10 @@ function showOnly(screen) {
   lobbyScreen.classList.add("hidden");
   gameScreen.classList.add("hidden");
   screen.classList.remove("hidden");
+
+  if (screen === menuScreen) setActiveNav("home");
+  if (screen === gameScreen) setActiveNav("play");
+  updateBottomNavVisibility();
 }
 
 function setMessage(text) {
@@ -2806,6 +2828,8 @@ function showOnlyMenu(force = false) {
   cardDetailModal.classList.add("hidden");
 
   showOnly(menuScreen);
+updateBottomNavVisibility();
+setActiveNav("home");
   renderProfile();
 }
 
@@ -2853,6 +2877,7 @@ function setupRoomFromUrl() {
 
 function openPack() {
   packModal.classList.remove("hidden");
+  showPremiumToast("Pacchetto aperto");
   upgradePackRevealFx();
   const pool = allDraftTemplates();
   const found = shuffle(pool).slice(0, 3);
@@ -3006,6 +3031,130 @@ function upgradePackRevealFx() {
   createParticlesFromElement(document.body, "light", 28);
 }
 
+
+
+/* =========================
+   V34 · APP NAV / COLLEZIONE / RANK
+   ========================= */
+
+function setActiveNav(name) {
+  if (!appBottomNav) return;
+
+  const map = {
+    home: navHomeBtn,
+    play: navPlayBtn,
+    cards: navCollectionBtn,
+    rank: navRankBtn,
+    settings: navSettingsBtn
+  };
+
+  Object.values(map).forEach(btn => {
+    if (btn) btn.classList.remove("active");
+  });
+
+  if (map[name]) map[name].classList.add("active");
+}
+
+function updateBottomNavVisibility() {
+  if (!appBottomNav) return;
+  const inGame = gameScreen && !gameScreen.classList.contains("hidden");
+  appBottomNav.classList.toggle("compact", inGame);
+}
+
+function openCollection(filter = "all") {
+  if (!collectionModal || !collectionGrid || !collectionStats) return;
+
+  collectionModal.classList.remove("hidden");
+  setActiveNav("cards");
+
+  document.querySelectorAll(".collection-filter").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.filter === filter);
+    btn.onclick = () => openCollection(btn.dataset.filter || "all");
+  });
+
+  const cards = allDraftTemplates();
+  const filtered = filter === "all" ? cards : cards.filter(card => card.type === filter);
+
+  const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
+  filtered.sort((a, b) => (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0));
+
+  const total = cards.length;
+  const legendary = cards.filter(card => card.rarity === "legendary").length;
+  const creatures = cards.filter(card => card.type === "creature").length;
+
+  collectionStats.innerHTML = `
+    <div><strong>${total}</strong><span>Totali</span></div>
+    <div><strong>${creatures}</strong><span>Creature</span></div>
+    <div><strong>${legendary}</strong><span>Leggendarie</span></div>
+  `;
+
+  collectionGrid.innerHTML = filtered.map(card => {
+    const icon = card.icon || families[card.family]?.icon || "🃏";
+    const family = card.family ? families[card.family]?.label || card.family : card.type;
+    const type = card.type === "creature" ? `Evo ${card.stage}` : card.type;
+    return `
+      <button class="collection-card-mini ${card.rarity || "common"}" data-card-id="${card.cardId}" type="button">
+        <div class="mini-card-art">${icon}</div>
+        <strong>${card.name}</strong>
+        <span>${family} · ${type}</span>
+        <small>${shortRarity(card.rarity || "common")}</small>
+      </button>
+    `;
+  }).join("");
+
+  document.querySelectorAll(".collection-card-mini").forEach(button => {
+    button.onclick = () => {
+      const card = cards.find(item => item.cardId === button.dataset.cardId);
+      if (card) showCardDetail(card.type === "creature" ? createCreatureCard(card) : { ...card, id: uid() });
+    };
+  });
+}
+
+function openRankPanel() {
+  if (!rankModal || !rankProfileBox) return;
+
+  const profile = getProfile();
+  const total = (profile.wins || 0) + (profile.losses || 0);
+  const winrate = total ? Math.round(((profile.wins || 0) / total) * 100) : 0;
+  const level = getLevelFromXp(profile.xp || 0);
+  const rankName =
+    (profile.wins || 0) >= 40 ? "Master" :
+    (profile.wins || 0) >= 25 ? "Diamante" :
+    (profile.wins || 0) >= 14 ? "Oro" :
+    (profile.wins || 0) >= 6 ? "Argento" :
+    "Bronzo";
+
+  rankProfileBox.innerHTML = `
+    <div class="rank-avatar">${selectedAvatar}</div>
+    <div>
+      <strong>${playerNameInput.value.trim() || localStorage.getItem("playerName") || "Giocatore"}</strong>
+      <span>Livello ${level} · Rank ${rankName}</span>
+    </div>
+    <div class="rank-mini-stats">
+      <span>V ${profile.wins || 0}</span>
+      <span>S ${profile.losses || 0}</span>
+      <span>${winrate}%</span>
+    </div>
+  `;
+
+  rankModal.classList.remove("hidden");
+  setActiveNav("rank");
+}
+
+function closeAllAppSheets() {
+  if (collectionModal) collectionModal.classList.add("hidden");
+  if (rankModal) rankModal.classList.add("hidden");
+  if (optionsHubModal) optionsHubModal.classList.add("hidden");
+}
+
+function showPremiumToast(text) {
+  const toast = document.createElement("div");
+  toast.className = "premium-toast";
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 1400);
+}
+
 document.querySelectorAll(".deck-btn").forEach(button => {
   button.onclick = () => {
     document.querySelectorAll(".deck-btn").forEach(btn => btn.classList.remove("selected"));
@@ -3041,6 +3190,82 @@ document.querySelectorAll(".quick-chat-msg").forEach(button => {
     await saveOnlineGame();
   };
 });
+
+
+if (navHomeBtn) {
+  navHomeBtn.onclick = () => {
+    closeAllAppSheets();
+    showOnlyMenu(true);
+    setActiveNav("home");
+  };
+}
+
+if (navPlayBtn) {
+  navPlayBtn.onclick = () => {
+    closeAllAppSheets();
+    startBotGame();
+    setActiveNav("play");
+  };
+}
+
+if (navCollectionBtn) {
+  navCollectionBtn.onclick = () => {
+    openCollection("all");
+  };
+}
+
+if (navRankBtn) {
+  navRankBtn.onclick = () => {
+    openRankPanel();
+  };
+}
+
+if (navSettingsBtn) {
+  navSettingsBtn.onclick = () => {
+    closeAllAppSheets();
+    openOptionsHub();
+    setActiveNav("settings");
+  };
+}
+
+if (closeCollectionBtn) {
+  closeCollectionBtn.onclick = () => {
+    collectionModal.classList.add("hidden");
+    setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
+  };
+}
+
+if (collectionModal) {
+  collectionModal.onclick = event => {
+    if (event.target === collectionModal) {
+      collectionModal.classList.add("hidden");
+      setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
+    }
+  };
+}
+
+if (closeRankBtn) {
+  closeRankBtn.onclick = () => {
+    rankModal.classList.add("hidden");
+    setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
+  };
+}
+
+if (rankModal) {
+  rankModal.onclick = event => {
+    if (event.target === rankModal) {
+      rankModal.classList.add("hidden");
+      setActiveNav(gameScreen && !gameScreen.classList.contains("hidden") ? "play" : "home");
+    }
+  };
+}
+
+if (rankPlayBtn) {
+  rankPlayBtn.onclick = () => {
+    rankModal.classList.add("hidden");
+    startBotGame();
+  };
+}
 
 playBotBtn.onclick = () => startBotGame();
 createOnlineBtn.onclick = createOnlineGame;
@@ -3239,6 +3464,8 @@ setupRoomFromUrl();
 renderProfile();
 updateHomeSummary();
 showOnly(menuScreen);
+updateBottomNavVisibility();
+setActiveNav("home");
 
 if (!localStorage.getItem("tutorialSeen")) {
   setTimeout(() => tutorialModal.classList.remove("hidden"), 450);

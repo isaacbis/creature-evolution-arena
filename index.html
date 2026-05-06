@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=33" />
+  <link rel="stylesheet" href="style.css?v=34" />
 
   <style>
     /* FIX FORZATO HOME MOBILE v11 - elimina pannello bianco/cerchi enormi sopra il titolo */
@@ -115,7 +115,7 @@
 
   <link rel="apple-touch-icon" href="app-icon.svg" />
 </head>
-<body>
+<body class="has-app-nav">
 
   <!-- MENU PRINCIPALE -->
   <div id="menuScreen" class="screen menu-screen compact-menu-screen">
@@ -133,6 +133,13 @@
           </div>
 
           <button id="openMissionsBtn" class="icon-pill">🎯 Missioni</button>
+        </div>
+
+        
+        <div class="app-shell-status">
+          <div><strong>🔥</strong><span>Evento Fuoco</span></div>
+          <div><strong>🏆</strong><span>Ranked presto</span></div>
+          <div><strong>🎁</strong><span>Pack giornaliero</span></div>
         </div>
 
         <div class="home-brand-block">
@@ -610,6 +617,59 @@
     </div>
   </div>
 
+
+  <!-- COLLEZIONE CARTE -->
+  <div id="collectionModal" class="modal hidden">
+    <div class="modal-card app-sheet-card collection-card">
+      <div class="sheet-head">
+        <div>
+          <div class="result-icon">🃏</div>
+          <h2>Collezione</h2>
+          <p>Tutte le carte del gioco, ordinate per tipo e rarità.</p>
+        </div>
+        <button id="closeCollectionBtn" class="sheet-close-btn" type="button">✕</button>
+      </div>
+
+      <div class="collection-toolbar">
+        <button class="collection-filter active" data-filter="all" type="button">Tutte</button>
+        <button class="collection-filter" data-filter="creature" type="button">Creature</button>
+        <button class="collection-filter" data-filter="spell" type="button">Magie</button>
+        <button class="collection-filter" data-filter="equipment" type="button">Equip</button>
+        <button class="collection-filter" data-filter="terrain" type="button">Terreni</button>
+      </div>
+
+      <div id="collectionStats" class="collection-stats"></div>
+      <div id="collectionGrid" class="collection-grid"></div>
+    </div>
+  </div>
+
+  <!-- RANK / PROFILO -->
+  <div id="rankModal" class="modal hidden">
+    <div class="modal-card app-sheet-card rank-card">
+      <div class="sheet-head">
+        <div>
+          <div class="result-icon">🏆</div>
+          <h2>Rank</h2>
+          <p>Profilo competitivo locale. Online ranked pronto per una futura versione.</p>
+        </div>
+        <button id="closeRankBtn" class="sheet-close-btn" type="button">✕</button>
+      </div>
+
+      <div id="rankProfileBox" class="rank-profile-box"></div>
+
+      <div class="rank-road">
+        <div class="rank-step active">🥉 Bronzo</div>
+        <div class="rank-step">🥈 Argento</div>
+        <div class="rank-step">🥇 Oro</div>
+        <div class="rank-step">💎 Diamante</div>
+        <div class="rank-step">👑 Master</div>
+      </div>
+
+      <button id="rankPlayBtn" class="primary-action full-glass-btn" type="button">Gioca per salire</button>
+    </div>
+  </div>
+
+
   <!-- REPLAY -->
   <div id="replayModal" class="modal hidden">
     <div class="modal-card">
@@ -620,11 +680,37 @@
     </div>
   </div>
 
+
+  <!-- BARRA APP INFERIORE -->
+  <nav id="appBottomNav" class="app-bottom-nav" aria-label="Navigazione principale">
+    <button id="navHomeBtn" class="app-nav-item active" type="button">
+      <span>🏠</span>
+      <small>Home</small>
+    </button>
+    <button id="navPlayBtn" class="app-nav-item primary" type="button">
+      <span>⚔️</span>
+      <small>Gioca</small>
+    </button>
+    <button id="navCollectionBtn" class="app-nav-item" type="button">
+      <span>🃏</span>
+      <small>Carte</small>
+    </button>
+    <button id="navRankBtn" class="app-nav-item" type="button">
+      <span>🏆</span>
+      <small>Rank</small>
+    </button>
+    <button id="navSettingsBtn" class="app-nav-item" type="button">
+      <span>⚙️</span>
+      <small>Altro</small>
+    </button>
+  </nav>
+
+
   <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=33")
+        .register("./service-worker.js?v=34")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -632,6 +718,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=33"></script>
+<script type="module" src="script.js?v=34"></script>
 </body>
 </html>
