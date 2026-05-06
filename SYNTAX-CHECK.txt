@@ -1,6 +1,0 @@
-node --check exit code: 0
-
-STDOUT:
-
-
-STDERR:
