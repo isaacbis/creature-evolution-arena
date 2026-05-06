@@ -3346,379 +3346,287 @@ button:hover::after {
   .card.legendary,
   .card.epic { animation: cardEnter .01ms ease both !important; }
 }
-
 /* =========================================================
-   V52 - FIX DEFINITIVO BARRA FINALE
-   La barra in basso viene disattivata: non deve coprire carte,
-   popup, lobby o pulsanti su smartphone.
+   V50 MOBILE APP PLAYABILITY
+   - più spazio al campo su telefono
+   - bottom nav nascosta durante la partita
+   - carte giocabili con tap / pulsante, non solo drag
    ========================================================= */
-#appBottomNav,
-.app-bottom-nav {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  height: 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  transform: translateY(160%) !important;
-}
-
-.screen,
-.game-screen {
-  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
-}
-
 @media (max-width: 700px) {
-  .screen {
-    padding: 8px 8px max(12px, env(safe-area-inset-bottom, 0px)) !important;
+  body:has(.game-screen:not(.hidden)) .app-bottom-nav {
+    display: none !important;
   }
 
-  .game-screen:not(.hidden) {
-    padding: 6px 6px max(8px, env(safe-area-inset-bottom, 0px)) !important;
+  body:has(.game-screen:not(.hidden)) .ambient-particles {
+    opacity: .22;
   }
 
-  .battle-board {
-    grid-template-rows: auto minmax(102px, 1fr) minmax(102px, 1fr) minmax(128px, 1.18fr) auto !important;
-  }
-
-  .hand {
-    height: 128px !important;
-    padding-bottom: 6px !important;
-  }
-}
-
-
-/* =========================================================
-   V53 - FIX MANO CARTE VISIBILE SU TELEFONO
-   Problema risolto: la schermata gioco non deve schiacciare
-   la mano sotto il bordo inferiore. HUD più basso, log nascosto,
-   mano fissata come ultima zona visibile.
-   ========================================================= */
-html,
-body {
-  overscroll-behavior: none;
-}
-
-body:has(#gameScreen.game-screen:not(.hidden)) {
-  height: 100dvh !important;
-  min-height: 100dvh !important;
-  overflow: hidden !important;
-}
-
-#gameScreen.game-screen:not(.hidden) {
-  width: 100% !important;
-  max-width: 1180px !important;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  min-height: 0 !important;
-  margin: 0 auto !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
-}
-
-#gameScreen.game-screen.hidden {
-  display: none !important;
-}
-
-@media (max-width: 700px) {
   #gameScreen.game-screen:not(.hidden) {
-    padding: calc(4px + env(safe-area-inset-top, 0px)) 5px max(8px, env(safe-area-inset-bottom, 0px)) !important;
-    gap: 4px !important;
+    display: flex !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    padding: calc(5px + env(safe-area-inset-top, 0px)) 5px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  #gameScreen .app-topbar {
-    min-height: 38px !important;
-    height: 38px !important;
-    margin: 0 !important;
+  .app-topbar {
+    min-height: 40px !important;
     padding: 5px 7px !important;
-    border-radius: 15px !important;
-    flex: 0 0 38px !important;
+    margin-bottom: 4px !important;
+    border-radius: 16px !important;
   }
 
-  #gameScreen .mini-logo {
+  .mini-logo {
     width: 28px !important;
     height: 28px !important;
-    border-radius: 10px !important;
+    font-size: 15px !important;
+  }
+
+  .app-topbar h1 {
     font-size: 14px !important;
   }
 
-  #gameScreen .app-topbar h1 {
-    font-size: 14px !important;
-    line-height: .95 !important;
+  .app-topbar p {
+    display: none !important;
   }
 
-  #gameScreen .app-topbar p {
-    font-size: 9px !important;
-    margin-top: 1px !important;
+  .round-btn {
+    width: 31px !important;
+    height: 31px !important;
+    border-radius: 11px !important;
   }
 
-  #gameScreen .round-btn {
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 10px !important;
-    font-size: 12px !important;
-  }
-
-  #gameScreen .battle-hud {
-    flex: 0 0 auto !important;
+  .battle-hud {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 4px !important;
-    margin: 0 !important;
+    margin-bottom: 4px !important;
   }
 
-  #gameScreen .turn-panel {
+  .turn-panel {
     grid-column: 1 / -1 !important;
-    order: 0 !important;
-    min-height: 38px !important;
-    padding: 4px 7px !important;
-    border-radius: 14px !important;
-    align-content: center !important;
-  }
-
-  #gameScreen .enemy-bar {
-    order: 1 !important;
-  }
-
-  #gameScreen .my-bar {
-    order: 2 !important;
-  }
-
-  #gameScreen .player-bar {
+    order: -1 !important;
     min-height: 42px !important;
-    padding: 4px 6px !important;
+    padding: 5px 8px !important;
+    border-radius: 14px !important;
+  }
+
+  .turn-panel strong { font-size: 11px !important; }
+  #message { font-size: 9.5px !important; }
+  #roomInfoText, .timer-text { font-size: 9px !important; }
+
+  .player-bar {
+    min-height: 44px !important;
+    padding: 5px 7px !important;
     border-radius: 14px !important;
     display: grid !important;
     grid-template-columns: 1fr auto !important;
+    gap: 5px !important;
     align-items: center !important;
   }
 
-  #gameScreen .player-bar strong {
-    font-size: 10px !important;
-  }
+  .player-bar strong { font-size: 10px !important; }
+  .player-bar span { font-size: 9px !important; }
+  .energy-dots { display: none !important; }
 
-  #gameScreen .player-bar span,
-  #gameScreen .turn-panel span {
-    font-size: 8.5px !important;
-  }
-
-  #gameScreen .turn-panel strong {
-    font-size: 10px !important;
-  }
-
-  #gameScreen #message {
-    max-height: 20px !important;
-    overflow: hidden !important;
-  }
-
-  #gameScreen .battle-board {
+  .battle-board {
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    overflow: hidden !important;
     display: grid !important;
-    grid-template-rows: 24px 104px 104px minmax(142px, 1fr) !important;
+    grid-template-rows: 26px minmax(88px, .78fr) minmax(92px, .85fr) minmax(154px, 1.18fr) 0 !important;
     gap: 4px !important;
-  }
-
-  #gameScreen .terrain-zone {
-    min-height: 24px !important;
-    height: 24px !important;
-    padding: 3px 7px !important;
-    border-radius: 12px !important;
-  }
-
-  #gameScreen .terrain-zone span,
-  #gameScreen .terrain-zone strong {
-    font-size: 8.5px !important;
-  }
-
-  #gameScreen .field-zone,
-  #gameScreen .hand-zone {
-    min-height: 0 !important;
-    padding: 4px !important;
-    border-radius: 14px !important;
     overflow: hidden !important;
   }
 
-  #gameScreen .zone-title {
+  .terrain-zone {
+    min-height: 0 !important;
+    height: 26px !important;
+    padding: 4px 8px !important;
+    border-radius: 13px !important;
+  }
+
+  .terrain-zone span,
+  .terrain-zone strong { font-size: 8.8px !important; }
+
+  .field-zone,
+  .hand-zone {
+    padding: 5px !important;
+    border-radius: 15px !important;
+  }
+
+  .zone-title {
+    height: 18px !important;
     min-height: 18px !important;
     margin-bottom: 3px !important;
   }
 
-  #gameScreen .zone-title h3 {
+  .zone-title h3 { font-size: 10.5px !important; }
+  .zone-title span { font-size: 8.5px !important; }
+
+  .end-turn-btn {
+    min-width: 92px !important;
+    min-height: 30px !important;
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
     font-size: 10px !important;
   }
 
-  #gameScreen .zone-title span {
-    font-size: 8.5px !important;
+  .compact-field {
+    height: calc(100% - 20px) !important;
+    min-height: 70px !important;
+    gap: 6px !important;
+    padding: 1px 2px 3px !important;
+    scroll-snap-type: x mandatory !important;
   }
 
-  #gameScreen .end-turn-btn {
-    min-height: 24px !important;
-    padding: 4px 8px !important;
-    border-radius: 10px !important;
-    font-size: 9px !important;
+  .hand-zone {
+    overflow: hidden !important;
+    border-color: rgba(245,199,107,.34) !important;
   }
 
-  #gameScreen .compact-field {
-    height: 78px !important;
-    min-height: 78px !important;
-    max-height: 78px !important;
-    padding-bottom: 2px !important;
-    gap: 5px !important;
-  }
-
-  #gameScreen .hand-zone {
-    position: relative !important;
-    z-index: 20 !important;
-    min-height: 142px !important;
-    border-color: rgba(245,199,107,.38) !important;
-    background:
-      radial-gradient(circle at 50% 0%, rgba(245,199,107,.18), transparent 56%),
-      linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.055)),
-      rgba(8,10,18,.90) !important;
-  }
-
-  #gameScreen .hand {
-    height: 116px !important;
-    min-height: 116px !important;
-    max-height: 116px !important;
+  .hand {
+    height: calc(100% - 20px) !important;
+    min-height: 130px !important;
     gap: 7px !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    padding: 2px 2px 8px !important;
-    scroll-snap-type: x proximity !important;
+    padding: 1px 2px 4px !important;
+    scroll-snap-type: x mandatory !important;
     -webkit-overflow-scrolling: touch !important;
+  }
+
+  .field .card {
+    flex: 0 0 78px !important;
+    width: 78px !important;
+    min-height: 94px !important;
+  }
+
+  .hand .card {
+    flex: 0 0 98px !important;
+    width: 98px !important;
+    min-height: 132px !important;
+    padding: 5px !important;
     touch-action: pan-x !important;
   }
 
-  #gameScreen .card {
-    flex: 0 0 78px !important;
-    width: 78px !important;
-    min-width: 78px !important;
-    min-height: 94px !important;
-    height: 94px !important;
-    padding: 4px !important;
-    border-radius: 12px !important;
+  .hand .card-name { font-size: 9px !important; }
+  .hand .card-icon { font-size: 17px !important; }
+  .hand .card-cost { width: 20px !important; height: 20px !important; font-size: 9px !important; }
+  .hand .card-stats { margin-top: 4px !important; }
+  .hand .card-stat { font-size: 8px !important; padding: 2px !important; }
+
+  .field .card-name { font-size: 7.8px !important; }
+  .field .card-icon { font-size: 14px !important; }
+  .field .card-cost { width: 17px !important; height: 17px !important; font-size: 8px !important; }
+  .field .card-stat { font-size: 7.2px !important; padding: 2px !important; }
+
+  .mobile-card-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 3px !important;
+    margin-top: 4px !important;
+    position: relative !important;
+    z-index: 5 !important;
   }
 
-  #gameScreen .hand .card {
-    flex-basis: 86px !important;
-    width: 86px !important;
-    min-width: 86px !important;
-    min-height: 108px !important;
-    height: 108px !important;
+  .mobile-card-actions button {
+    min-height: 24px !important;
+    padding: 3px 2px !important;
+    border-radius: 9px !important;
+    font-size: 8.5px !important;
+    box-shadow: none !important;
   }
 
-  #gameScreen .card-icon {
-    font-size: 14px !important;
+  .mobile-card-actions .secondary-mini {
+    color: #fff !important;
+    background: rgba(0,0,0,.35) !important;
+    border: 1px solid rgba(255,255,255,.18) !important;
   }
 
-  #gameScreen .card-cost {
-    width: 18px !important;
-    height: 18px !important;
-    font-size: 9px !important;
+  .mobile-card-actions button:disabled {
+    opacity: .35 !important;
   }
 
-  #gameScreen .card-name {
-    font-size: 7.8px !important;
-    line-height: 1.02 !important;
+  .card.mobile-action-target {
+    outline: 3px solid rgba(245,199,107,.98) !important;
+    outline-offset: 2px !important;
+    box-shadow:
+      0 0 0 4px rgba(245,199,107,.18),
+      0 0 28px rgba(245,199,107,.48),
+      0 16px 28px rgba(0,0,0,.38) !important;
+    transform: translateY(-2px) scale(1.02) !important;
   }
 
-  #gameScreen .hand .card-name {
-    font-size: 8.4px !important;
-  }
-
-  #gameScreen .badge {
-    font-size: 5.5px !important;
-    padding: 1px 2px !important;
-  }
-
-  #gameScreen .card-stat {
-    font-size: 7.5px !important;
-    padding: 2px !important;
-  }
-
-  #gameScreen .card-stat small {
-    font-size: 4.8px !important;
-  }
-
-  #gameScreen .card-desc,
-  #gameScreen .ability-row {
+  .log-wrapper {
     display: none !important;
   }
 
-  #gameScreen .empty-field {
-    min-width: 78px !important;
-    height: 72px !important;
-    font-size: 8px !important;
-    border-radius: 10px !important;
+  .modal {
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 10px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  #gameScreen .log-wrapper {
-    display: none !important;
-  }
-
-  #appBottomNav,
-  .app-bottom-nav {
-    display: none !important;
+  .modal-card {
+    width: min(420px, 96vw) !important;
+    max-height: 86dvh !important;
+    padding: 16px !important;
+    border-radius: 24px !important;
   }
 }
 
 @media (max-width: 380px) {
-  #gameScreen .battle-board {
-    grid-template-rows: 22px 96px 96px minmax(134px, 1fr) !important;
-    gap: 3px !important;
+  .battle-board {
+    grid-template-rows: 24px minmax(82px, .74fr) minmax(86px, .80fr) minmax(145px, 1.18fr) 0 !important;
   }
 
-  #gameScreen .app-topbar {
-    height: 34px !important;
-    flex-basis: 34px !important;
+  .hand .card {
+    flex-basis: 92px !important;
+    width: 92px !important;
+    min-height: 126px !important;
   }
 
-  #gameScreen .turn-panel {
-    min-height: 34px !important;
+  .field .card {
+    flex-basis: 72px !important;
+    width: 72px !important;
+    min-height: 88px !important;
+  }
+}
+
+
+/* =========================================================
+   V51 FIX BARRA FINALE
+   - la barra non si sovrappone più a partita, lobby e modali
+   - le modali stanno sopra a tutto
+   - nel menu resta spazio sotto per non coprire i pulsanti
+   ========================================================= */
+#gameScreen.game-screen:not(.hidden) ~ #appBottomNav,
+#lobbyScreen.lobby-screen:not(.hidden) ~ #appBottomNav,
+.modal:not(.hidden) ~ #appBottomNav {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.modal {
+  z-index: 300 !important;
+}
+
+#menuScreen.menu-screen:not(.hidden) {
+  padding-bottom: calc(98px + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+@media (max-width: 700px) {
+  .app-bottom-nav {
+    z-index: 90 !important;
   }
 
-  #gameScreen .player-bar {
-    min-height: 38px !important;
+  #gameScreen.game-screen:not(.hidden) ~ #appBottomNav,
+  #lobbyScreen.lobby-screen:not(.hidden) ~ #appBottomNav,
+  .modal:not(.hidden) ~ #appBottomNav {
+    display: none !important;
   }
 
-  #gameScreen .compact-field {
-    height: 72px !important;
-    min-height: 72px !important;
-    max-height: 72px !important;
+  #menuScreen.menu-screen:not(.hidden) {
+    padding-bottom: calc(102px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  #gameScreen .hand-zone {
-    min-height: 134px !important;
-  }
-
-  #gameScreen .hand {
-    height: 108px !important;
-    min-height: 108px !important;
-    max-height: 108px !important;
-  }
-
-  #gameScreen .card {
-    flex-basis: 70px !important;
-    width: 70px !important;
-    min-width: 70px !important;
-    height: 86px !important;
-    min-height: 86px !important;
-  }
-
-  #gameScreen .hand .card {
-    flex-basis: 80px !important;
-    width: 80px !important;
-    min-width: 80px !important;
-    height: 100px !important;
-    min-height: 100px !important;
+  .modal-card {
+    margin-bottom: 0 !important;
   }
 }

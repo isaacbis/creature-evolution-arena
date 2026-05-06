@@ -5,21 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Creature Evolution Arena</title>
 
-  <link rel="stylesheet" href="style.css?v=53" />
+  <link rel="stylesheet" href="style.css?v=51" />
   <style>
     #menuScreen.menu-screen.hidden, #lobbyScreen.lobby-screen.hidden, #gameScreen.game-screen.hidden { display: none !important; }
-  </style>
-
-
-  <style>
-    /* V53: barra finale disattivata e mano carte sempre visibile su telefono. */
-    #appBottomNav, .app-bottom-nav {
-      display: none !important;
-      visibility: hidden !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      transform: translateY(140%) !important;
-    }
   </style>
 
   <link rel="manifest" href="manifest.json" />
@@ -504,15 +492,10 @@
   </nav>
 
   <script>
-    // V53: rimuove proprio la barra dal DOM, così non può sovrapporsi né catturare tocchi.
-    document.getElementById("appBottomNav")?.remove();
-  </script>
-
-  <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
-        .register("./service-worker.js?v=53")
+        .register("./service-worker.js?v=51")
         .catch(error => {
           console.warn("Service Worker non registrato:", error);
         });
@@ -520,6 +503,6 @@
   }
 </script>
 
-<script type="module" src="script.js?v=52"></script>
+<script type="module" src="script.js?v=51"></script>
 </body>
 </html>

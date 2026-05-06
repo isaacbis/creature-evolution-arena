@@ -16,13 +16,13 @@ increment
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBZkCXioFje39FqmUFkM2GqEAcPvVo7csg",
-  authDomain: "ritiro-olio.firebaseapp.com",
-  projectId: "ritiro-olio",
-  storageBucket: "ritiro-olio.firebasestorage.app",
-  messagingSenderId: "1088319614799",
-  appId: "1:1088319614799:web:e89cfc9c6a548b318c9f3a",
-  measurementId: "G-Q0WCW8T0B1"
+  apiKey: "AIzaSyD0WHOFYEIMZJZjGM4DVDyLvMWwHu638gE",
+  authDomain: "creature-evolution-arena.firebaseapp.com",
+  projectId: "creature-evolution-arena",
+  storageBucket: "creature-evolution-arena.firebasestorage.app",
+  messagingSenderId: "326210536234",
+  appId: "1:326210536234:web:2f2970166202d920735453",
+  measurementId: "G-SFG6D3TTWD"
 };
 
 const isConfigured =
