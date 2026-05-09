@@ -2,108 +2,110 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Lupus Narratore Online</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <header class="hero">
+  <div id="app" class="app">
+    <header class="topbar">
       <div>
-        <p class="eyebrow">Lupus in Fabula</p>
-        <h1>Narratore online</h1>
-        <p class="subtitle">Crea una partita, assegna i ruoli e gestisci automaticamente notte e giorno.</p>
+        <p class="eyebrow">Lupus</p>
+        <h1>Narratore Online</h1>
       </div>
-      <div class="status-pill" id="connectionStatus">Connessione...</div>
+      <button id="resetBtn" class="ghost small">Esci</button>
     </header>
 
-    <main>
-      <section class="card" id="setupSection">
-        <h2>1. Crea o carica partita</h2>
-
-        <label for="gameName">Nome partita</label>
-        <input id="gameName" type="text" placeholder="Es. Serata Tommi 38" />
-
-        <div class="grid two">
-          <button id="createGameBtn" class="primary">Crea nuova partita</button>
-          <button id="loadGamesBtn" class="secondary">Carica partite salvate</button>
-        </div>
-
-        <div id="savedGames" class="saved-games hidden"></div>
-      </section>
-
-      <section class="card hidden" id="playersSection">
-        <div class="section-head">
-          <div>
-            <h2>2. Giocatori</h2>
-            <p id="currentGameLabel" class="muted"></p>
-          </div>
-          <button id="resetGameBtn" class="danger ghost">Reset</button>
-        </div>
-
-        <div class="add-row">
-          <input id="playerName" type="text" placeholder="Nome giocatore" />
-          <button id="addPlayerBtn" class="secondary">Aggiungi</button>
-        </div>
-
-        <div id="playersList" class="list"></div>
-      </section>
-
-      <section class="card hidden" id="rolesSection">
-        <h2>3. Ruoli</h2>
-        <p class="muted">Scegli quanti ruoli usare. Il totale deve essere uguale al numero dei giocatori.</p>
-
-        <div id="rolesGrid" class="roles-grid"></div>
-
-        <div class="counter-box">
-          <span>Giocatori: <strong id="playersCount">0</strong></span>
-          <span>Ruoli scelti: <strong id="rolesCount">0</strong></span>
-        </div>
-
-        <button id="assignRolesBtn" class="primary full">Assegna ruoli casuali</button>
-      </section>
-
-      <section class="card hidden" id="roleRevealSection">
-        <h2>4. Consegna ruoli</h2>
-        <p class="muted">Passa il telefono a ogni giocatore. Tocca per vedere il ruolo e poi nascondilo.</p>
-        <div id="revealList" class="list"></div>
-      </section>
-
-      <section class="card hidden" id="gameSection">
-        <div class="phase-card" id="phaseCard">
-          <p class="eyebrow">Fase attuale</p>
-          <h2 id="phaseTitle">Notte 1</h2>
-          <p id="phaseInstruction">Tutti chiudono gli occhi.</p>
-        </div>
-
-        <div class="narrator-box">
-          <h3 id="narratorStepTitle">Narratore</h3>
-          <p id="narratorStepText">Premi avanti per iniziare.</p>
-        </div>
-
-        <div class="grid two">
-          <button id="prevStepBtn" class="secondary">Indietro</button>
-          <button id="nextStepBtn" class="primary">Avanti</button>
-        </div>
-
-        <div class="grid two">
-          <button id="killPlayerBtn" class="danger">Elimina giocatore</button>
-          <button id="newDayBtn" class="secondary">Vai al giorno</button>
-        </div>
-
-        <div id="alivePlayers" class="list compact"></div>
-      </section>
-    </main>
+    <main id="screen"></main>
   </div>
 
-  <div id="modal" class="modal hidden">
-    <div class="modal-card">
-      <button id="closeModalBtn" class="close">×</button>
-      <h2 id="modalTitle"></h2>
-      <p id="modalText"></p>
-      <div id="modalActions" class="modal-actions"></div>
-    </div>
-  </div>
+  <template id="homeTemplate">
+    <section class="hero card">
+      <div class="wolf">☾</div>
+      <h2>Gioca con uno o più dispositivi</h2>
+      <p>Una persona crea la stanza. Gli altri entrano dal telefono con il codice. Ogni giocatore vede solo il proprio ruolo.</p>
+      <div class="grid2">
+        <button id="createRoomBtn" class="primary">Crea stanza online</button>
+        <button id="singleDeviceBtn" class="secondary">Modalità narratore unico</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Entra in una stanza</h3>
+      <label>Nome giocatore</label>
+      <input id="joinName" placeholder="Es. Marco" maxlength="24" />
+      <label>Codice stanza</label>
+      <input id="joinCode" placeholder="Es. LUP123" maxlength="8" />
+      <button id="joinRoomBtn" class="primary full">Entra</button>
+    </section>
+  </template>
+
+  <template id="hostSetupTemplate">
+    <section class="card">
+      <h2>Crea partita online</h2>
+      <label>Nome narratore / host</label>
+      <input id="hostName" placeholder="Es. Isaac" maxlength="24" />
+
+      <div class="roleConfig">
+        <div><label>Lupi</label><input type="number" id="wolvesCount" value="2" min="1" max="6"></div>
+        <div><label>Veggente</label><input type="number" id="seerCount" value="1" min="0" max="1"></div>
+        <div><label>Guardia</label><input type="number" id="guardCount" value="1" min="0" max="1"></div>
+        <div><label>Strega</label><input type="number" id="witchCount" value="0" min="0" max="1"></div>
+      </div>
+
+      <p class="muted">I contadini vengono aggiunti automaticamente in base al numero dei giocatori.</p>
+      <button id="confirmCreateBtn" class="primary full">Crea stanza</button>
+    </section>
+  </template>
+
+  <template id="roomTemplate">
+    <section class="roomHead card">
+      <div>
+        <p class="eyebrow">Codice stanza</p>
+        <h2 id="roomCodeText">---</h2>
+      </div>
+      <button id="copyCodeBtn" class="secondary small">Copia</button>
+    </section>
+
+    <section class="status card">
+      <p id="phaseLabel" class="phase">Lobby</p>
+      <h2 id="mainTitle">In attesa dei giocatori</h2>
+      <p id="mainSubtitle" class="muted"></p>
+    </section>
+
+    <section id="privateRoleCard" class="roleCard hidden"></section>
+
+    <section id="hostControls" class="card hidden"></section>
+    <section id="playerActions" class="card hidden"></section>
+
+    <section class="card">
+      <div class="sectionTitle">
+        <h3>Giocatori</h3>
+        <span id="playerCount" class="pill">0</span>
+      </div>
+      <div id="playersList" class="players"></div>
+    </section>
+
+    <section id="logBox" class="card log"></section>
+  </template>
+
+  <template id="singleTemplate">
+    <section class="card">
+      <h2>Modalità narratore unico</h2>
+      <p class="muted">Usi un solo telefono. Inserisci i nomi, assegni i ruoli e fai passare il telefono a ogni giocatore per vedere la propria carta.</p>
+      <label>Nomi giocatori, uno per riga</label>
+      <textarea id="singleNames" rows="7" placeholder="Marco&#10;Luca&#10;Sara&#10;Giulia"></textarea>
+      <div class="roleConfig">
+        <div><label>Lupi</label><input type="number" id="singleWolves" value="2" min="1" max="6"></div>
+        <div><label>Veggente</label><input type="number" id="singleSeer" value="1" min="0" max="1"></div>
+        <div><label>Guardia</label><input type="number" id="singleGuard" value="1" min="0" max="1"></div>
+        <div><label>Strega</label><input type="number" id="singleWitch" value="0" min="0" max="1"></div>
+      </div>
+      <button id="startSingleBtn" class="primary full">Avvia partita</button>
+    </section>
+
+    <section id="singleGame" class="hidden"></section>
+  </template>
 
   <script type="module" src="script.js"></script>
 </body>
