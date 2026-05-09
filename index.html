@@ -2,547 +2,109 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Creature Evolution Arena</title>
-
-  <link rel="stylesheet" href="style.css?v=61" />
-  <style>
-    #menuScreen.menu-screen.hidden, #lobbyScreen.lobby-screen.hidden, #gameScreen.game-screen.hidden { display: none !important; }
-  </style>
-
-  <link rel="manifest" href="manifest.json" />
-
-  <meta name="theme-color" content="#ff9f43" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Evolution Arena" />
-
-  <link rel="apple-touch-icon" href="app-icon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lupus Narratore Online</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
-  <div id="splashScreen" class="splash-screen">
-    <div class="splash-orb"></div>
-    <div class="splash-card-stack">
-      <span></span><span></span><span></span>
-    </div>
-    <h1>Creature Evolution</h1>
-    <p>Preparazione arena...</p>
-  </div>
-
-  <!-- MENU PRINCIPALE -->
-  <div id="menuScreen" class="screen menu-screen">
-    <div class="menu-shell">
-
-      <div class="hero-panel">
-        <div class="hero-glow hero-glow-one"></div>
-        <div class="hero-glow hero-glow-two"></div>
-
-        <div class="hero-top">
-          <div class="game-logo">
-            <div class="logo-mark">⚔️</div>
-            <div>
-              <h1>Creature<br>Evolution</h1>
-              <p>Arena card battle</p>
-            </div>
-          </div>
-
-          <button id="openMissionsBtn" class="icon-pill">🎯 Missioni</button>
-        </div>
-
-        <div class="profile-strip">
-          <div>
-            <strong id="profileNameText">Profilo giocatore</strong>
-            <span id="profileLevelText">Livello 1 · XP 0/100</span>
-          </div>
-        </div>
-
-        <div class="home-dashboard" aria-label="Riepilogo giocatore">
-          <div class="home-stat-card">
-            <b>⚡</b>
-            <span>Partite rapide</span>
-            <strong>Bot / Online</strong>
-          </div>
-          <div class="home-stat-card">
-            <b>🎁</b>
-            <span>Premi</span>
-            <strong>Pacchetti</strong>
-          </div>
-          <div class="home-stat-card">
-            <b>🐉</b>
-            <span>Sfida</span>
-            <strong>Boss</strong>
-          </div>
-        </div>
-
-        <label class="input-label">
-          Il tuo nome
-          <input id="playerNameInput" type="text" placeholder="Es. Isaac" maxlength="18" />
-        </label>
-
-        <div class="section-row">
-          <h2>Avatar</h2>
-          <span>Scegli identità</span>
-        </div>
-
-        <div class="avatar-grid">
-          <button class="avatar-btn selected" data-avatar="🧙">🧙<small>Mago</small></button>
-          <button class="avatar-btn" data-avatar="⚔️">⚔️<small>Guerriero</small></button>
-          <button class="avatar-btn" data-avatar="🐉">🐉<small>Domatore</small></button>
-          <button class="avatar-btn" data-avatar="🌑">🌑<small>Stregone</small></button>
-          <button class="avatar-btn" data-avatar="☀️">☀️<small>Paladino</small></button>
-          <button class="avatar-btn" data-avatar="🏖️">🏖️<small>Tommi</small></button>
-        </div>
-
-        <div class="section-row">
-          <h2>Mazzo</h2>
-          <span>Stile di gioco</span>
-        </div>
-
-        <div class="deck-grid">
-          <button class="deck-btn fire" data-deck="fire">
-            <b>🔥 Fuoco</b>
-            <small>aggressivo</small>
-          </button>
-
-          <button class="deck-btn water" data-deck="water">
-            <b>🌊 Acqua</b>
-            <small>difesa e cura</small>
-          </button>
-
-          <button class="deck-btn forest" data-deck="forest">
-            <b>🌿 Foresta</b>
-            <small>buff e rabbia</small>
-          </button>
-
-          <button class="deck-btn shadow" data-deck="shadow">
-            <b>🌑 Ombra</b>
-            <small>veleno e danni</small>
-          </button>
-
-          <button class="deck-btn light" data-deck="light">
-            <b>☀️ Luce</b>
-            <small>guardia e cura</small>
-          </button>
-
-          <button class="deck-btn dragon" data-deck="dragon">
-            <b>🐲 Drago</b>
-            <small>potenza alta</small>
-          </button>
-
-          <button class="deck-btn undead" data-deck="undead">
-            <b>💀 Non Morti</b>
-            <small>veleno e controllo</small>
-          </button>
-
-          <button class="deck-btn mechanic" data-deck="mechanic">
-            <b>🤖 Meccanico</b>
-            <small>difesa e combo</small>
-          </button>
-
-          <button class="deck-btn beast" data-deck="beast">
-            <b>🐺 Bestie</b>
-            <small>rapidità</small>
-          </button>
-
-          <button class="deck-btn mage" data-deck="mage">
-            <b>🧙 Maghi</b>
-            <small>pesca e magie</small>
-          </button>
-
-          <button class="deck-btn pirate" data-deck="pirate">
-            <b>🏴‍☠️ Pirati</b>
-            <small>caos e carte</small>
-          </button>
-
-          <button class="deck-btn demon" data-deck="demon">
-            <b>😈 Demoni</b>
-            <small>danni alti</small>
-          </button>
-
-          <button class="deck-btn ice" data-deck="ice">
-            <b>❄️ Ghiaccio</b>
-            <small>blocco e difesa</small>
-          </button>
-
-          <button class="deck-btn balanced selected" data-deck="balanced">
-            <b>⚔️ Bilanciato</b>
-            <small>mix completo</small>
-          </button>
-        </div>
-
-        <div class="section-row">
-          <h2>Stile</h2>
-          <span>Look app</span>
-        </div>
-
-        <div class="custom-grid">
-          <label class="select-label">
-            Dorso carte
-            <select id="cardBackSelect">
-              <option value="classic">Classico</option>
-              <option value="fire">Fuoco</option>
-              <option value="water">Acqua</option>
-              <option value="shadow">Ombra</option>
-              <option value="legendary">Leggendario</option>
-            </select>
-          </label>
-
-          <label class="select-label">
-            Arena
-            <select id="arenaSkinSelect">
-              <option value="default">Arena mistica</option>
-              <option value="volcano">Vulcano</option>
-              <option value="forest">Foresta sacra</option>
-              <option value="abyss">Abisso oscuro</option>
-              <option value="beach">Spiaggia Tommi 38</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="main-actions">
-          <button id="playBotBtn" class="primary-action">Gioca</button>
-          <button id="createOnlineBtn" class="glass-action">Online</button>
-        </div>
-
-        <div class="main-actions secondary-actions">
-          <button id="campaignBtn" class="glass-action">Campagna Boss</button>
-          <button id="draftBtn" class="glass-action">Draft</button>
-        </div>
-
-        <div class="join-box">
-          <input id="joinCodeInput" type="text" placeholder="Codice partita" maxlength="6" />
-          <button id="joinOnlineBtn" class="glass-action">Entra</button>
-        </div>
-
-        <div class="bottom-menu">
-          <button id="tutorialBtn">📘 Tutorial</button>
-          <button id="leaderboardBtn">🏆 Classifica</button>
-          <button id="historyBtn">📜 Storico</button>
-        </div>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Lupus in Fabula</p>
+        <h1>Narratore online</h1>
+        <p class="subtitle">Crea una partita, assegna i ruoli e gestisci automaticamente notte e giorno.</p>
       </div>
-    </div>
-  </div>
-
-  <!-- LOBBY ONLINE -->
-  <div id="lobbyScreen" class="screen lobby-screen hidden">
-    <div class="menu-shell">
-      <div class="hero-panel lobby-card">
-        <div class="hero-top">
-          <div class="game-logo">
-            <div class="logo-mark">🌐</div>
-            <div>
-              <h1>Lobby<br>Online</h1>
-              <p>Condividi il codice con l’altro giocatore.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="code-box" id="roomCodeText">----</div>
-
-        <p id="lobbyStatusText" class="lobby-status">In attesa del secondo giocatore...</p>
-
-        <div class="main-actions">
-          <button id="copyCodeBtn" class="primary-action">Copia codice</button>
-          <button id="copyInviteLinkBtn" class="glass-action">Copia link</button>
-        </div>
-
-        <button id="leaveLobbyBtn" class="full-glass-btn">Torna al menu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- GIOCO -->
-  <div id="gameScreen" class="game-screen hidden">
-
-    <header class="app-topbar">
-      <div class="top-player-title">
-        <div class="mini-logo">⚔️</div>
-        <div>
-          <h1>Evolution Arena</h1>
-          <p id="modeText">Bot</p>
-        </div>
-      </div>
-
-      <div class="top-actions">
-        <button id="quickChatBtn" class="round-btn">💬</button>
-        <button id="backMenuBtn" class="round-btn">☰</button>
-        <button id="restartBtn" class="round-btn accent">↻</button>
-      </div>
+      <div class="status-pill" id="connectionStatus">Connessione...</div>
     </header>
 
-    <section class="battle-hud">
-      <div class="player-bar enemy-bar" id="enemyHudBox">
-        <div>
-          <strong id="enemyName">Nemico</strong>
-          <span>🃏 <b id="enemyHandCount">0</b></span>
-        </div>
-        <div class="life-energy">
-          <span>❤️ <b id="enemyLife">30</b></span>
-          <span>⚡ <b id="enemyEnergy">0</b>/<b id="enemyMaxEnergy">0</b></span>
-          <small id="enemyEnergyDots" class="energy-dots"></small>
-        </div>
-      </div>
+    <main>
+      <section class="card" id="setupSection">
+        <h2>1. Crea o carica partita</h2>
 
-      <div class="turn-panel">
-        <strong id="turnText">Tuo turno</strong>
-        <span id="message">Trascina una carta o seleziona una creatura.</span>
-        <span id="roomInfoText"></span>
-        <span id="turnTimerText" class="timer-text">⏱️ --</span>
-        <button id="cancelAttackBtn" class="tiny-btn hidden">Annulla attacco</button>
-      </div>
+        <label for="gameName">Nome partita</label>
+        <input id="gameName" type="text" placeholder="Es. Serata Tommi 38" />
 
-      <div class="player-bar my-bar">
-        <div>
-          <strong id="playerNameText">Tu</strong>
-          <span>📦 <b id="playerDeckCount">0</b></span>
+        <div class="grid two">
+          <button id="createGameBtn" class="primary">Crea nuova partita</button>
+          <button id="loadGamesBtn" class="secondary">Carica partite salvate</button>
         </div>
-        <div class="life-energy">
-          <span>❤️ <b id="playerLife">30</b></span>
-          <span>⚡ <b id="playerEnergy">0</b>/<b id="playerMaxEnergy">0</b></span>
-          <small id="playerEnergyDots" class="energy-dots"></small>
-        </div>
-      </div>
-    </section>
 
-    <main class="battle-board">
-
-      <section class="terrain-zone">
-        <span>🌍 Terreno</span>
-        <strong id="activeTerrainText">Nessun terreno</strong>
+        <div id="savedGames" class="saved-games hidden"></div>
       </section>
 
-      <section class="field-zone enemy-zone">
-        <div class="zone-title">
-          <h3>Campo avversario</h3>
-          <span>Mazzo: <b id="enemyDeckCount">0</b></span>
+      <section class="card hidden" id="playersSection">
+        <div class="section-head">
+          <div>
+            <h2>2. Giocatori</h2>
+            <p id="currentGameLabel" class="muted"></p>
+          </div>
+          <button id="resetGameBtn" class="danger ghost">Reset</button>
         </div>
-        <div id="enemyField" class="field compact-field"></div>
+
+        <div class="add-row">
+          <input id="playerName" type="text" placeholder="Nome giocatore" />
+          <button id="addPlayerBtn" class="secondary">Aggiungi</button>
+        </div>
+
+        <div id="playersList" class="list"></div>
       </section>
 
-      <section class="field-zone player-zone">
-        <div class="zone-title">
-          <h3>Il tuo campo</h3>
-          <button id="endTurnBtn" class="end-turn-btn">Fine turno</button>
+      <section class="card hidden" id="rolesSection">
+        <h2>3. Ruoli</h2>
+        <p class="muted">Scegli quanti ruoli usare. Il totale deve essere uguale al numero dei giocatori.</p>
+
+        <div id="rolesGrid" class="roles-grid"></div>
+
+        <div class="counter-box">
+          <span>Giocatori: <strong id="playersCount">0</strong></span>
+          <span>Ruoli scelti: <strong id="rolesCount">0</strong></span>
         </div>
-        <div id="playerField" class="field compact-field"></div>
+
+        <button id="assignRolesBtn" class="primary full">Assegna ruoli casuali</button>
       </section>
 
-      <section class="hand-zone">
-        <div class="zone-title">
-          <h3>Mano</h3>
-          <span><b id="playerHandCount">0</b> carte</span>
-        </div>
-        <div id="playerHand" class="hand"></div>
+      <section class="card hidden" id="roleRevealSection">
+        <h2>4. Consegna ruoli</h2>
+        <p class="muted">Passa il telefono a ogni giocatore. Tocca per vedere il ruolo e poi nascondilo.</p>
+        <div id="revealList" class="list"></div>
       </section>
 
-      <section class="log-wrapper collapsed" id="logWrapper">
-        <div class="zone-title clickable" id="toggleLogBtn">
-          <h3>Log partita</h3>
-          <span>apri/chiudi</span>
+      <section class="card hidden" id="gameSection">
+        <div class="phase-card" id="phaseCard">
+          <p class="eyebrow">Fase attuale</p>
+          <h2 id="phaseTitle">Notte 1</h2>
+          <p id="phaseInstruction">Tutti chiudono gli occhi.</p>
         </div>
-        <div id="battleLog" class="battle-log"></div>
-      </section>
 
+        <div class="narrator-box">
+          <h3 id="narratorStepTitle">Narratore</h3>
+          <p id="narratorStepText">Premi avanti per iniziare.</p>
+        </div>
+
+        <div class="grid two">
+          <button id="prevStepBtn" class="secondary">Indietro</button>
+          <button id="nextStepBtn" class="primary">Avanti</button>
+        </div>
+
+        <div class="grid two">
+          <button id="killPlayerBtn" class="danger">Elimina giocatore</button>
+          <button id="newDayBtn" class="secondary">Vai al giorno</button>
+        </div>
+
+        <div id="alivePlayers" class="list compact"></div>
+      </section>
     </main>
   </div>
 
-  <!-- DETTAGLIO CARTA -->
-  <div id="cardDetailModal" class="modal hidden">
-    <div class="modal-card detail-card">
-      <div id="detailIcon" class="result-icon">🔥</div>
-      <h2 id="detailName">Nome carta</h2>
-      <p id="detailType">Tipo carta</p>
-
-      <div class="detail-stats">
-        <span>Costo: <strong id="detailCost">0</strong></span>
-        <span id="detailAtkWrap">ATK: <strong id="detailAtk">0</strong></span>
-        <span id="detailHpWrap">HP: <strong id="detailHp">0</strong></span>
-      </div>
-
-      <div id="detailAbilities" class="detail-abilities"></div>
-      <div id="detailAbilityDescriptions" class="ability-descriptions"></div>
-
-      <p id="detailDesc" class="detail-desc">Descrizione carta.</p>
-
-      <button id="closeDetailBtn">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- RISULTATO -->
-  <div id="resultModal" class="modal hidden">
+  <div id="modal" class="modal hidden">
     <div class="modal-card">
-      <div id="resultIcon" class="result-icon">🏆</div>
-      <h2 id="resultTitle">Vittoria</h2>
-      <p id="resultText">Hai vinto.</p>
-
-      <div id="matchStatsBox" class="match-stats-box"></div>
-
-      <div class="modal-actions">
-        <button id="openPackBtn">Apri pacchetto</button>
-        <button id="replayBtn" class="secondary-btn">Replay testuale</button>
-        <button id="playAgainBtn">Rigioca</button>
-        <button id="resultMenuBtn" class="secondary-btn">Menu</button>
-      </div>
+      <button id="closeModalBtn" class="close">×</button>
+      <h2 id="modalTitle"></h2>
+      <p id="modalText"></p>
+      <div id="modalActions" class="modal-actions"></div>
     </div>
   </div>
 
-  <!-- TUTORIAL -->
-  <div id="tutorialModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">📘</div>
-      <h2>Tutorial rapido</h2>
-
-      <div class="tutorial-steps">
-        <div><strong>1. Evoca</strong><p>Trascina una Evo 1 dalla mano al tuo campo.</p></div>
-        <div><strong>2. Evolvi</strong><p>Trascina Evo 2 o Evo 3 sopra la creatura corretta.</p></div>
-        <div><strong>3. Equipaggia</strong><p>Trascina un equipaggiamento sopra una creatura.</p></div>
-        <div><strong>4. Terreno</strong><p>Trascina una carta terreno per cambiare le regole del campo.</p></div>
-        <div><strong>5. Attacca</strong><p>Clicca una tua creatura pronta, poi scegli il bersaglio.</p></div>
-      </div>
-
-      <button id="closeTutorialBtn">Ho capito</button>
-    </div>
-  </div>
-
-  <!-- CLASSIFICA -->
-  <div id="leaderboardModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">🏆</div>
-      <h2>Classifica</h2>
-      <p>Classifica online basata sulle vittorie registrate.</p>
-      <div id="leaderboardList" class="leaderboard-list">Caricamento...</div>
-      <button id="closeLeaderboardBtn">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- MISSIONI -->
-  <div id="missionsModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">🎯</div>
-      <h2>Missioni</h2>
-      <p>Completa obiettivi per guadagnare XP.</p>
-
-      <div id="missionsList" class="mission-list">
-        <div class="mission-row">Evoca 5 creature · <strong>+20 XP</strong></div>
-        <div class="mission-row">Fai 3 evoluzioni · <strong>+25 XP</strong></div>
-        <div class="mission-row">Infliggi 30 danni · <strong>+30 XP</strong></div>
-      </div>
-
-      <button id="closeMissionsBtn">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- CAMPAGNA BOSS -->
-  <div id="campaignModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">🐉</div>
-      <h2>Campagna Boss</h2>
-      <p>Scegli un boss da affrontare.</p>
-
-      <div class="boss-grid">
-        <button class="boss-btn" data-boss="apprentice">🧙 Apprendista</button>
-        <button class="boss-btn" data-boss="knight">⚔️ Cavaliere</button>
-        <button class="boss-btn" data-boss="dragon">🐉 Drago Solare</button>
-        <button class="boss-btn" data-boss="eclipse">🌑 Signore Eclissi</button>
-        <button class="boss-btn" data-boss="final">👑 Boss Finale</button>
-      </div>
-
-      <button id="closeCampaignBtn" class="secondary-btn">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- DRAFT -->
-  <div id="draftModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">🃏</div>
-      <h2>Modalità Draft</h2>
-      <p>Scegli una carta tra tre proposte per costruire il mazzo.</p>
-
-      <div id="draftChoices" class="draft-grid">
-        <button class="draft-choice">Carta 1</button>
-        <button class="draft-choice">Carta 2</button>
-        <button class="draft-choice">Carta 3</button>
-      </div>
-
-      <p id="draftProgressText">0/20 carte scelte</p>
-
-      <div class="modal-actions">
-        <button id="startDraftGameBtn">Inizia Draft</button>
-        <button id="closeDraftBtn" class="secondary-btn">Chiudi</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PACCHETTO CARTE -->
-  <div id="packModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">🎁</div>
-      <h2>Pacchetto carte</h2>
-      <p>Ricompensa partita.</p>
-      <div id="packCards" class="pack-grid"></div>
-      <button id="closePackBtn">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- CHAT RAPIDA -->
-  <div id="quickChatModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">💬</div>
-      <h2>Chat rapida</h2>
-
-      <div class="quick-chat-grid">
-        <button class="quick-chat-msg" data-msg="Bella mossa!">Bella mossa!</button>
-        <button class="quick-chat-msg" data-msg="Tocca a te">Tocca a te</button>
-        <button class="quick-chat-msg" data-msg="GG">GG</button>
-        <button class="quick-chat-msg" data-msg="Ops...">Ops...</button>
-        <button class="quick-chat-msg" data-msg="Partita tirata">Partita tirata</button>
-      </div>
-
-      <button id="closeQuickChatBtn" class="secondary-btn">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- STORICO -->
-  <div id="historyModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">📜</div>
-      <h2>Storico partite</h2>
-      <div id="historyList" class="history-list">Nessuna partita registrata.</div>
-      <button id="closeHistoryBtn">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- REPLAY -->
-  <div id="replayModal" class="modal hidden">
-    <div class="modal-card">
-      <div class="result-icon">🎬</div>
-      <h2>Replay testuale</h2>
-      <div id="replayList" class="replay-list">Nessun replay disponibile.</div>
-      <button id="closeReplayBtn">Chiudi</button>
-    </div>
-  </div>
-
-  <nav id="appBottomNav" class="app-bottom-nav">
-    <button id="navHomeBtn" type="button"><b>⌂</b><span>Home</span></button>
-    <button id="navPlayBtn" type="button" class="active"><b>⚔️</b><span>Gioca</span></button>
-    <button id="navBossBtn" type="button"><b>🐉</b><span>Boss</span></button>
-    <button id="navDraftBtn" type="button"><b>🃏</b><span>Draft</span></button>
-    <button id="navMissionsBtn" type="button"><b>🎯</b><span>Missioni</span></button>
-  </nav>
-
-  <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("./service-worker.js?v=61")
-        .catch(error => {
-          console.warn("Service Worker non registrato:", error);
-        });
-    });
-  }
-</script>
-
-<script type="module" src="script.js?v=61"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
