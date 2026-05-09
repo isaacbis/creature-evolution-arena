@@ -3,109 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Lupus Narratore Online</title>
+  <title>Lupus Narratore</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app" class="app">
-    <header class="topbar">
+  <div class="app-shell">
+    <header class="hero">
       <div>
-        <p class="eyebrow">Lupus</p>
-        <h1>Narratore Online</h1>
+        <p class="eyebrow">Lupus in Fabula</p>
+        <h1>Narratore automatico</h1>
+        <p class="subtitle">Inserisci i giocatori, assegna i ruoli e lascia che il telefono guidi notte, giorno e votazioni.</p>
       </div>
-      <button id="resetBtn" class="ghost small">Esci</button>
+      <button id="btnVoice" class="ghost-btn" type="button">Voce: ON</button>
     </header>
 
-    <main id="screen"></main>
+    <main>
+      <section id="setupScreen" class="panel active">
+        <h2>1. Giocatori</h2>
+        <p class="muted">Scrivi un nome per riga. Consigliato: almeno 6 giocatori.</p>
+        <textarea id="playersInput" rows="8" placeholder="Es.\nMarco\nLuca\nSara\nGiulia\nAndrea\nPaolo"></textarea>
+
+        <div class="quick-row">
+          <button id="btnExample" type="button" class="secondary-btn">Esempio</button>
+          <button id="btnClear" type="button" class="secondary-btn">Pulisci</button>
+        </div>
+
+        <h2>2. Ruoli</h2>
+        <p class="muted">Scegli quanti ruoli speciali usare. I restanti saranno Contadini.</p>
+
+        <div class="role-grid">
+          <label><span>Lupi Mannari</span><input id="wolvesCount" type="number" min="1" max="6" value="2"></label>
+          <label><span>Veggente</span><input id="seerCount" type="number" min="0" max="1" value="1"></label>
+          <label><span>Guardia</span><input id="guardCount" type="number" min="0" max="1" value="1"></label>
+          <label><span>Strega</span><input id="witchCount" type="number" min="0" max="1" value="0"></label>
+          <label><span>Cacciatore</span><input id="hunterCount" type="number" min="0" max="1" value="0"></label>
+          <label><span>Giullare</span><input id="jesterCount" type="number" min="0" max="1" value="0"></label>
+        </div>
+
+        <div id="roleWarning" class="warning hidden"></div>
+
+        <button id="btnStart" class="primary-btn big" type="button">Crea partita</button>
+      </section>
+
+      <section id="revealScreen" class="panel">
+        <div class="step-label">Carte ruolo</div>
+        <h2 id="revealTitle">Passa il telefono</h2>
+        <p id="revealInstruction" class="muted">Ogni giocatore guarda solo la propria carta.</p>
+
+        <div id="roleCard" class="role-card hidden">
+          <p id="cardPlayer" class="card-player"></p>
+          <h3 id="cardRole"></h3>
+          <p id="cardDesc"></p>
+        </div>
+
+        <button id="btnReveal" class="primary-btn big" type="button">Mostra carta</button>
+        <button id="btnHideAndNext" class="secondary-btn big hidden" type="button">Nascondi e passa al prossimo</button>
+        <button id="btnGoGame" class="primary-btn big hidden" type="button">Inizia la notte</button>
+      </section>
+
+      <section id="gameScreen" class="panel">
+        <div class="top-status">
+          <div>
+            <p class="eyebrow">Fase</p>
+            <h2 id="phaseTitle">Notte</h2>
+          </div>
+          <div class="badge" id="roundBadge">Turno 1</div>
+        </div>
+
+        <div class="narrator-box">
+          <p id="narratorText">Premi avanti per iniziare la narrazione.</p>
+        </div>
+
+        <div id="actionArea" class="action-area"></div>
+
+        <div class="controls">
+          <button id="btnPrevStep" class="secondary-btn" type="button">Indietro</button>
+          <button id="btnSpeakAgain" class="secondary-btn" type="button">Ripeti voce</button>
+          <button id="btnNextStep" class="primary-btn" type="button">Avanti</button>
+        </div>
+
+        <details class="players-box">
+          <summary>Giocatori vivi / eliminati</summary>
+          <div id="playersList"></div>
+        </details>
+
+        <button id="btnReset" class="danger-btn" type="button">Nuova partita</button>
+      </section>
+    </main>
   </div>
-
-  <template id="homeTemplate">
-    <section class="hero card">
-      <div class="wolf">☾</div>
-      <h2>Gioca con uno o più dispositivi</h2>
-      <p>Una persona crea la stanza. Gli altri entrano dal telefono con il codice. Ogni giocatore vede solo il proprio ruolo.</p>
-      <div class="grid2">
-        <button id="createRoomBtn" class="primary">Crea stanza online</button>
-        <button id="singleDeviceBtn" class="secondary">Modalità narratore unico</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h3>Entra in una stanza</h3>
-      <label>Nome giocatore</label>
-      <input id="joinName" placeholder="Es. Marco" maxlength="24" />
-      <label>Codice stanza</label>
-      <input id="joinCode" placeholder="Es. LUP123" maxlength="8" />
-      <button id="joinRoomBtn" class="primary full">Entra</button>
-    </section>
-  </template>
-
-  <template id="hostSetupTemplate">
-    <section class="card">
-      <h2>Crea partita online</h2>
-      <label>Nome narratore / host</label>
-      <input id="hostName" placeholder="Es. Isaac" maxlength="24" />
-
-      <div class="roleConfig">
-        <div><label>Lupi</label><input type="number" id="wolvesCount" value="2" min="1" max="6"></div>
-        <div><label>Veggente</label><input type="number" id="seerCount" value="1" min="0" max="1"></div>
-        <div><label>Guardia</label><input type="number" id="guardCount" value="1" min="0" max="1"></div>
-        <div><label>Strega</label><input type="number" id="witchCount" value="0" min="0" max="1"></div>
-      </div>
-
-      <p class="muted">I contadini vengono aggiunti automaticamente in base al numero dei giocatori.</p>
-      <button id="confirmCreateBtn" class="primary full">Crea stanza</button>
-    </section>
-  </template>
-
-  <template id="roomTemplate">
-    <section class="roomHead card">
-      <div>
-        <p class="eyebrow">Codice stanza</p>
-        <h2 id="roomCodeText">---</h2>
-      </div>
-      <button id="copyCodeBtn" class="secondary small">Copia</button>
-    </section>
-
-    <section class="status card">
-      <p id="phaseLabel" class="phase">Lobby</p>
-      <h2 id="mainTitle">In attesa dei giocatori</h2>
-      <p id="mainSubtitle" class="muted"></p>
-    </section>
-
-    <section id="privateRoleCard" class="roleCard hidden"></section>
-
-    <section id="hostControls" class="card hidden"></section>
-    <section id="playerActions" class="card hidden"></section>
-
-    <section class="card">
-      <div class="sectionTitle">
-        <h3>Giocatori</h3>
-        <span id="playerCount" class="pill">0</span>
-      </div>
-      <div id="playersList" class="players"></div>
-    </section>
-
-    <section id="logBox" class="card log"></section>
-  </template>
-
-  <template id="singleTemplate">
-    <section class="card">
-      <h2>Modalità narratore unico</h2>
-      <p class="muted">Usi un solo telefono. Inserisci i nomi, assegni i ruoli e fai passare il telefono a ogni giocatore per vedere la propria carta.</p>
-      <label>Nomi giocatori, uno per riga</label>
-      <textarea id="singleNames" rows="7" placeholder="Marco&#10;Luca&#10;Sara&#10;Giulia"></textarea>
-      <div class="roleConfig">
-        <div><label>Lupi</label><input type="number" id="singleWolves" value="2" min="1" max="6"></div>
-        <div><label>Veggente</label><input type="number" id="singleSeer" value="1" min="0" max="1"></div>
-        <div><label>Guardia</label><input type="number" id="singleGuard" value="1" min="0" max="1"></div>
-        <div><label>Strega</label><input type="number" id="singleWitch" value="0" min="0" max="1"></div>
-      </div>
-      <button id="startSingleBtn" class="primary full">Avvia partita</button>
-    </section>
-
-    <section id="singleGame" class="hidden"></section>
-  </template>
 
   <script type="module" src="script.js"></script>
 </body>
