@@ -651,12 +651,38 @@ async function makeBotsActOnline(){
   }
   toast('I bot agiscono solo durante notte o votazione.');
 }
+
+async function submitVoteOnline(target){
+  const ref=doc(db,'lupusRooms',room.code);
+  let ok=false;
+  let msg='';
+  await runTransaction(db, async tx=>{
+    const snap=await tx.get(ref); if(!snap.exists()){ msg='Stanza non trovata.'; return; }
+    const d=snap.data();
+    if(d.phase==='gameOver'){ msg='La partita è finita.'; return; }
+    if(d.phase!=='vote'){ msg='La votazione non è aperta.'; return; }
+    const players=d.players||[];
+    const me=players.find(p=>p.id===room.playerId);
+    const targetPlayer=players.find(p=>p.id===target);
+    if(!me){ msg='Questo dispositivo non è registrato come giocatore.'; return; }
+    if(!me.alive){ msg='Sei morto: non puoi votare.'; return; }
+    if(!targetPlayer || !targetPlayer.alive){ msg='Bersaglio non valido.'; return; }
+    const votes={...(d.votes||{})};
+    if(votes[me.id]){ msg='Hai già votato in questa votazione. Potrai rivotare al prossimo giorno.'; return; }
+    votes[me.id]=target;
+    tx.update(ref,{votes,updatedAt:serverTimestamp()});
+    ok=true;
+  });
+  toast(ok ? 'Voto registrato. Non puoi cambiarlo fino al prossimo giorno.' : (msg || 'Voto non registrato.'));
+  scheduleAutoProgress();
+}
+
 async function onlinePlayerAction(action,target){
   const ref=doc(db,'lupusRooms',room.code), d=room.data, me=(d.players||[]).find(p=>p.id===room.playerId);
   if(!d || d.phase==='gameOver') return toast('La partita è finita.');
   if(!me) return toast('Questo dispositivo non è registrato come giocatore.');
   if(!me.alive) return toast('Sei morto: non puoi fare azioni.');
-  if(action==='dayVote' && (d.votes||{})[me.id]) return toast('Hai già votato in questa votazione. Potrai rivotare al prossimo giorno.');
+  if(action==='dayVote') return submitVoteOnline(target);
   const night={...(d.night||{})}, votes={...(d.votes||{})}, privateResults={...(d.privateResults||{})};
   if(action==='wolfVictim') night[`wolf_${me.id}`]=target;
   if(action==='seerCheck') { const p=d.players.find(x=>x.id===target); const result=isWolfish(p.role)?'LUPO':'NON LUPO'; toast(`${p.name}: ${result}`); night[`seer_${me.id}`]=target; night[`seerReadUntil_${me.id}`]=Date.now()+SEER_READ_SECONDS*1000; privateResults[me.id]={type:'seer', targetName:p.name, result, at:Date.now()}; }
@@ -679,9 +705,13 @@ async function onlineNext(){
   return advanceNightStepOnline('manual');
 }
 async function onlineHostAction(action){
-  if(room.data?.phase==='gameOver') return toast('La partita è finita.');
-  if(action==='startVote' && room.data?.phase==='vote') return toast('La votazione è già aperta.');
-  if(action==='resolveVote' && room.data?.phase!=='vote') return toast('Non c’è una votazione aperta da contare.');
+  const phase = room.data?.phase;
+  if(phase==='gameOver') return toast('La partita è finita.');
+  if(action==='startVote' && phase!=='day') return toast(phase==='vote' ? 'La votazione è già aperta.' : 'Puoi aprire la votazione solo durante il giorno.');
+  if(action==='skipVote' && !['day','vote'].includes(phase)) return toast('Puoi saltare la votazione solo durante il giorno o durante una votazione aperta.');
+  if(action==='night' && !['day','vote'].includes(phase)) return toast('Puoi iniziare una nuova notte solo dopo il giorno o dopo la votazione.');
+  if(action==='resolveNight' && phase!=='night') return toast('Puoi risolvere la notte solo durante la notte.');
+  if(action==='resolveVote' && phase!=='vote') return toast('Non c’è una votazione aperta da contare.');
   if(action?.startsWith('hunterShot:')) return hunterShotOnline(action.split(':')[1]);
   if(action==='addBots') return addBotsToRoom(6);
   if(action==='clearBots') return clearBotsFromRoom();
