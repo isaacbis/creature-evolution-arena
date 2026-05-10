@@ -1,0 +1,9 @@
+{
+  "name": "Lupus Narratore",
+  "short_name": "Lupus",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#070914",
+  "theme_color": "#070914",
+  "orientation": "portrait"
+}
