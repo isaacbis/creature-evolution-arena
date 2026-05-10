@@ -83,3 +83,10 @@ VERSIONE V6 - MULTIPLAYER AUTOMATICO
 - Se il ruolo completa prima la sua azione, la fase passa subito alla successiva.
 - La votazione dura massimo 15 secondi; se tutti votano prima, il sistema conta subito.
 - Nota tecnica: essendo un'app solo HTML/CSS/JS + Firestore, almeno un dispositivo deve restare aperto nella stanza per far avanzare i timer.
+
+VERSIONE V8 - CORREZIONE VOTO E FINE PARTITA
+- Corretto voto multiplayer: ogni giocatore vivo può votare una sola volta per ogni giorno.
+- Dopo aver votato, il giocatore vede il messaggio “Hai già votato” e non può cambiare voto.
+- Alla votazione successiva i voti vengono azzerati, quindi può votare di nuovo una volta.
+- Corretto fine partita: se non ci sono più lupi vivi, la fase diventa “gameOver” e il gioco non prosegue più con giorno/notte/votazioni.
+- Corretto anche il caso in cui la vittoria arriva dopo la notte, dopo la votazione o dopo il colpo del Cacciatore.

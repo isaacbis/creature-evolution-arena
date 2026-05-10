@@ -187,6 +187,8 @@ function winCheck(players){
   return null;
 }
 function publicDeathText(name){ return `${name} è morto. Il suo ruolo resta segreto per i giocatori.`; }
+function gameOverNarration(win){ return ` Partita finita. ${win}`; }
+function isGameOverPhase(phase){ return phase === 'gameOver'; }
 
 function init(){
   makeRolePicker($("#localRolePicker"),"local", DEFAULT_COUNTS);
@@ -247,6 +249,7 @@ function nextLocalReveal(){
   renderLocal();
 }
 function localNext(){
+  if(local.phase==='gameOver') return toast('La partita è finita. Avvia una nuova partita per continuare.');
   if(local.phase==='reveal') return nextLocalReveal();
   if(local.phase==='night') return localNightStep();
   if(local.phase==='day') return startVoteLocal();
@@ -268,6 +271,7 @@ function localNightStep(){
 function renderLocalActions(){
   const area=$('#localActionArea');
   const note = local.hostNote ? `<div class="host-note"><b>Nota solo narratore:</b> ${local.hostNote}</div>` : '';
+  if(local.phase==='gameOver'){ area.innerHTML=`${note}<p><b>Partita conclusa.</b></p><p>Per giocare di nuovo torna alla schermata iniziale e avvia una nuova partita.</p>`; return; }
   if(local.phase==='reveal'){ area.innerHTML='<p>Prima mostra i ruoli a tutti.</p>'; return; }
   if(local.phase==='night'){
     area.innerHTML=`${note}<div class="action-grid">
@@ -326,7 +330,12 @@ function resolveNightLocal(){
   const names=unique.map(id=>local.players.find(p=>p.id===id)?.name).filter(Boolean);
   local.lastText = names.length ? narr('death', `È giorno. ${names.map(publicDeathText).join(' ')}`) : narr('noDeath', 'È giorno. Questa notte non è morto nessuno.');
   local.hostNote = hunter ? `${hunter.name} era il Cacciatore: può sparare prima di uscire.` : '';
-  const win=winCheck(local.players); if(win && !hunter) local.lastText += ' ' + win;
+  const win=winCheck(local.players);
+  if(win){
+    local.phase='gameOver';
+    local.pendingHunterId=null;
+    local.lastText += gameOverNarration(win);
+  }
   local.night={victim:null, protected:null, witchSave:false, witchKill:null};
   speak(local.lastText); renderLocal();
 }
@@ -336,7 +345,8 @@ function hunterShotLocal(id){
     if(p){ p.alive=false; local.hostNote = `${p.name} è stato colpito dal Cacciatore. Ruolo: ${roleName(p.role)}.`; }
   } else local.hostNote='Il Cacciatore non ha sparato.';
   local.phase='day'; local.pendingHunterId=null;
-  const win=winCheck(local.players); if(win) local.lastText += ' ' + win;
+  const win=winCheck(local.players);
+  if(win){ local.phase='gameOver'; local.lastText += gameOverNarration(win); }
   renderLocal();
 }
 
@@ -359,9 +369,14 @@ function lynchLocal(id){
     local.lastText=narr('lynch', `${p.name} è stato eliminato dal villaggio. Il suo ruolo resta segreto per i giocatori.`);
     speak(local.lastText); renderLocal(); return;
   }
-  local.phase='night'; local.step=0;
-  local.lastText=narr('lynch', `${p.name} è stato eliminato dal villaggio. Il suo ruolo resta segreto per i giocatori. Tutti chiudono gli occhi, ricomincia la notte.`);
-  const win=winCheck(local.players); if(win) local.lastText += ' ' + win;
+  const win=winCheck(local.players);
+  if(win){
+    local.phase='gameOver'; local.step=0;
+    local.lastText=narr('lynch', `${p.name} è stato eliminato dal villaggio. Il suo ruolo resta segreto per i giocatori.`) + gameOverNarration(win);
+  } else {
+    local.phase='night'; local.step=0;
+    local.lastText=narr('lynch', `${p.name} è stato eliminato dal villaggio. Il suo ruolo resta segreto per i giocatori. Tutti chiudono gli occhi, ricomincia la notte.`);
+  }
   speak(local.lastText); renderLocal();
 }
 
@@ -420,6 +435,11 @@ function renderRoomActions(d, players, me){
       : '<p>Attendi che il narratore inizi.</p>';
     return;
   }
+  if(d.phase==='gameOver'){
+    const winText = d.winnerText || d.hostNote || 'La partita è finita.';
+    area.innerHTML = `<p><b>Partita conclusa.</b></p><p>${winText}</p>${room.isHost ? '<p class="hint">Per rigiocare crea una nuova stanza.</p>' : ''}`;
+    return;
+  }
   if(room.isHost){
     const hunter=players.find(p=>p.id===d.pendingHunterId);
     if(d.phase==='hunterShot' && hunter){
@@ -460,7 +480,15 @@ function renderRoomActions(d, players, me){
       }
     }
     else area.innerHTML=`<p>È notte: ${ONLINE_NIGHT_STEPS[d.step||0]?.label||'attendi'}. Aspetta il tuo turno.</p>${autoTimerHtml(d)}`;
-  } else if(d.phase==='vote') area.innerHTML=targetButtons('Vota chi eliminare', alivePlayers(players).filter(p=>p.id!==me.id), 'dayVote') + autoTimerHtml(d);
+  } else if(d.phase==='vote') {
+    const alreadyVote=(d.votes||{})[me.id];
+    if(alreadyVote){
+      const voted=players.find(p=>p.id===alreadyVote);
+      area.innerHTML=`<p>Hai già votato${voted ? `: <b>${voted.name}</b>` : ''}. Puoi votare una sola volta in questo giorno.</p>${autoTimerHtml(d)}`;
+    } else {
+      area.innerHTML=targetButtons('Vota chi eliminare', alivePlayers(players).filter(p=>p.id!==me.id), 'dayVote') + autoTimerHtml(d);
+    }
+  }
   else if(d.phase==='hunterShot') area.innerHTML='<p>Il narratore sta gestendo un potere speciale. Attendi.</p>';
   else area.innerHTML=`<p>È giorno. Discutete dal vivo. L’app aprirà la votazione automaticamente dopo 15 secondi.</p>${autoTimerHtml(d)}<div class="action-grid"><button class="primary" data-online-host="startVote">Vota ora</button><button class="secondary" data-online-host="skipVote">Salta votazione</button></div>`;
 }
@@ -473,29 +501,56 @@ document.addEventListener('click', async e=>{
 });
 
 async function addBotsToRoom(count=6){
-  if(!room.isHost) return;
-  const d=room.data || {};
-  if(d.phase && d.phase!=='lobby') return toast('Puoi aggiungere bot solo prima di iniziare la partita.');
-  const players=[...(d.players||[])];
-  const existingNames=new Set(players.map(p=>p.name));
-  let added=0;
-  for(const name of BOT_NAMES){
-    if(added>=count) break;
-    if(existingNames.has(name)) continue;
-    players.push({id:'bot_'+uid(), name, role:null, alive:true, isBot:true});
-    existingNames.add(name);
-    added++;
+  try {
+    if(!room?.code) return toast('Prima crea o entra in una stanza.');
+    const ref=doc(db,'lupusRooms',room.code);
+    const snap=await getDoc(ref);
+    if(!snap.exists()) return toast('Stanza non trovata. Ricrea la stanza.');
+    const d=snap.data() || {};
+
+    // In alcune situazioni il flag locale room.isHost può non aggiornarsi subito.
+    // Per evitare che il bottone sembri morto, ricontrolliamo direttamente hostId dal documento Firestore.
+    const isHost = d.hostId === room.playerId || room.isHost === true;
+    if(!isHost) return toast('Solo chi ha creato la stanza può aggiungere i bot.');
+
+    if((d.phase || 'lobby') !== 'lobby') return toast('Puoi aggiungere bot solo prima di iniziare la partita.');
+
+    const players=[...(d.players||[])];
+    const existingNames=new Set(players.map(p=>String(p.name || '').trim().toLowerCase()));
+    let added=0;
+
+    for(const name of BOT_NAMES){
+      if(added>=count) break;
+      if(existingNames.has(name.toLowerCase())) continue;
+      players.push({id:'bot_'+uid(), name, role:null, alive:true, isBot:true, joinedAt:Date.now()});
+      existingNames.add(name.toLowerCase());
+      added++;
+    }
+
+    await setDoc(ref,{players,updatedAt:serverTimestamp()},{merge:true});
+    toast(added ? `${added} bot aggiunti.` : 'Hai già aggiunto tutti i bot disponibili.');
+  } catch(err) {
+    console.error('Errore aggiunta bot:', err);
+    toast('Errore aggiunta bot: controlla Firestore Rules e connessione.');
   }
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,updatedAt:serverTimestamp()});
-  toast(added ? `${added} bot aggiunti.` : 'Hai già aggiunto tutti i bot disponibili.');
 }
 async function clearBotsFromRoom(){
-  if(!room.isHost) return;
-  const d=room.data || {};
-  if(d.phase && d.phase!=='lobby') return toast('Puoi rimuovere i bot solo nella lobby.');
-  const players=(d.players||[]).filter(p=>!p.isBot);
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,updatedAt:serverTimestamp()});
-  toast('Bot rimossi.');
+  try {
+    if(!room?.code) return toast('Prima crea o entra in una stanza.');
+    const ref=doc(db,'lupusRooms',room.code);
+    const snap=await getDoc(ref);
+    if(!snap.exists()) return toast('Stanza non trovata.');
+    const d=snap.data() || {};
+    const isHost = d.hostId === room.playerId || room.isHost === true;
+    if(!isHost) return toast('Solo chi ha creato la stanza può rimuovere i bot.');
+    if((d.phase || 'lobby') !== 'lobby') return toast('Puoi rimuovere i bot solo nella lobby.');
+    const players=(d.players||[]).filter(p=>!p.isBot);
+    await setDoc(ref,{players,updatedAt:serverTimestamp()},{merge:true});
+    toast('Bot rimossi.');
+  } catch(err) {
+    console.error('Errore rimozione bot:', err);
+    toast('Errore rimozione bot: controlla Firestore Rules e connessione.');
+  }
 }
 function randomAliveTarget(players, excludeId=null){
   const list=alivePlayers(players).filter(p=>p.id!==excludeId);
@@ -546,6 +601,8 @@ async function makeBotsActOnline(){
 }
 async function onlinePlayerAction(action,target){
   const ref=doc(db,'lupusRooms',room.code), d=room.data, me=(d.players||[]).find(p=>p.id===room.playerId);
+  if(!d || d.phase==='gameOver') return toast('La partita è finita.');
+  if(action==='dayVote' && (d.votes||{})[me.id]) return toast('Hai già votato in questo giorno. Potrai rivotare solo al prossimo giorno.');
   const night={...(d.night||{})}, votes={...(d.votes||{})};
   if(action==='wolfVictim') night[`wolf_${me.id}`]=target;
   if(action==='seerCheck') { const p=d.players.find(x=>x.id===target); toast(`${p.name}: ${isWolfish(p.role)?'LUPO':'NON LUPO'}`); night[`seer_${me.id}`]=target; }
@@ -566,6 +623,9 @@ async function onlineNext(){
   return advanceNightStepOnline('manual');
 }
 async function onlineHostAction(action){
+  if(room.data?.phase==='gameOver') return toast('La partita è finita.');
+  if(action==='startVote' && room.data?.phase==='vote') return toast('La votazione è già aperta.');
+  if(action==='resolveVote' && room.data?.phase!=='vote') return toast('Non c’è una votazione aperta da contare.');
   if(action?.startsWith('hunterShot:')) return hunterShotOnline(action.split(':')[1]);
   if(action==='addBots') return addBotsToRoom(6);
   if(action==='clearBots') return clearBotsFromRoom();
@@ -626,7 +686,7 @@ function voteComplete(d){
 function scheduleAutoProgress(){
   if(autoTimer) clearTimeout(autoTimer);
   const d=room.data;
-  if(!d || !d.autoMode || !room.code) return;
+  if(!d || !d.autoMode || !room.code || d.phase==='gameOver') return;
   if(autoBotsNeeded(d)) return autoTimer=setTimeout(()=>autoBotsIfNeeded(), 300);
   if(d.phase==='night' && nightStepComplete(d)) return autoTimer=setTimeout(()=>autoAdvanceIfReady('complete'), 250);
   if(d.phase==='vote' && voteComplete(d)) return autoTimer=setTimeout(()=>autoAdvanceIfReady('votesComplete'), 250);
@@ -725,7 +785,8 @@ function mostVotedFromVotes(votes, players){
   const c={};
   Object.entries(votes||{}).forEach(([voter,target])=>{
     const voterPlayer=players.find(p=>p.id===voter);
-    if(!target || !voterPlayer?.alive) return;
+    const targetPlayer=players.find(p=>p.id===target);
+    if(!target || !voterPlayer?.alive || !targetPlayer?.alive) return;
     c[target]=(c[target]||0)+(voterPlayer.role==='mayor'?2:1);
   });
   const entries=Object.entries(c).sort((a,b)=>b[1]-a[1]);
@@ -746,8 +807,10 @@ async function resolveNightOnline(){
   const names=unique.map(id=>players.find(p=>p.id===id)?.name).filter(Boolean);
   let narration=names.length ? narr('death', `È giorno. ${names.map(publicDeathText).join(' ')}`) : narr('noDeath', 'È giorno. Questa notte non è morto nessuno.');
   let hostNote=hunter ? `${hunter.name} era il Cacciatore: può sparare prima di uscire.` : '';
-  const win=winCheck(players); if(win && !hunter) narration += ' ' + win;
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:hunter?'hunterShot':'day',pendingHunterId:hunter?.id||null,step:0,night:{},phaseDeadline:hunter?null:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,hostNote:hostNote || 'Discussione automatica: 15 secondi, poi si apre la votazione.',updatedAt:serverTimestamp()}); speak(narration);
+  const win=winCheck(players);
+  const nextPhase = win ? 'gameOver' : (hunter ? 'hunterShot' : 'day');
+  if(win) narration += gameOverNarration(win);
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:nextPhase,pendingHunterId:win?null:(hunter?.id||null),step:0,night:{},votes:{},phaseDeadline: win || hunter ? null : Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,winnerText:win||'',hostNote: win ? 'Partita conclusa.' : (hostNote || 'Discussione automatica: 15 secondi, poi si apre la votazione.'),updatedAt:serverTimestamp()}); speak(narration);
 }
 async function resolveVoteOnline(){
   const d=room.data, players=[...(d.players||[])], target=mostVotedFromVotes(d.votes||{}, players);
@@ -755,8 +818,10 @@ async function resolveVoteOnline(){
   let hostNote='';
   let hunter=null;
   if(target){ const p=players.find(x=>x.id===target); if(p){ p.alive=false; narration=narr('lynch', `${p.name} è stato eliminato dal villaggio. Il suo ruolo resta segreto per i giocatori.`); if(p.role==='jester') hostNote=`${p.name} era il Giullare: ha raggiunto il suo obiettivo.`; if(p.role==='hunter'){ hunter=p; hostNote=`${p.name} era il Cacciatore: può sparare prima di uscire.`; } } }
-  const win=winCheck(players); if(win && !hunter) narration += ' ' + win;
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:hunter?'hunterShot':'day',pendingHunterId:hunter?.id||null,votes:{},phaseDeadline:hunter?null:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,hostNote:hostNote || 'Discussione automatica: 15 secondi, poi si apre la votazione.',updatedAt:serverTimestamp()}); speak(narration);
+  const win=winCheck(players);
+  const nextPhase = win ? 'gameOver' : (hunter ? 'hunterShot' : 'day');
+  if(win) narration += gameOverNarration(win);
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:nextPhase,pendingHunterId:win?null:(hunter?.id||null),votes:{},phaseDeadline:win||hunter?null:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,winnerText:win||'',hostNote: win ? 'Partita conclusa.' : (hostNote || 'Discussione automatica: 15 secondi, poi si apre la votazione.'),updatedAt:serverTimestamp()}); speak(narration);
 }
 
 async function hunterShotOnline(target){
@@ -771,8 +836,9 @@ async function hunterShotOnline(target){
       narration += ` ${p.name} è morto. Il suo ruolo resta segreto per i giocatori.`;
     }
   }
-  const win=winCheck(players); if(win) narration += ' ' + win;
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:'day',pendingHunterId:null,phaseDeadline:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,hostNote,updatedAt:serverTimestamp()});
+  const win=winCheck(players);
+  if(win) narration += gameOverNarration(win);
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:win?'gameOver':'day',pendingHunterId:null,phaseDeadline:win?null:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,winnerText:win||'',hostNote:win?'Partita conclusa.':hostNote,updatedAt:serverTimestamp()});
   speak(narration);
 }
 
