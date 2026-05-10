@@ -29,3 +29,14 @@ button,input,textarea{font:inherit}button{cursor:pointer;border:0}textarea,input
   font-weight:700;
   font-size:.92rem;
 }
+
+.private-result{
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.11);
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+}
+.private-result b{font-size:1.02rem;}
+.private-result small{opacity:.8;}

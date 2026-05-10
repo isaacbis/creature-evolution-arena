@@ -1,3 +1,10 @@
+VERSIONE V10 - FIX VEGGENTE
+
+- Timer automatico base portato a 20 secondi.
+- Il Veggente, dopo il controllo, ha 10 secondi dedicati per leggere il risultato.
+- Il risultato del Veggente resta visibile solo sul suo dispositivo nel pannello personale, anche se la fase va avanti.
+- Il risultato non viene mostrato agli altri giocatori.
+
 LUPUS NARRATORE - VERSIONE COMPLETA V4
 
 File inclusi:
