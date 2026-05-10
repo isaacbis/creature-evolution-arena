@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
+  getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -105,6 +105,15 @@ function narr(type, text){ const prefix=line(type); return prefix ? `${prefix} $
 const DEFAULT_COUNTS = { wolf:2, villager:4, seer:1, guard:1, witch:0, hunter:0, jester:0, medium:0, cupid:0, mayor:0, alpha:0, traitor:0 };
 const DEMO_NAMES = ["Marco","Giulia","Luca","Sara","Matteo","Anna","Davide","Chiara","Leo","Sofia"];
 const BOT_NAMES = ["Bot Marco","Bot Giulia","Bot Luca","Bot Sara","Bot Matteo","Bot Anna","Bot Davide","Bot Chiara","Bot Leo","Bot Sofia","Bot Nico","Bot Emma"];
+const AUTO_STEP_SECONDS = 15;
+const ONLINE_NIGHT_STEPS = [
+  { key:"wolves", label:"Turno dei lupi" },
+  { key:"seer", label:"Turno del veggente" },
+  { key:"guard", label:"Turno della guardia" },
+  { key:"witch", label:"Turno della strega" },
+  { key:"dawn", label:"Arriva il giorno" }
+];
+let autoTimer = null;
 
 let local = null;
 let room = { code:null, playerId:null, isHost:false, data:null, unsub:null, revealMine:false, narratorShowRoles:false };
@@ -360,7 +369,7 @@ async function createRoom(){
   const code=roomCode(); const hostId=uid();
   room={ code, playerId:hostId, isHost:true, data:null, unsub:null, revealMine:false, narratorShowRoles:false };
   localStorage.setItem('lupusPlayerId', hostId);
-  await setDoc(doc(db,'lupusRooms',code), { code, hostId, phase:'lobby', step:0, players:[], votes:{}, night:{}, witch:{save:true,kill:true}, narration:'Stanza creata. Fai entrare i giocatori con il codice.', hostNote:'', createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
+  await setDoc(doc(db,'lupusRooms',code), { code, hostId, phase:'lobby', step:0, players:[], votes:{}, night:{}, witch:{save:true,kill:true}, autoMode:true, autoSeq:0, phaseDeadline:null, narration:'Stanza creata. Fai entrare i giocatori con il codice.', hostNote:'', createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
   listenRoom(code); show('roomView'); toast(`Codice stanza: ${code}`);
 }
 async function joinRoom(){
@@ -376,7 +385,7 @@ async function joinRoom(){
 }
 function listenRoom(code){
   if(room.unsub) room.unsub();
-  room.unsub=onSnapshot(doc(db,'lupusRooms',code), snap=>{ if(!snap.exists()) return; room.data=snap.data(); room.isHost=room.data.hostId===room.playerId; renderRoom(); });
+  room.unsub=onSnapshot(doc(db,'lupusRooms',code), snap=>{ if(!snap.exists()) return; room.data=snap.data(); room.isHost=room.data.hostId===room.playerId; renderRoom(); scheduleAutoProgress(); });
 }
 async function startOnlineGame(){
   if(!room.isHost) return;
@@ -386,7 +395,7 @@ async function startOnlineGame(){
   if(setupError) return toast(setupError);
   const deck=makeRoleDeck(counts, players.length);
   const assigned=players.map((p,i)=>({...p,role:deck[i],alive:true}));
-  await updateDoc(doc(db,'lupusRooms',room.code), { players:assigned, phase:'night', step:0, votes:{}, night:{}, witch:{save:true,kill:true}, pendingHunterId:null, narration:narr('intro','La partita inizia. Tutti guardano il proprio ruolo e poi chiudono gli occhi.'), hostNote:'', updatedAt:serverTimestamp() });
+  await updateDoc(doc(db,'lupusRooms',room.code), { players:assigned, phase:'night', step:0, votes:{}, night:{}, witch:{save:true,kill:true}, pendingHunterId:null, autoMode:true, autoSeq:0, phaseDeadline:Date.now()+AUTO_STEP_SECONDS*1000, narration:narr('wolves','La partita inizia. Tutti guardano il proprio ruolo: ora i lupi scelgono una vittima.'), hostNote:'Modalità automatica attiva: il gioco avanza da solo dopo 15 secondi o appena l’azione richiesta viene completata.', updatedAt:serverTimestamp() });
 }
 function renderRoom(){
   if(!room.data) return;
@@ -417,10 +426,12 @@ function renderRoomActions(d, players, me){
       area.innerHTML=`${d.hostNote ? `<div class="host-note"><b>Nota solo narratore:</b> ${d.hostNote}</div>` : ''}<p>Il Cacciatore ${hunter.name} può sparare. Il ruolo resta nascosto ai giocatori.</p><div class="action-grid">${alivePlayers(players).filter(p=>p.id!==hunter.id).map(p=>`<button class="target-btn" data-online-host="hunterShot:${p.id}">${p.name}</button>`).join('')}</div><button class="secondary full" data-online-host="hunterShot:skip">Non sparare</button>`;
       return;
     }
-    const phaseHint = d.phase==='night' ? 'Premi “Continua fase” per far parlare il narratore. All’ultimo passaggio la notte viene risolta automaticamente.' : d.phase==='day' ? 'Ora si discute. Poi puoi aprire o saltare la votazione.' : d.phase==='vote' ? 'Attendi i voti, oppure fai votare automaticamente i bot.' : 'Pannello narratore.';
-    area.innerHTML=`${d.hostNote ? `<div class="host-note"><b>Nota solo narratore:</b> ${d.hostNote}</div>` : ''}<div class="action-grid">
+    const phaseHint = d.autoMode ? autoHint(d, players) : (d.phase==='night' ? 'Premi “Continua fase” per far parlare il narratore. All’ultimo passaggio la notte viene risolta automaticamente.' : d.phase==='day' ? 'Ora si discute. Poi puoi aprire o saltare la votazione.' : d.phase==='vote' ? 'Attendi i voti, oppure fai votare automaticamente i bot.' : 'Pannello narratore.');
+    area.innerHTML=`${d.hostNote ? `<div class="host-note"><b>Nota:</b> ${d.hostNote}</div>` : ''}<div class="action-grid">
       <p class="hint">${phaseHint} I ruoli dei morti restano nascosti ai giocatori.</p>
+      ${autoTimerHtml(d)}
       <button class="secondary" data-online-host="botActions">Fai giocare i bot</button>
+      <button class="secondary" data-online-host="toggleAuto">${d.autoMode?'Disattiva automatico':'Attiva automatico'}</button>
       <button class="secondary" data-online-host="resolveNight">Risolvi notte / passa al giorno</button>
       <button class="secondary" data-online-host="startVote">Apri votazione giorno</button>
       <button class="secondary" data-online-host="resolveVote">Conta voti / elimina</button>
@@ -432,20 +443,26 @@ function renderRoomActions(d, players, me){
   if(!me){ area.innerHTML='<p>Non sei registrato come giocatore in questa stanza.</p>'; return; }
   if(!me.alive){ area.innerHTML='<p>Sei morto. Puoi seguire la partita, ma non votare.</p>'; return; }
   if(d.phase==='night'){
+    const stepKey=currentNightStepKey(d);
     const targets=alivePlayers(players).filter(p=>p.id!==me.id);
-    if(isWolfish(me.role)) area.innerHTML=targetButtons('Scegli vittima dei lupi', targets, 'wolfVictim');
-    else if(me.role==='seer') area.innerHTML=targetButtons('Veggente: scegli chi controllare', targets, 'seerCheck');
-    else if(me.role==='guard') area.innerHTML=targetButtons('Guardia: scegli chi proteggere', alivePlayers(players), 'guardProtect');
-    else if(me.role==='witch') {
+    const already=hasPlayerDoneNightAction(d, me);
+    if(stepKey==='wolves' && isWolfish(me.role)) area.innerHTML = already ? '<p>Azione registrata. Appena i lupi scelgono, si passa avanti automaticamente.</p>' : targetButtons('Lupi: scegliete la vittima', targets, 'wolfVictim');
+    else if(stepKey==='seer' && me.role==='seer') area.innerHTML = already ? '<p>Controllo registrato. Si passa avanti automaticamente.</p>' : targetButtons('Veggente: scegli chi controllare', targets, 'seerCheck');
+    else if(stepKey==='guard' && me.role==='guard') area.innerHTML = already ? '<p>Protezione registrata. Si passa avanti automaticamente.</p>' : targetButtons('Guardia: scegli chi proteggere', alivePlayers(players), 'guardProtect');
+    else if(stepKey==='witch' && me.role==='witch') {
       const w=d.witch||{save:true,kill:true};
-      const killBtns = w.kill ? targetButtons('Strega: pozione morte disponibile', alivePlayers(players), 'witchKill', false) : '<p>Pozione di morte già usata.</p>';
-      const saveBtn = w.save ? '<button class="secondary full" data-online-action="witchSave" data-target="save">Usa pozione salvezza</button>' : '<p>Pozione di salvezza già usata.</p>';
-      area.innerHTML = killBtns + saveBtn;
+      if(already) area.innerHTML='<p>Azione della Strega registrata. Si passa avanti automaticamente.</p>';
+      else {
+        const killBtns = w.kill ? targetButtons('Strega: pozione morte disponibile', alivePlayers(players), 'witchKill', false) : '<p>Pozione di morte già usata.</p>';
+        const saveBtn = w.save ? '<button class="secondary full" data-online-action="witchSave" data-target="save">Usa pozione salvezza</button>' : '<p>Pozione di salvezza già usata.</p>';
+        const skipBtn = '<button class="ghost full" data-online-action="witchSkip" data-target="skip">Non usare pozioni</button>';
+        area.innerHTML = killBtns + saveBtn + skipBtn;
+      }
     }
-    else area.innerHTML='<p>È notte. Aspetta il tuo turno o il giorno.</p>';
-  } else if(d.phase==='vote') area.innerHTML=targetButtons('Vota chi eliminare', alivePlayers(players).filter(p=>p.id!==me.id), 'dayVote');
+    else area.innerHTML=`<p>È notte: ${ONLINE_NIGHT_STEPS[d.step||0]?.label||'attendi'}. Aspetta il tuo turno.</p>${autoTimerHtml(d)}`;
+  } else if(d.phase==='vote') area.innerHTML=targetButtons('Vota chi eliminare', alivePlayers(players).filter(p=>p.id!==me.id), 'dayVote') + autoTimerHtml(d);
   else if(d.phase==='hunterShot') area.innerHTML='<p>Il narratore sta gestendo un potere speciale. Attendi.</p>';
-  else area.innerHTML='<p>È giorno. Discutete dal vivo, poi il narratore deciderà se aprire o saltare la votazione.</p>';
+  else area.innerHTML=`<p>È giorno. Discutete dal vivo. L’app aprirà la votazione automaticamente dopo 15 secondi.</p>${autoTimerHtml(d)}<div class="action-grid"><button class="primary" data-online-host="startVote">Vota ora</button><button class="secondary" data-online-host="skipVote">Salta votazione</button></div>`;
 }
 function targetButtons(title, targets, action, witch=false){
   return `<p>${title}</p><div class="action-grid">${targets.map(p=>`<button class="target-btn" data-online-action="${action}" data-target="${p.id}">${p.name}</button>`).join('')}</div>${witch?'<button class="secondary full" data-online-action="witchSave" data-target="save">Usa pozione salvezza</button>':''}`;
@@ -536,32 +553,17 @@ async function onlinePlayerAction(action,target){
   const witch={...(d.witch||{save:true,kill:true})};
   if(action==='witchKill') { if(!witch.kill) return toast('Pozione morte già usata.'); night[`witchKill_${me.id}`]=target; witch.kill=false; }
   if(action==='witchSave') { if(!witch.save) return toast('Pozione salvezza già usata.'); night[`witchSave_${me.id}`]=true; witch.save=false; }
+  if(action==='witchSkip') night[`witchSkip_${me.id}`]=true;
   if(action==='dayVote') votes[me.id]=target;
   await updateDoc(ref,{night,votes,witch,updatedAt:serverTimestamp()}); toast('Azione registrata.');
+  setTimeout(()=>autoAdvanceIfReady('action'), 350);
 }
 async function onlineNext(){
   const d=room.data; if(!room.isHost) return;
   if(d.phase==='day') return onlineHostAction('startVote');
   if(d.phase==='vote') return onlineHostAction('resolveVote');
   if(d.phase!=='night') return toast('Questa fase non usa il pulsante Continua fase.');
-  const texts=[
-    narr('wolves','I lupi aprono gli occhi e scelgono una vittima.'),
-    narr('seer','Il veggente apre gli occhi e controlla un giocatore.'),
-    narr('guard','La guardia apre gli occhi e protegge un giocatore.'),
-    narr('witch','La strega apre gli occhi e decide se usare le pozioni.'),
-    narr('dawn','Tutti chiudono gli occhi. Sta arrivando il giorno.')
-  ];
-  const currentStep=d.step||0;
-  if(currentStep>=texts.length){
-    return resolveNightOnline();
-  }
-  const step=currentStep+1;
-  const narration=texts[currentStep];
-  await updateDoc(doc(db,'lupusRooms',room.code),{step,narration,updatedAt:serverTimestamp()});
-  speak(narration);
-  if(step>=texts.length){
-    toast('Ultimo passaggio della notte. Premi ancora “Continua fase” o “Risolvi notte” per passare al giorno.');
-  }
+  return advanceNightStepOnline('manual');
 }
 async function onlineHostAction(action){
   if(action?.startsWith('hunterShot:')) return hunterShotOnline(action.split(':')[1]);
@@ -569,11 +571,149 @@ async function onlineHostAction(action){
   if(action==='clearBots') return clearBotsFromRoom();
   if(action==='botActions') return makeBotsActOnline();
   if(action==='resolveNight') return resolveNightOnline();
-  if(action==='startVote') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'vote',votes:{},narration:narr('voteStart','Discussione finita. Ogni giocatore vivo vota dal proprio telefono.'),hostNote:'',updatedAt:serverTimestamp()});
-  if(action==='skipVote') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'night',step:0,night:{},votes:{},narration:narr('voteSkipped','Il villaggio decide di non eliminare nessuno. Tutti chiudono gli occhi, ricomincia la notte.'),hostNote:'',updatedAt:serverTimestamp()});
-  if(action==='night') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'night',step:0,night:{},votes:{},narration:narr('night','Tutti chiudono gli occhi. Ricomincia la notte.'),hostNote:'',updatedAt:serverTimestamp()});
+  if(action==='toggleAuto') return toggleAutoOnline();
+  if(action==='startVote') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'vote',votes:{},phaseDeadline:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration:narr('voteStart','Discussione finita. Ogni giocatore vivo vota dal proprio telefono.'),hostNote:'Votazione automatica: 15 secondi massimo, poi il sistema conta i voti.',updatedAt:serverTimestamp()});
+  if(action==='skipVote') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'night',step:0,night:{},votes:{},phaseDeadline:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration:narr('wolves','Il villaggio decide di non votare. Ricomincia la notte: i lupi scelgono una vittima.'),hostNote:'Votazione saltata. Modalità automatica attiva.',updatedAt:serverTimestamp()});
+  if(action==='night') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'night',step:0,night:{},votes:{},phaseDeadline:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration:narr('wolves','Tutti chiudono gli occhi. Ricomincia la notte: i lupi scelgono una vittima.'),hostNote:'Modalità automatica attiva.',updatedAt:serverTimestamp()});
   if(action==='resolveVote') return resolveVoteOnline();
 }
+
+function currentNightStepKey(d){ return ONLINE_NIGHT_STEPS[d.step||0]?.key || 'done'; }
+function onlineStepNarration(step){
+  const key=ONLINE_NIGHT_STEPS[step]?.key;
+  if(key==='wolves') return narr('wolves','I lupi scelgono una vittima.');
+  if(key==='seer') return narr('seer','Il veggente controlla un giocatore.');
+  if(key==='guard') return narr('guard','La guardia protegge un giocatore.');
+  if(key==='witch') return narr('witch','La strega decide se usare le pozioni.');
+  if(key==='dawn') return narr('dawn','Tutti chiudono gli occhi. Sta arrivando il giorno.');
+  return narr('dawn','La notte è finita.');
+}
+function autoTimerHtml(d){
+  if(!d.autoMode || !d.phaseDeadline) return '';
+  const left=Math.max(0, Math.ceil((Number(d.phaseDeadline)-Date.now())/1000));
+  return `<div class="timer-box">⏱️ Automatico: circa ${left}s rimasti. Se l’azione viene fatta prima, si passa subito avanti.</div>`;
+}
+function autoHint(d, players){
+  if(d.phase==='night') return `${ONLINE_NIGHT_STEPS[d.step||0]?.label||'Notte'}: massimo 15 secondi. Quando il ruolo completa l’azione, si passa subito alla fase successiva.`;
+  if(d.phase==='day') return 'Discussione libera: quando siete pronti potete aprire la votazione, oppure saltarla. In automatico non elimina nessuno durante la discussione.';
+  if(d.phase==='vote') return 'Votazione aperta: massimo 15 secondi. Se tutti i vivi votano prima, il sistema conta subito.';
+  if(d.phase==='hunterShot') return 'Potere speciale del Cacciatore: serve una scelta manuale oppure salta lo sparo.';
+  return 'Modalità automatica pronta.';
+}
+function hasPlayerDoneNightAction(d, p){
+  const night=d.night||{};
+  const key=currentNightStepKey(d);
+  if(key==='wolves' && isWolfish(p.role)) return Boolean(night[`wolf_${p.id}`]);
+  if(key==='seer' && p.role==='seer') return Boolean(night[`seer_${p.id}`]);
+  if(key==='guard' && p.role==='guard') return Boolean(night[`guard_${p.id}`]);
+  if(key==='witch' && p.role==='witch') return Boolean(night[`witchKill_${p.id}`] || night[`witchSave_${p.id}`] || night[`witchSkip_${p.id}`]);
+  return false;
+}
+function hasAliveRole(players, predicate){ return alivePlayers(players).some(predicate); }
+function nightStepComplete(d){
+  const players=d.players||[], night=d.night||{}, key=currentNightStepKey(d);
+  if(key==='wolves') return !hasAliveRole(players,p=>isWolfish(p.role)) || Object.keys(night).some(k=>k.startsWith('wolf_'));
+  if(key==='seer') return !hasAliveRole(players,p=>p.role==='seer') || Object.keys(night).some(k=>k.startsWith('seer_'));
+  if(key==='guard') return !hasAliveRole(players,p=>p.role==='guard') || Object.keys(night).some(k=>k.startsWith('guard_'));
+  if(key==='witch') return !hasAliveRole(players,p=>p.role==='witch') || Object.keys(night).some(k=>k.startsWith('witchKill_')||k.startsWith('witchSave_')||k.startsWith('witchSkip_'));
+  if(key==='dawn') return true;
+  return true;
+}
+function voteComplete(d){
+  const votes=d.votes||{};
+  return alivePlayers(d.players||[]).every(p=>votes[p.id]);
+}
+function scheduleAutoProgress(){
+  if(autoTimer) clearTimeout(autoTimer);
+  const d=room.data;
+  if(!d || !d.autoMode || !room.code) return;
+  if(autoBotsNeeded(d)) return autoTimer=setTimeout(()=>autoBotsIfNeeded(), 300);
+  if(d.phase==='night' && nightStepComplete(d)) return autoTimer=setTimeout(()=>autoAdvanceIfReady('complete'), 250);
+  if(d.phase==='vote' && voteComplete(d)) return autoTimer=setTimeout(()=>autoAdvanceIfReady('votesComplete'), 250);
+  if(!d.phaseDeadline) return;
+  const delay=Math.max(300, Number(d.phaseDeadline)-Date.now());
+  autoTimer=setTimeout(()=>autoAdvanceIfReady('timer'), delay);
+}
+async function autoAdvanceIfReady(reason='auto'){
+  const d=room.data;
+  if(!d || !d.autoMode || !room.code) return;
+  if(autoBotsNeeded(d)) return autoBotsIfNeeded();
+  const expired=!d.phaseDeadline || Date.now()>=Number(d.phaseDeadline)-100;
+  if(d.phase==='night' && (expired || nightStepComplete(d))) return advanceNightStepOnline(reason);
+  if(d.phase==='day' && expired) return onlineHostAction('startVote');
+  if(d.phase==='vote' && (expired || voteComplete(d))) return resolveVoteOnline();
+}
+function autoBotsNeeded(d){
+  const players=d.players||[];
+  const bots=alivePlayers(players).filter(p=>p.isBot);
+  if(!bots.length) return false;
+  if(d.phase==='vote') return bots.some(b=>!(d.votes||{})[b.id]);
+  if(d.phase!=='night') return false;
+  return bots.some(b=>botShouldActInNightStep(d,b) && !hasPlayerDoneNightAction(d,b));
+}
+function botShouldActInNightStep(d, bot){
+  const key=currentNightStepKey(d);
+  if(key==='wolves') return isWolfish(bot.role);
+  if(key==='seer') return bot.role==='seer';
+  if(key==='guard') return bot.role==='guard';
+  if(key==='witch') return bot.role==='witch';
+  return false;
+}
+async function autoBotsIfNeeded(){
+  const d=room.data; if(!d || !d.autoMode || !room.code) return;
+  const players=[...(d.players||[])];
+  const bots=alivePlayers(players).filter(p=>p.isBot);
+  if(!bots.length) return;
+  const ref=doc(db,'lupusRooms',room.code);
+  const night={...(d.night||{})};
+  const votes={...(d.votes||{})};
+  const witch={...(d.witch||{save:true,kill:true})};
+  let changed=false;
+  if(d.phase==='night'){
+    const key=currentNightStepKey(d);
+    bots.forEach(bot=>{
+      if(hasPlayerDoneNightAction(d,bot)) return;
+      if(key==='wolves' && isWolfish(bot.role)){ const target=randomNonWolfTarget(players, bot.id); if(target){ night[`wolf_${bot.id}`]=target.id; changed=true; } }
+      if(key==='seer' && bot.role==='seer'){ const target=randomAliveTarget(players, bot.id); if(target){ night[`seer_${bot.id}`]=target.id; changed=true; } }
+      if(key==='guard' && bot.role==='guard'){ const target=randomAliveTarget(players, null); if(target){ night[`guard_${bot.id}`]=target.id; changed=true; } }
+      if(key==='witch' && bot.role==='witch'){
+        // Per i test la strega bot decide subito: salva spesso, uccide raramente, oppure passa.
+        if(witch.save && Math.random()<0.65){ night[`witchSave_${bot.id}`]=true; witch.save=false; changed=true; }
+        else if(witch.kill && Math.random()<0.25){ const target=randomAliveTarget(players, bot.id); if(target){ night[`witchKill_${bot.id}`]=target.id; witch.kill=false; changed=true; } }
+        else { night[`witchSkip_${bot.id}`]=true; changed=true; }
+      }
+    });
+  }
+  if(d.phase==='vote'){
+    bots.forEach(bot=>{ if(votes[bot.id]) return; const target=randomAliveTarget(players, bot.id); if(target){ votes[bot.id]=target.id; changed=true; } });
+  }
+  if(changed){ await updateDoc(ref,{night,votes,witch,updatedAt:serverTimestamp()}); setTimeout(()=>autoAdvanceIfReady('bots'),350); }
+}
+async function advanceNightStepOnline(reason='auto'){
+  const ref=doc(db,'lupusRooms',room.code);
+  await runTransaction(db, async tx=>{
+    const snap=await tx.get(ref); if(!snap.exists()) return;
+    const d=snap.data(); if(d.phase!=='night') return;
+    const currentStep=d.step||0;
+    const shouldAdvance = reason==='manual' || Date.now()>=Number(d.phaseDeadline||0)-100 || nightStepComplete(d);
+    if(!shouldAdvance) return;
+    const nextStep=currentStep+1;
+    if(nextStep>=ONLINE_NIGHT_STEPS.length){
+      // La risoluzione vera la facciamo fuori dalla transaction per semplicità.
+      tx.update(ref,{step:ONLINE_NIGHT_STEPS.length, phaseDeadline:null, autoSeq:(d.autoSeq||0)+1, updatedAt:serverTimestamp()});
+      return;
+    }
+    tx.update(ref,{step:nextStep, phaseDeadline:Date.now()+AUTO_STEP_SECONDS*1000, autoSeq:(d.autoSeq||0)+1, narration:onlineStepNarration(nextStep), updatedAt:serverTimestamp()});
+  });
+  const fresh=await getDoc(ref);
+  const latest=fresh.exists()?fresh.data():null;
+  if(latest?.phase==='night' && (latest.step||0)>=ONLINE_NIGHT_STEPS.length) return resolveNightOnline();
+}
+async function toggleAutoOnline(){
+  const d=room.data||{};
+  await updateDoc(doc(db,'lupusRooms',room.code),{autoMode:!d.autoMode, phaseDeadline:!d.autoMode?Date.now()+AUTO_STEP_SECONDS*1000:null, autoSeq:(d.autoSeq||0)+1, hostNote:!d.autoMode?'Modalità automatica attiva.':'Modalità automatica disattivata.', updatedAt:serverTimestamp()});
+}
+
 function mostVoted(values){
   const c={}; values.filter(Boolean).forEach(v=>c[v]=(c[v]||0)+1);
   const entries=Object.entries(c).sort((a,b)=>b[1]-a[1]);
@@ -607,7 +747,7 @@ async function resolveNightOnline(){
   let narration=names.length ? narr('death', `È giorno. ${names.map(publicDeathText).join(' ')}`) : narr('noDeath', 'È giorno. Questa notte non è morto nessuno.');
   let hostNote=hunter ? `${hunter.name} era il Cacciatore: può sparare prima di uscire.` : '';
   const win=winCheck(players); if(win && !hunter) narration += ' ' + win;
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:hunter?'hunterShot':'day',pendingHunterId:hunter?.id||null,step:0,night:{},narration,hostNote,updatedAt:serverTimestamp()}); speak(narration);
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:hunter?'hunterShot':'day',pendingHunterId:hunter?.id||null,step:0,night:{},phaseDeadline:hunter?null:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,hostNote:hostNote || 'Discussione automatica: 15 secondi, poi si apre la votazione.',updatedAt:serverTimestamp()}); speak(narration);
 }
 async function resolveVoteOnline(){
   const d=room.data, players=[...(d.players||[])], target=mostVotedFromVotes(d.votes||{}, players);
@@ -616,7 +756,7 @@ async function resolveVoteOnline(){
   let hunter=null;
   if(target){ const p=players.find(x=>x.id===target); if(p){ p.alive=false; narration=narr('lynch', `${p.name} è stato eliminato dal villaggio. Il suo ruolo resta segreto per i giocatori.`); if(p.role==='jester') hostNote=`${p.name} era il Giullare: ha raggiunto il suo obiettivo.`; if(p.role==='hunter'){ hunter=p; hostNote=`${p.name} era il Cacciatore: può sparare prima di uscire.`; } } }
   const win=winCheck(players); if(win && !hunter) narration += ' ' + win;
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:hunter?'hunterShot':'day',pendingHunterId:hunter?.id||null,votes:{},narration,hostNote,updatedAt:serverTimestamp()}); speak(narration);
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:hunter?'hunterShot':'day',pendingHunterId:hunter?.id||null,votes:{},phaseDeadline:hunter?null:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,hostNote:hostNote || 'Discussione automatica: 15 secondi, poi si apre la votazione.',updatedAt:serverTimestamp()}); speak(narration);
 }
 
 async function hunterShotOnline(target){
@@ -632,7 +772,7 @@ async function hunterShotOnline(target){
     }
   }
   const win=winCheck(players); if(win) narration += ' ' + win;
-  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:'day',pendingHunterId:null,narration,hostNote,updatedAt:serverTimestamp()});
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,phase:'day',pendingHunterId:null,phaseDeadline:Date.now()+AUTO_STEP_SECONDS*1000,autoSeq:(room.data.autoSeq||0)+1,narration,hostNote,updatedAt:serverTimestamp()});
   speak(narration);
 }
 

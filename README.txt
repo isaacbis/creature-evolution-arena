@@ -76,3 +76,10 @@ COME TESTARE IL MULTIPLAYER CON I BOT
 5. Durante la notte premi “Fai giocare i bot”, poi fai avanzare le fasi con “Continua fase”.
 6. A fine notte premi ancora “Continua fase” oppure “Risolvi notte”.
 7. Di giorno apri la votazione, premi “Fai giocare i bot”, poi “Conta voti / elimina”.
+
+VERSIONE V6 - MULTIPLAYER AUTOMATICO
+- Nel multiplayer non serve più un narratore umano che prema sempre Continua.
+- Dopo l'avvio, ogni fase notturna dura massimo 15 secondi.
+- Se il ruolo completa prima la sua azione, la fase passa subito alla successiva.
+- La votazione dura massimo 15 secondi; se tutti votano prima, il sistema conta subito.
+- Nota tecnica: essendo un'app solo HTML/CSS/JS + Firestore, almeno un dispositivo deve restare aperto nella stanza per far avanzare i timer.

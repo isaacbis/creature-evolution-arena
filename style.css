@@ -19,3 +19,13 @@ button,input,textarea{font:inherit}button{cursor:pointer;border:0}textarea,input
   margin-bottom:12px;
   font-size:.95rem;
 }
+
+.timer-box{
+  width:100%;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(245,158,11,.12);
+  border:1px solid rgba(245,158,11,.28);
+  font-weight:700;
+  font-size:.92rem;
+}
