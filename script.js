@@ -104,6 +104,7 @@ function narr(type, text){ const prefix=line(type); return prefix ? `${prefix} $
 
 const DEFAULT_COUNTS = { wolf:2, villager:4, seer:1, guard:1, witch:0, hunter:0, jester:0, medium:0, cupid:0, mayor:0, alpha:0, traitor:0 };
 const DEMO_NAMES = ["Marco","Giulia","Luca","Sara","Matteo","Anna","Davide","Chiara","Leo","Sofia"];
+const BOT_NAMES = ["Bot Marco","Bot Giulia","Bot Luca","Bot Sara","Bot Matteo","Bot Anna","Bot Davide","Bot Chiara","Bot Leo","Bot Sofia","Bot Nico","Bot Emma"];
 
 let local = null;
 let room = { code:null, playerId:null, isHost:false, data:null, unsub:null, revealMine:false, narratorShowRoles:false };
@@ -194,6 +195,7 @@ function init(){
   $('#createRoomBtn').onclick=createRoom;
   $('#joinRoomBtn').onclick=joinRoom;
   $('#startOnlineGameBtn').onclick=startOnlineGame;
+  const addBotsBtn = $('#addOnlineBotsBtn'); if(addBotsBtn) addBotsBtn.onclick=()=>addBotsToRoom(6);
   $('#onlineRevealAllBtn').onclick=()=>{ room.narratorShowRoles=!room.narratorShowRoles; renderRoom(); };
   $('#toggleMyRoleBtn').onclick=()=>{ room.revealMine=!room.revealMine; renderRoom(); };
   $('#roomSpeakBtn').onclick=()=>speak($('#roomNarration').textContent);
@@ -384,7 +386,7 @@ async function startOnlineGame(){
   if(setupError) return toast(setupError);
   const deck=makeRoleDeck(counts, players.length);
   const assigned=players.map((p,i)=>({...p,role:deck[i],alive:true}));
-  await updateDoc(doc(db,'lupusRooms',room.code), { players:assigned, phase:'night', step:0, votes:{}, night:{}, witch:{save:true,kill:true}, narration:narr('intro','La partita inizia. Tutti guardano il proprio ruolo e poi chiudono gli occhi.'), hostNote:'', updatedAt:serverTimestamp() });
+  await updateDoc(doc(db,'lupusRooms',room.code), { players:assigned, phase:'night', step:0, votes:{}, night:{}, witch:{save:true,kill:true}, pendingHunterId:null, narration:narr('intro','La partita inizia. Tutti guardano il proprio ruolo e poi chiudono gli occhi.'), hostNote:'', updatedAt:serverTimestamp() });
 }
 function renderRoom(){
   if(!room.data) return;
@@ -397,22 +399,28 @@ function renderRoom(){
   $('#myRoleCard').innerHTML = room.revealMine && me?.role ? `${me.name}<br><small>${roleName(me.role)}</small><br><small>${ROLES.find(r=>r.id===me.role)?.desc||''}</small>` : (me?.role ? 'Carta nascosta' : 'Ruolo non assegnato');
   $('#roomPlayersList').innerHTML=players.map(p=>{
     const roleTxt = room.isHost && room.narratorShowRoles && p.role ? ` · ${roleName(p.role)}` : '';
-    return `<div class="player-row ${p.alive?'':'dead'}"><span>${p.name}${roleTxt}</span><span class="chip ${p.alive?'alive-chip':'dead-chip'}">${p.alive?'vivo':'morto'}</span></div>`;
+    return `<div class="player-row ${p.alive?'':'dead'}"><span>${p.name}${p.isBot?' 🤖':''}${roleTxt}</span><span class="chip ${p.alive?'alive-chip':'dead-chip'}">${p.alive?'vivo':'morto'}</span></div>`;
   }).join('') || '<p class="hint">Nessun giocatore entrato.</p>';
   renderRoomActions(d, players, me);
 }
 function renderRoomActions(d, players, me){
   const area=$('#roomActionArea');
-  if(d.phase==='lobby'){ area.innerHTML= room.isHost ? `<p>Condividi il codice <b>${d.code}</b>. Poi assegna i ruoli.</p>` : '<p>Attendi che il narratore inizi.</p>'; return; }
-  if(!me){ area.innerHTML='<p>Non sei registrato come giocatore in questa stanza.</p>'; return; }
+  if(d.phase==='lobby'){
+    area.innerHTML= room.isHost
+      ? `<p>Condividi il codice <b>${d.code}</b>. Poi assegna i ruoli.</p><div class="action-grid"><button class="secondary" data-online-host="addBots">Aggiungi 6 bot di prova</button><button class="ghost" data-online-host="clearBots">Rimuovi bot</button></div>`
+      : '<p>Attendi che il narratore inizi.</p>';
+    return;
+  }
   if(room.isHost){
     const hunter=players.find(p=>p.id===d.pendingHunterId);
     if(d.phase==='hunterShot' && hunter){
       area.innerHTML=`${d.hostNote ? `<div class="host-note"><b>Nota solo narratore:</b> ${d.hostNote}</div>` : ''}<p>Il Cacciatore ${hunter.name} può sparare. Il ruolo resta nascosto ai giocatori.</p><div class="action-grid">${alivePlayers(players).filter(p=>p.id!==hunter.id).map(p=>`<button class="target-btn" data-online-host="hunterShot:${p.id}">${p.name}</button>`).join('')}</div><button class="secondary full" data-online-host="hunterShot:skip">Non sparare</button>`;
       return;
     }
+    const phaseHint = d.phase==='night' ? 'Premi “Continua fase” per far parlare il narratore. All’ultimo passaggio la notte viene risolta automaticamente.' : d.phase==='day' ? 'Ora si discute. Poi puoi aprire o saltare la votazione.' : d.phase==='vote' ? 'Attendi i voti, oppure fai votare automaticamente i bot.' : 'Pannello narratore.';
     area.innerHTML=`${d.hostNote ? `<div class="host-note"><b>Nota solo narratore:</b> ${d.hostNote}</div>` : ''}<div class="action-grid">
-      <p class="hint">Pannello narratore. I morti non mostrano il ruolo ai giocatori.</p>
+      <p class="hint">${phaseHint} I ruoli dei morti restano nascosti ai giocatori.</p>
+      <button class="secondary" data-online-host="botActions">Fai giocare i bot</button>
       <button class="secondary" data-online-host="resolveNight">Risolvi notte / passa al giorno</button>
       <button class="secondary" data-online-host="startVote">Apri votazione giorno</button>
       <button class="secondary" data-online-host="resolveVote">Conta voti / elimina</button>
@@ -421,6 +429,7 @@ function renderRoomActions(d, players, me){
     </div>`;
     return;
   }
+  if(!me){ area.innerHTML='<p>Non sei registrato come giocatore in questa stanza.</p>'; return; }
   if(!me.alive){ area.innerHTML='<p>Sei morto. Puoi seguire la partita, ma non votare.</p>'; return; }
   if(d.phase==='night'){
     const targets=alivePlayers(players).filter(p=>p.id!==me.id);
@@ -445,6 +454,79 @@ document.addEventListener('click', async e=>{
   const a=e.target.closest('[data-online-action]'); if(a) return onlinePlayerAction(a.dataset.onlineAction, a.dataset.target);
   const h=e.target.closest('[data-online-host]'); if(h) return onlineHostAction(h.dataset.onlineHost);
 });
+
+async function addBotsToRoom(count=6){
+  if(!room.isHost) return;
+  const d=room.data || {};
+  if(d.phase && d.phase!=='lobby') return toast('Puoi aggiungere bot solo prima di iniziare la partita.');
+  const players=[...(d.players||[])];
+  const existingNames=new Set(players.map(p=>p.name));
+  let added=0;
+  for(const name of BOT_NAMES){
+    if(added>=count) break;
+    if(existingNames.has(name)) continue;
+    players.push({id:'bot_'+uid(), name, role:null, alive:true, isBot:true});
+    existingNames.add(name);
+    added++;
+  }
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,updatedAt:serverTimestamp()});
+  toast(added ? `${added} bot aggiunti.` : 'Hai già aggiunto tutti i bot disponibili.');
+}
+async function clearBotsFromRoom(){
+  if(!room.isHost) return;
+  const d=room.data || {};
+  if(d.phase && d.phase!=='lobby') return toast('Puoi rimuovere i bot solo nella lobby.');
+  const players=(d.players||[]).filter(p=>!p.isBot);
+  await updateDoc(doc(db,'lupusRooms',room.code),{players,updatedAt:serverTimestamp()});
+  toast('Bot rimossi.');
+}
+function randomAliveTarget(players, excludeId=null){
+  const list=alivePlayers(players).filter(p=>p.id!==excludeId);
+  return list[Math.floor(Math.random()*list.length)] || null;
+}
+function randomNonWolfTarget(players, excludeId=null){
+  const list=alivePlayers(players).filter(p=>p.id!==excludeId && !isWolfish(p.role));
+  return list[Math.floor(Math.random()*list.length)] || randomAliveTarget(players, excludeId);
+}
+async function makeBotsActOnline(){
+  if(!room.isHost) return;
+  const d=room.data || {}, players=[...(d.players||[])];
+  const bots=alivePlayers(players).filter(p=>p.isBot);
+  if(!bots.length) return toast('Non ci sono bot vivi da far giocare.');
+  const ref=doc(db,'lupusRooms',room.code);
+  const night={...(d.night||{})};
+  const votes={...(d.votes||{})};
+  const witch={...(d.witch||{save:true,kill:true})};
+  if(d.phase==='night'){
+    bots.forEach(bot=>{
+      if(isWolfish(bot.role)){
+        const target=randomNonWolfTarget(players, bot.id);
+        if(target) night[`wolf_${bot.id}`]=target.id;
+      } else if(bot.role==='seer'){
+        const target=randomAliveTarget(players, bot.id);
+        if(target) night[`seer_${bot.id}`]=target.id;
+      } else if(bot.role==='guard'){
+        const target=randomAliveTarget(players, null);
+        if(target) night[`guard_${bot.id}`]=target.id;
+      } else if(bot.role==='witch'){
+        // La strega bot è prudente: salva una volta se può, uccide raramente.
+        if(witch.save && Math.random()<0.65){ night[`witchSave_${bot.id}`]=true; witch.save=false; }
+        if(witch.kill && Math.random()<0.25){ const target=randomAliveTarget(players, bot.id); if(target){ night[`witchKill_${bot.id}`]=target.id; witch.kill=false; } }
+      }
+    });
+    await updateDoc(ref,{night,witch,updatedAt:serverTimestamp()});
+    return toast('Azioni notturne dei bot registrate.');
+  }
+  if(d.phase==='vote'){
+    bots.forEach(bot=>{
+      const target=randomAliveTarget(players, bot.id);
+      if(target) votes[bot.id]=target.id;
+    });
+    await updateDoc(ref,{votes,updatedAt:serverTimestamp()});
+    return toast('Voti dei bot registrati.');
+  }
+  toast('I bot agiscono solo durante notte o votazione.');
+}
 async function onlinePlayerAction(action,target){
   const ref=doc(db,'lupusRooms',room.code), d=room.data, me=(d.players||[]).find(p=>p.id===room.playerId);
   const night={...(d.night||{})}, votes={...(d.votes||{})};
@@ -459,12 +541,33 @@ async function onlinePlayerAction(action,target){
 }
 async function onlineNext(){
   const d=room.data; if(!room.isHost) return;
-  const texts=[narr('wolves','I lupi aprono gli occhi e scelgono una vittima.'),narr('seer','Il veggente apre gli occhi e controlla un giocatore.'),narr('guard','La guardia apre gli occhi e protegge un giocatore.'),narr('witch','La strega apre gli occhi e decide se usare le pozioni.'),narr('dawn','Tutti chiudono gli occhi. Sta arrivando il giorno.')];
-  let step=(d.step||0)+1; let narration=texts[d.step||0]||'Fase completata.';
-  await updateDoc(doc(db,'lupusRooms',room.code),{step,narration,updatedAt:serverTimestamp()}); speak(narration);
+  if(d.phase==='day') return onlineHostAction('startVote');
+  if(d.phase==='vote') return onlineHostAction('resolveVote');
+  if(d.phase!=='night') return toast('Questa fase non usa il pulsante Continua fase.');
+  const texts=[
+    narr('wolves','I lupi aprono gli occhi e scelgono una vittima.'),
+    narr('seer','Il veggente apre gli occhi e controlla un giocatore.'),
+    narr('guard','La guardia apre gli occhi e protegge un giocatore.'),
+    narr('witch','La strega apre gli occhi e decide se usare le pozioni.'),
+    narr('dawn','Tutti chiudono gli occhi. Sta arrivando il giorno.')
+  ];
+  const currentStep=d.step||0;
+  if(currentStep>=texts.length){
+    return resolveNightOnline();
+  }
+  const step=currentStep+1;
+  const narration=texts[currentStep];
+  await updateDoc(doc(db,'lupusRooms',room.code),{step,narration,updatedAt:serverTimestamp()});
+  speak(narration);
+  if(step>=texts.length){
+    toast('Ultimo passaggio della notte. Premi ancora “Continua fase” o “Risolvi notte” per passare al giorno.');
+  }
 }
 async function onlineHostAction(action){
   if(action?.startsWith('hunterShot:')) return hunterShotOnline(action.split(':')[1]);
+  if(action==='addBots') return addBotsToRoom(6);
+  if(action==='clearBots') return clearBotsFromRoom();
+  if(action==='botActions') return makeBotsActOnline();
   if(action==='resolveNight') return resolveNightOnline();
   if(action==='startVote') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'vote',votes:{},narration:narr('voteStart','Discussione finita. Ogni giocatore vivo vota dal proprio telefono.'),hostNote:'',updatedAt:serverTimestamp()});
   if(action==='skipVote') return updateDoc(doc(db,'lupusRooms',room.code),{phase:'night',step:0,night:{},votes:{},narration:narr('voteSkipped','Il villaggio decide di non eliminare nessuno. Tutti chiudono gli occhi, ricomincia la notte.'),hostNote:'',updatedAt:serverTimestamp()});

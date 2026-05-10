@@ -61,3 +61,18 @@ NOTE IMPORTANTI
 - Alcuni ruoli avanzati come Cupido, Medium, Lupo Alfa e Traditore sono presenti come ruoli/varianti, ma non hanno ancora una gestione automatica completa.
 - Le regole Firestore incluse sono aperte per test.
 - Per una versione pubblica seria andrebbero rese più sicure con autenticazione.
+
+AGGIORNAMENTO V5
+- Corretto bug multiplayer: il narratore non deve essere per forza registrato come giocatore. Prima, dopo l'avvio, poteva perdere il pannello di controllo e restare bloccato sulla notte.
+- Corretto flusso notte online: il pulsante Continua fase non resta più su “Fase completata”; dopo l'ultimo passaggio puoi premere ancora Continua fase oppure “Risolvi notte” per passare al giorno.
+- Aggiunti bot di prova nella modalità multiplayer: dalla lobby il narratore può aggiungere 6 bot, rimuoverli e poi assegnare i ruoli.
+- Aggiunto pulsante “Fai giocare i bot”: durante la notte registra azioni automatiche dei bot; durante la votazione registra voti automatici.
+
+COME TESTARE IL MULTIPLAYER CON I BOT
+1. Crea una stanza multiplayer.
+2. Premi “Aggiungi 6 bot di prova”.
+3. Aggiungi eventualmente anche il tuo telefono come giocatore entrando con il codice stanza.
+4. Premi “Assegna ruoli e inizia”.
+5. Durante la notte premi “Fai giocare i bot”, poi fai avanzare le fasi con “Continua fase”.
+6. A fine notte premi ancora “Continua fase” oppure “Risolvi notte”.
+7. Di giorno apri la votazione, premi “Fai giocare i bot”, poi “Conta voti / elimina”.
