@@ -1,0 +1,63 @@
+LUPUS NARRATORE - VERSIONE COMPLETA V4
+
+File inclusi:
+- index.html
+- style.css
+- script.js
+- firestore-rules.txt
+
+MODALITA'
+1) Narratore unico
+   - Funziona anche senza Firestore.
+   - Inserisci i nomi.
+   - Scegli i ruoli.
+   - Mostri le carte una alla volta.
+   - Il telefono parla e guida notte/giorno.
+   - Quando una persona muore, i giocatori NON vedono il ruolo.
+   - Solo il narratore può vedere/gestire i ruoli.
+   - Ora puoi anche saltare la votazione e andare direttamente alla notte.
+
+2) Multi-dispositivo
+   - Serve Firestore attivo.
+   - Il narratore crea una stanza.
+   - I giocatori entrano col codice stanza dal proprio telefono.
+   - Ogni giocatore vede solo la propria carta.
+   - Durante la notte, i ruoli speciali fanno le azioni dal proprio telefono.
+   - Durante il giorno, ogni giocatore vota dal proprio telefono.
+   - Il narratore può aprire la votazione oppure saltarla.
+   - I morti non mostrano il ruolo agli altri giocatori.
+
+3) Modalità prova
+   - Carica nomi finti per testare il gioco subito.
+
+NOVITA V4
+- Aggiunte frasi casuali e più simpatiche al narratore.
+- Il narratore ora cambia tono in base alla fase: notte, lupi, veggente, guardia, strega, giorno, morti e votazione.
+- Le frasi restano brevi per non rallentare la partita.
+
+CORREZIONI V3
+- Aggiunto pulsante per saltare la votazione in modalità Narratore unico.
+- Aggiunto pulsante per saltare la votazione in modalità Multi-dispositivo.
+- Aggiunto controllo iniziale: non puoi scegliere più ruoli dei giocatori.
+- Aggiunto controllo iniziale: serve almeno un Lupo Mannaro o un Lupo Alfa.
+- Migliorata la gestione del Cacciatore online: se muore, il narratore può scegliere se farlo sparare o no.
+- Il ruolo dei morti resta nascosto ai giocatori.
+- Le note su Cacciatore, Giullare e ruoli dei morti restano visibili solo al narratore.
+
+DEPLOY SU RENDER
+Se vuoi sostituire il vecchio gioco di carte:
+1. Copia questi file nella cartella del vecchio progetto.
+2. Cancella o ignora i vecchi file non necessari.
+3. Esegui:
+   git add .
+   git commit -m "Aggiorno Lupus narratore completo V4"
+   git push
+
+Se Render è uno Static Site:
+- Build Command: echo "No build needed"
+- Publish Directory: .
+
+NOTE IMPORTANTI
+- Alcuni ruoli avanzati come Cupido, Medium, Lupo Alfa e Traditore sono presenti come ruoli/varianti, ma non hanno ancora una gestione automatica completa.
+- Le regole Firestore incluse sono aperte per test.
+- Per una versione pubblica seria andrebbero rese più sicure con autenticazione.

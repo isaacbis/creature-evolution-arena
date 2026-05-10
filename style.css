@@ -1,103 +1,21 @@
-:root {
-  --bg: #130f1d;
-  --panel: rgba(255,255,255,0.08);
-  --panel-2: rgba(255,255,255,0.12);
-  --text: #fff7ec;
-  --muted: rgba(255,247,236,0.68);
-  --accent: #ff8a3d;
-  --accent-2: #ffd166;
-  --danger: #ff4d6d;
-  --ok: #6ee7b7;
-  --shadow: 0 20px 60px rgba(0,0,0,0.35);
+:root{
+  --bg:#0b1020; --card:#151c2f; --card2:#101827; --text:#f8fafc; --muted:#aab4c8;
+  --accent:#f97316; --accent2:#fb923c; --blue:#60a5fa; --danger:#ef4444; --ok:#22c55e;
+  --border:rgba(255,255,255,.12); --shadow:0 24px 70px rgba(0,0,0,.35); --radius:24px;
 }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#26324e 0,#0b1020 52%,#060913 100%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer;border:0}textarea,input{width:100%;border:1px solid var(--border);border-radius:16px;background:#0b1222;color:var(--text);padding:14px;outline:none}textarea:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(249,115,22,.15)}label{display:block;margin:16px 0 8px;font-weight:800}small,.hint{color:var(--muted)}
+.app-shell{max-width:980px;margin:0 auto;padding:16px;padding-bottom:40px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 18px}.eyebrow{margin:0;color:var(--accent2);text-transform:uppercase;font-size:.75rem;letter-spacing:.18em;font-weight:900}.topbar h1{margin:0;font-size:clamp(1.55rem,5vw,2.6rem)}
+.screen{display:none}.screen.active{display:block}.card{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;backdrop-filter:blur(14px)}.hero{padding:22px}.hero h2,.card h2,.card h3{margin-top:0}.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.mode-card{min-height:170px;text-align:left;border-radius:22px;padding:18px;color:var(--text);background:linear-gradient(160deg,#1f2937,#111827);border:1px solid var(--border);box-shadow:0 16px 30px rgba(0,0,0,.2)}.mode-card span{font-size:2.1rem;display:block;margin-bottom:12px}.mode-card strong{display:block;font-size:1.1rem;margin-bottom:8px}.mode-card:active{transform:scale(.98)}
+.primary,.secondary,.ghost{border-radius:16px;padding:13px 16px;font-weight:900;color:var(--text)}.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 28px rgba(249,115,22,.25)}.secondary{background:#253047;border:1px solid var(--border)}.ghost{background:transparent;border:1px solid var(--border)}.small{padding:9px 12px;font-size:.9rem}.full{width:100%;margin-top:12px}.split-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.back{margin-bottom:14px}.game-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.status-card{grid-column:1/-1}.phase-row,.voice-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.badge{display:inline-flex;align-items:center;border-radius:999px;padding:7px 11px;background:rgba(249,115,22,.18);color:#fed7aa;font-size:.8rem;font-weight:900;text-transform:uppercase}.badge.alt{background:rgba(96,165,250,.18);color:#bfdbfe}.role-picker{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.role-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0b1222;border:1px solid var(--border);border-radius:16px;padding:10px}.role-item span{font-weight:850}.qty{display:flex;align-items:center;gap:6px}.qty button{width:34px;height:34px;border-radius:12px;background:#253047;color:var(--text);font-weight:900}.qty b{min-width:24px;text-align:center}.role-card{min-height:150px;border-radius:22px;background:radial-gradient(circle at top,#f97316,#7c2d12 55%,#111827);display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;font-size:1.45rem;font-weight:1000;letter-spacing:.02em;border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 0 40px rgba(0,0,0,.25)}.hidden-role{background:linear-gradient(145deg,#111827,#020617);color:#94a3b8}.player-list{display:grid;gap:8px}.player-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:rgba(0,0,0,.18)}.dead{opacity:.45;text-decoration:line-through}.chip{padding:5px 9px;border-radius:999px;background:#0b1222;color:var(--muted);font-size:.78rem;font-weight:850}.dead-chip{background:rgba(239,68,68,.16);color:#fecaca}.alive-chip{background:rgba(34,197,94,.15);color:#bbf7d0}.action-grid{display:grid;gap:8px}.target-btn{width:100%;text-align:left;border-radius:14px;padding:12px;background:#0b1222;color:var(--text);border:1px solid var(--border);font-weight:800}.target-btn.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,115,22,.12)}.danger{background:linear-gradient(135deg,#dc2626,#ef4444)}.ok{background:linear-gradient(135deg,#16a34a,#22c55e)}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);opacity:0;pointer-events:none;background:#020617;color:white;border:1px solid var(--border);border-radius:999px;padding:12px 16px;box-shadow:var(--shadow);transition:.2s}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.hidden{display:none!important}
+@media(max-width:760px){.app-shell{padding:12px}.mode-grid,.game-layout,.split-actions,.role-picker{grid-template-columns:1fr}.card{padding:15px;border-radius:20px}.mode-card{min-height:132px}.topbar h1{font-size:1.55rem}.role-card{min-height:130px;font-size:1.25rem}.voice-row button{width:100%}}
 
-* { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: var(--text);
-  background:
-    radial-gradient(circle at top left, rgba(255,138,61,0.25), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(120,70,255,0.18), transparent 40%),
-    var(--bg);
-}
-
-.app-shell { width: min(760px, 100%); margin: 0 auto; padding: 18px; }
-.hero {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-  padding: 18px 0 14px;
-}
-h1 { margin: 0; font-size: clamp(2rem, 8vw, 4.2rem); line-height: 0.95; letter-spacing: -0.06em; }
-h2 { margin: 0 0 10px; font-size: 1.35rem; }
-.subtitle { margin: 10px 0 0; color: var(--muted); line-height: 1.45; }
-.eyebrow, .step-label { margin: 0 0 8px; color: var(--accent-2); text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 800; }
-
-.panel {
-  display: none;
-  background: var(--panel);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 28px;
-  padding: 18px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-}
-.panel.active { display: block; }
-
-.muted { color: var(--muted); line-height: 1.45; }
-textarea, input {
-  width: 100%; border: 1px solid rgba(255,255,255,0.13); border-radius: 18px;
-  background: rgba(0,0,0,0.28); color: var(--text); padding: 14px;
-  font: inherit; outline: none;
-}
-textarea:focus, input:focus { border-color: rgba(255,138,61,0.7); }
-
-.quick-row, .controls { display: flex; gap: 10px; margin: 14px 0; }
-.role-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin: 12px 0 16px; }
-.role-grid label { background: rgba(0,0,0,0.22); border-radius: 18px; padding: 12px; border: 1px solid rgba(255,255,255,0.1); }
-.role-grid span { display: block; color: var(--muted); font-size: 0.88rem; margin-bottom: 8px; }
-
-button {
-  border: 0; border-radius: 999px; padding: 12px 16px; font-weight: 800; cursor: pointer;
-  color: var(--text); transition: transform .15s ease, opacity .15s ease;
-}
-button:active { transform: scale(0.98); }
-.primary-btn { background: linear-gradient(135deg, var(--accent), #ff5f4f); }
-.secondary-btn, .ghost-btn { background: var(--panel-2); border: 1px solid rgba(255,255,255,0.12); }
-.danger-btn { width: 100%; margin-top: 14px; background: rgba(255,77,109,0.18); color: #ffd7df; border: 1px solid rgba(255,77,109,0.35); }
-.big { width: 100%; margin-top: 10px; padding: 15px 18px; font-size: 1rem; }
-.hidden { display: none !important; }
-.warning { margin: 12px 0; padding: 12px; border-radius: 16px; background: rgba(255,209,102,0.15); border: 1px solid rgba(255,209,102,0.35); }
-
-.role-card {
-  min-height: 280px; margin: 18px 0; padding: 22px; border-radius: 28px;
-  display: flex; flex-direction: column; justify-content: center; text-align: center;
-  background: linear-gradient(160deg, rgba(255,138,61,0.28), rgba(255,255,255,0.08));
-  border: 1px solid rgba(255,255,255,0.18);
-}
-.card-player { color: var(--accent-2); margin: 0 0 8px; font-weight: 900; }
-.role-card h3 { font-size: clamp(2rem, 10vw, 4rem); margin: 0 0 12px; letter-spacing: -0.04em; }
-.role-card p { color: var(--muted); line-height: 1.45; }
-
-.top-status { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
-.badge { padding: 10px 13px; background: rgba(255,255,255,0.1); border-radius: 999px; font-weight: 900; }
-.narrator-box {
-  margin: 18px 0; min-height: 150px; display: flex; align-items: center;
-  padding: 18px; border-radius: 24px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.11);
-}
-.narrator-box p { font-size: 1.25rem; line-height: 1.45; margin: 0; }
-.action-area { display: grid; gap: 10px; }
-.action-area button { text-align: left; border-radius: 18px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
-.action-area button.selected { outline: 2px solid var(--accent-2); background: rgba(255,138,61,0.2); }
-.action-title { font-weight: 900; margin: 0 0 8px; }
-.players-box { margin-top: 14px; background: rgba(0,0,0,0.22); border-radius: 18px; padding: 12px; }
-.player-pill { display: inline-flex; margin: 5px; padding: 8px 10px; border-radius: 999px; background: rgba(255,255,255,0.1); }
-.player-pill.dead { opacity: .42; text-decoration: line-through; }
-
-@media (max-width: 540px) {
-  .app-shell { padding: 14px; }
-  .hero { flex-direction: column; }
-  .ghost-btn { align-self: flex-start; }
-  .role-grid { grid-template-columns: 1fr; }
-  .quick-row, .controls { flex-direction: column; }
-  .panel { border-radius: 24px; padding: 16px; }
+.host-note{
+  padding:12px 14px;
+  border-radius:14px;
+  background:rgba(245,158,11,.14);
+  border:1px solid rgba(245,158,11,.35);
+  margin-bottom:12px;
+  font-size:.95rem;
 }
