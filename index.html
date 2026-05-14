@@ -19,7 +19,7 @@
         <h1>Lupus Narratore</h1>
       </div>
       <div class="top-actions">
-        <span class="version-pill">V18.2</span>
+        <span class="version-pill">V18.3</span>
         <button id="resetAppBtn" class="ghost small">Reset</button>
       </div>
     </header>
@@ -178,8 +178,13 @@
           <div class="card invite-card narrator-only hidden">
             <h3>Invita giocatori</h3>
             <p class="hint">Fai scansionare il QR oppure condividi il codice stanza.</p>
-            <canvas id="roomQrCanvas" class="qr-canvas"></canvas>
+            <div class="qr-wrap">
+              <canvas id="roomQrCanvas" class="qr-canvas"></canvas>
+              <img id="roomQrImage" class="qr-image hidden" alt="QR stanza" />
+            </div>
+            <div id="roomJoinLink" class="join-link-box"></div>
             <button id="copyRoomCodeBtn" class="secondary full">Copia codice stanza</button>
+            <button id="copyRoomLinkBtn" class="ghost full">Copia link invito</button>
           </div>
 
           <div class="card player-card">

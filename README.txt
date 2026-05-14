@@ -40,3 +40,12 @@ Patch V18.2:
 - Aggiunto badge V18.2 visibile in alto.
 - Il pulsante Reset ora prova anche a cancellare service worker e cache.
 - Aggiunto pannello errore tecnico con code/message reali.
+
+
+Patch V18.3:
+- Corretto QR code che poteva non apparire se la libreria QRCode CDN non veniva caricata.
+- Aggiunto fallback QR tramite immagine esterna.
+- Aggiunto box con codice stanza e link invito.
+- Aggiunto bottone copia link invito.
+- Aggiornato badge visibile a V18.3.
+- Aggiornato service worker cache a v18-3.

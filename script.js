@@ -203,11 +203,57 @@ function renderLog(containerSel, log) {
   box.innerHTML = log.map(item => `<div class="log-row"><b>${item.at}</b><span>${item.text}</span></div>`).join("");
 }
 
+function makeRoomInviteLink(code) {
+  return `${location.origin}${location.pathname}#room=${code}`;
+}
+
 function updateRoomQr() {
   const canvas = $("#roomQrCanvas");
-  if (!canvas || !room?.data?.code || typeof QRCode === "undefined") return;
-  const url = `${location.origin}${location.pathname}#room=${room.data.code}`;
-  QRCode.toCanvas(canvas, url, { width: 180, margin: 1, color: { dark: "#ffffff", light: "#00000000" } }, () => {});
+  const img = $("#roomQrImage");
+  const linkBox = $("#roomJoinLink");
+  if (!room?.data?.code) return;
+
+  const inviteLink = makeRoomInviteLink(room.data.code);
+
+  if (linkBox) {
+    linkBox.innerHTML = `
+      <small>Codice stanza</small>
+      <b>${room.data.code}</b>
+      <small class="invite-url">${inviteLink}</small>
+    `;
+  }
+
+  // Metodo principale: libreria QRCode su canvas.
+  if (canvas && typeof QRCode !== "undefined") {
+    try {
+      canvas.classList.remove("hidden");
+      img?.classList.add("hidden");
+      QRCode.toCanvas(
+        canvas,
+        inviteLink,
+        { width: 190, margin: 1, color: { dark: "#ffffff", light: "#00000000" } },
+        (err) => {
+          if (err) showQrImageFallback(inviteLink);
+        }
+      );
+      return;
+    } catch (err) {
+      console.warn("QR canvas non disponibile:", err);
+    }
+  }
+
+  // Fallback: immagine QR da servizio esterno.
+  showQrImageFallback(inviteLink);
+}
+
+function showQrImageFallback(inviteLink) {
+  const canvas = $("#roomQrCanvas");
+  const img = $("#roomQrImage");
+  if (!img) return;
+
+  canvas?.classList.add("hidden");
+  img.classList.remove("hidden");
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=${encodeURIComponent(inviteLink)}`;
 }
 
 function parseHashRoom() {
@@ -581,6 +627,17 @@ function init() {
       toast("Codice stanza copiato.");
     } catch {
       toast(`Codice: ${room.data.code}`);
+    }
+  });
+
+  $("#copyRoomLinkBtn")?.addEventListener("click", async () => {
+    if (!room?.data?.code) return;
+    const link = makeRoomInviteLink(room.data.code);
+    try {
+      await navigator.clipboard.writeText(link);
+      toast("Link invito copiato.");
+    } catch {
+      toast("Non riesco a copiare il link.");
     }
   });
 
