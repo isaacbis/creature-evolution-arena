@@ -1,127 +1,168 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#110f18" />
-  <title>Lupus Narratore Online</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#070914" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Lupus" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>Lupus Narratore</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app-shell">
-    <header class="hero">
+    <header class="topbar">
       <div>
-        <p class="eyebrow">Lupus in Fabula</p>
-        <h1>Narratore online</h1>
-        <p class="subtitle">Crea la partita, assegna i ruoli, gestisci notte, giorno e votazione da un solo telefono.</p>
+        <p class="eyebrow">Gioco di gruppo</p>
+        <h1>Lupus Narratore</h1>
       </div>
-      <div class="status-pill" id="connectionStatus">Connessione...</div>
+      <button id="resetAppBtn" class="ghost small">Reset</button>
     </header>
 
     <main>
-      <section class="card" id="setupSection">
-        <h2>1. Crea o carica partita</h2>
-
-        <label for="gameName">Nome partita</label>
-        <input id="gameName" type="text" placeholder="Es. Serata Tommi 38" autocomplete="off" />
-
-        <div class="grid two">
-          <button id="createGameBtn" class="primary">Crea nuova partita</button>
-          <button id="loadGamesBtn" class="secondary">Carica salvate</button>
-        </div>
-
-        <div id="savedGames" class="saved-games hidden"></div>
-      </section>
-
-      <section class="card hidden" id="playersSection">
-        <div class="section-head">
-          <div>
-            <h2>2. Giocatori</h2>
-            <p id="currentGameLabel" class="muted"></p>
+      <section id="homeView" class="screen active">
+        <div class="hero card">
+          <h2>Scegli modalità</h2>
+          <p>Puoi usare un solo telefono come narratore oppure far entrare ogni giocatore dal proprio dispositivo.</p>
+          <div class="mode-grid">
+            <button class="mode-card" data-open="localSetupView">
+              <span>🎙️</span>
+              <strong>Narratore unico</strong>
+              <small>Un solo dispositivo, come la versione locale.</small>
+            </button>
+            <button class="mode-card" data-open="onlineChoiceView">
+              <span>📱</span>
+              <strong>Multi-dispositivo</strong>
+              <small>Stanza online, ruoli privati e votazioni da telefono.</small>
+            </button>
+            <button class="mode-card" id="demoBtn">
+              <span>🧪</span>
+              <strong>Modalità prova</strong>
+              <small>Carica nomi finti per testare subito il gioco.</small>
+            </button>
           </div>
-          <button id="resetGameBtn" class="danger ghost">Reset</button>
         </div>
-
-        <div class="add-row">
-          <input id="playerName" type="text" placeholder="Nome giocatore" autocomplete="off" />
-          <button id="addPlayerBtn" class="secondary">Aggiungi</button>
-        </div>
-
-        <div id="playersList" class="list"></div>
       </section>
 
-      <section class="card hidden" id="rolesSection">
-        <h2>3. Ruoli</h2>
-        <p class="muted">Il totale dei ruoli deve essere uguale al numero dei giocatori. Serve almeno un lupo.</p>
-
-        <div id="rolesGrid" class="roles-grid"></div>
-
-        <div class="counter-box">
-          <span>Giocatori: <strong id="playersCount">0</strong></span>
-          <span>Ruoli scelti: <strong id="rolesCount">0</strong></span>
+      <section id="localSetupView" class="screen">
+        <div class="card">
+          <button class="back ghost">← Indietro</button>
+          <h2>Narratore unico</h2>
+          <p>Inserisci i nomi, scegli i ruoli e avvia la partita. Il telefono guiderà notte e giorno.</p>
+          <label>Nomi giocatori <small>uno per riga</small></label>
+          <textarea id="localNames" rows="8" placeholder="Marco\nGiulia\nLuca\nSara"></textarea>
+          <div id="localRolePicker" class="role-picker"></div>
+          <button id="startLocalBtn" class="primary full">Avvia partita locale</button>
         </div>
-
-        <button id="assignRolesBtn" class="primary full">Assegna ruoli e inizia</button>
       </section>
 
-      <section class="card hidden" id="roleRevealSection">
-        <h2>4. Consegna ruoli</h2>
-        <p class="muted">Passa il telefono a ogni giocatore. Tocca per vedere il ruolo, poi nascondilo.</p>
-        <div id="revealList" class="list"></div>
+      <section id="onlineChoiceView" class="screen">
+        <div class="card">
+          <button class="back ghost">← Indietro</button>
+          <h2>Multi-dispositivo</h2>
+          <p>Il narratore crea una stanza. Ogni giocatore entra con il codice e vede solo il proprio ruolo.</p>
+          <div class="split-actions">
+            <button id="createRoomBtn" class="primary">Crea stanza</button>
+            <button class="secondary" data-open="joinRoomView">Entra in stanza</button>
+          </div>
+          <p class="hint">Serve che Firestore sia attivo. Le regole sono nel file <b>firestore-rules.txt</b>.</p>
+        </div>
       </section>
 
-      <section class="card hidden" id="gameSection">
-        <div class="phase-card" id="phaseCard">
-          <p class="eyebrow">Fase attuale</p>
-          <h2 id="phaseTitle">Notte 1</h2>
-          <p id="phaseInstruction">Tutti chiudono gli occhi.</p>
+      <section id="joinRoomView" class="screen">
+        <div class="card">
+          <button class="back ghost">← Indietro</button>
+          <h2>Entra in stanza</h2>
+          <label>Codice stanza</label>
+          <input id="joinCode" maxlength="6" placeholder="ABC123" />
+          <label>Il tuo nome</label>
+          <input id="joinName" placeholder="Es. Marco" />
+          <button id="joinRoomBtn" class="primary full">Entra</button>
         </div>
+      </section>
 
-        <div id="winnerBox" class="winner-box hidden"></div>
+      <section id="localGameView" class="screen">
+        <div class="game-layout">
+          <div class="card status-card">
+            <div class="phase-row">
+              <span id="localPhaseBadge" class="badge">Setup</span>
+              <span id="localAliveCount"></span>
+            </div>
+            <h2 id="localTitle">Partita locale</h2>
+            <p id="localNarration">Pronto per iniziare.</p>
+            <div class="voice-row">
+              <button id="localSpeakBtn" class="secondary">🔊 Ripeti voce</button>
+              <button id="localNextBtn" class="primary">Continua</button>
+            </div>
+          </div>
 
-        <div class="narrator-box">
-          <h3 id="narratorStepTitle">Narratore</h3>
-          <p id="narratorStepText">Premi avanti per iniziare.</p>
-          <p id="lastEventText" class="last-event hidden"></p>
+          <div class="card" id="localRevealCard">
+            <h3>Mostra ruoli</h3>
+            <p>Passa il telefono a ogni giocatore. Tocca per mostrare e nascondere la carta.</p>
+            <div id="localRevealBox" class="role-card hidden-role">Tocca “Mostra carta”</div>
+            <div class="split-actions">
+              <button id="showRoleBtn" class="secondary">Mostra carta</button>
+              <button id="nextRoleBtn" class="primary">Prossimo</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Giocatori</h3>
+            <div id="localPlayersList" class="player-list"></div>
+          </div>
+
+          <div class="card action-card">
+            <h3>Azioni narratore</h3>
+            <div id="localActionArea"></div>
+          </div>
         </div>
+      </section>
 
-        <div id="nightControls" class="grid two">
-          <button id="prevStepBtn" class="secondary">Indietro</button>
-          <button id="nextStepBtn" class="primary">Avanti</button>
+      <section id="roomView" class="screen">
+        <div class="game-layout">
+          <div class="card status-card">
+            <div class="phase-row">
+              <span id="roomCodeBadge" class="badge">ROOM</span>
+              <span id="roomPhaseBadge" class="badge alt">Lobby</span>
+            </div>
+            <h2 id="roomTitle">Stanza online</h2>
+            <p id="roomNarration">In attesa dei giocatori.</p>
+            <div class="voice-row narrator-only hidden">
+              <button id="roomSpeakBtn" class="secondary">🔊 Parla</button>
+              <button id="roomNextBtn" class="primary">Continua fase</button>
+            </div>
+          </div>
+
+          <div class="card player-card">
+            <h3>La tua carta</h3>
+            <div id="myRoleCard" class="role-card hidden-role">Il ruolo apparirà quando il narratore avvia la partita.</div>
+            <button id="toggleMyRoleBtn" class="secondary full">Mostra/Nascondi ruolo</button>
+          </div>
+
+          <div class="card narrator-only hidden">
+            <h3>Pannello narratore</h3>
+            <div id="onlineRolePicker" class="role-picker"></div>
+            <button id="addOnlineBotsBtn" class="secondary full">Aggiungi 6 bot di prova</button>
+            <button id="startOnlineGameBtn" class="primary full">Assegna ruoli e inizia</button>
+            <button id="onlineRevealAllBtn" class="ghost full">Mostra ruoli al narratore</button>
+          </div>
+
+          <div class="card">
+            <h3>Giocatori</h3>
+            <div id="roomPlayersList" class="player-list"></div>
+          </div>
+
+          <div class="card action-card">
+            <h3>Azioni</h3>
+            <div id="roomActionArea"></div>
+          </div>
         </div>
-
-        <div id="dayControls" class="grid two hidden">
-          <button id="openVoteBtn" class="primary">Apri votazione</button>
-          <button id="skipVoteBtn" class="secondary">Salta voto</button>
-        </div>
-
-        <div id="voteSection" class="vote-section hidden">
-          <h3>Votazione</h3>
-          <p class="muted">Scegli un sospettato per ogni giocatore vivo. Puoi contare solo quando hai finito, oppure forzare il conteggio se mancano voti.</p>
-          <div id="voteList" class="list"></div>
-          <button id="resolveVoteBtn" class="danger full">Conta voti ed elimina</button>
-        </div>
-
-        <div class="grid two">
-          <button id="killPlayerBtn" class="danger">Elimina manualmente</button>
-          <button id="newDayBtn" class="secondary">Forza giorno</button>
-        </div>
-
-        <details class="narrator-only">
-          <summary>Solo narratore: ruoli e vivi</summary>
-          <div id="alivePlayers" class="list compact"></div>
-        </details>
       </section>
     </main>
-  </div>
 
-  <div id="modal" class="modal hidden">
-    <div class="modal-card">
-      <button id="closeModalBtn" class="close">×</button>
-      <h2 id="modalTitle"></h2>
-      <p id="modalText"></p>
-      <div id="modalActions" class="modal-actions"></div>
-    </div>
+    <div id="toast" class="toast"></div>
   </div>
 
   <script type="module" src="script.js"></script>
