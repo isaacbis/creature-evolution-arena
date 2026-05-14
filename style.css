@@ -333,3 +333,26 @@ select option {
     min-height: 48px;
   }
 }
+
+
+/* Fix V14 */
+.vote-section button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#nightControls.hidden,
+#dayControls.hidden,
+#voteSection.hidden {
+  display: none !important;
+}
+
+#resolveVoteBtn {
+  margin-top: 14px;
+}
+
+@media (max-width: 640px) {
+  .vote-row select {
+    min-height: 50px;
+  }
+}

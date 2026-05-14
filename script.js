@@ -285,7 +285,7 @@ async function assignRoles() {
     rolesAssigned: true,
     phase: "night",
     nightNumber: 1,
-    dayNumber: 1,
+    dayNumber: 0,
     stepIndex: 0,
     voteOpen: false,
     votes: {},
@@ -362,7 +362,7 @@ async function nextStep() {
   if (stepIndex < steps.length - 1) {
     await saveGamePatch({ stepIndex: stepIndex + 1 });
   } else if (currentGame.phase === "night") {
-    await saveGamePatch({ phase: "day", stepIndex: 0, voteOpen: false, votes: {}, lastEvent: randomLine("day") });
+    await startDay();
   } else {
     await startNight();
   }
@@ -376,7 +376,19 @@ async function prevStep() {
 
 async function goDay() {
   if (currentGame.gameOver) return;
-  await saveGamePatch({ phase: "day", stepIndex: 0, voteOpen: false, votes: {}, lastEvent: randomLine("day") });
+  await startDay();
+}
+
+async function startDay(extra = {}) {
+  if (currentGame.gameOver) return;
+  await saveGamePatch({
+    phase: "day",
+    stepIndex: 0,
+    dayNumber: (currentGame.dayNumber || 0) + 1,
+    voteOpen: false,
+    votes: {},
+    lastEvent: extra.lastEvent || randomLine("day")
+  });
 }
 
 async function startNight(extra = {}) {
@@ -393,7 +405,7 @@ async function startNight(extra = {}) {
 
 async function openVote() {
   if (currentGame.gameOver || currentGame.phase !== "day") return;
-  await saveGamePatch({ voteOpen: true, votes: {}, lastEvent: randomLine("vote") });
+  await saveGamePatch({ voteOpen: true, votes: {}, stepIndex: 1, lastEvent: randomLine("vote") });
 }
 
 async function skipVote() {
@@ -404,18 +416,43 @@ async function skipVote() {
 async function setVote(voterId, targetId) {
   if (!currentGame.voteOpen || currentGame.gameOver) return;
   const voter = currentGame.players.find(p => p.id === voterId && p.alive);
-  const target = currentGame.players.find(p => p.id === targetId && p.alive);
-  if (!voter || !target) return;
+  if (!voter) return;
+
   const votes = { ...(currentGame.votes || {}) };
+
+  // Se il narratore rimette "Scegli...", togliamo quel voto.
+  if (!targetId) {
+    delete votes[voterId];
+    await saveGamePatch({ votes });
+    return;
+  }
+
+  const target = currentGame.players.find(p => p.id === targetId && p.alive);
+  if (!target) return;
+
   votes[voterId] = targetId;
   await saveGamePatch({ votes });
 }
 
-async function resolveVote() {
+async function resolveVote(force = false) {
   if (!currentGame.voteOpen || currentGame.gameOver) return;
   const players = currentGame.players || [];
   const alive = players.filter(p => p.alive);
   const votes = currentGame.votes || {};
+
+  const validVotesCount = alive.filter(p => votes[p.id]).length;
+  if (!force && validVotesCount < alive.length) {
+    openModal(
+      "Voti incompleti",
+      `Hanno votato ${validVotesCount} giocatori su ${alive.length}. Vuoi contare comunque i voti?`,
+      [
+        { label: "Aspetta", className: "secondary", onClick: closeModal },
+        { label: "Conta comunque", className: "danger", onClick: async () => { closeModal(); await resolveVote(true); } }
+      ]
+    );
+    return;
+  }
+
   const counts = {};
 
   Object.values(votes).forEach(targetId => {
@@ -628,10 +665,16 @@ function renderGame() {
     hide($("winnerBox"));
   }
 
-  $("prevStepBtn").disabled = currentGame.gameOver || phase !== "night" && phase !== "day";
+  $("prevStepBtn").disabled = currentGame.gameOver || currentGame.voteOpen || (phase !== "night" && phase !== "day");
   $("nextStepBtn").disabled = currentGame.gameOver || currentGame.voteOpen;
   $("killPlayerBtn").disabled = currentGame.gameOver;
-  $("newDayBtn").disabled = currentGame.gameOver;
+  $("newDayBtn").disabled = currentGame.gameOver || phase === "day" || currentGame.voteOpen;
+
+  if (!currentGame.gameOver && !currentGame.voteOpen) {
+    show($("nightControls"));
+  } else {
+    hide($("nightControls"));
+  }
 
   if (!currentGame.gameOver && phase === "day" && !currentGame.voteOpen) {
     show($("dayControls"));
@@ -686,11 +729,13 @@ function renderVoteList() {
     box.appendChild(row);
   });
 
-  const voteCount = Object.keys(votes).length;
+  const voteCount = alive.filter(p => votes[p.id]).length;
   const info = document.createElement("p");
   info.className = "muted";
   info.textContent = `Voti registrati: ${voteCount}/${alive.length}`;
   box.appendChild(info);
+
+  $("resolveVoteBtn").disabled = voteCount === 0;
 }
 
 function escapeHtml(value) {
@@ -702,19 +747,28 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-$("createGameBtn").onclick = createGame;
-$("loadGamesBtn").onclick = loadSavedGames;
-$("addPlayerBtn").onclick = addPlayer;
-$("assignRolesBtn").onclick = assignRoles;
-$("nextStepBtn").onclick = nextStep;
-$("prevStepBtn").onclick = prevStep;
-$("newDayBtn").onclick = goDay;
-$("killPlayerBtn").onclick = choosePlayerToKill;
-$("resetGameBtn").onclick = resetGame;
-$("openVoteBtn").onclick = openVote;
-$("skipVoteBtn").onclick = skipVote;
-$("resolveVoteBtn").onclick = resolveVote;
+function bindClick(id, handler) {
+  const el = $(id);
+  if (el) el.onclick = handler;
+  else console.warn(`Elemento mancante: #${id}`);
+}
 
-$("playerName").addEventListener("keydown", (event) => {
-  if (event.key === "Enter") addPlayer();
-});
+bindClick("createGameBtn", createGame);
+bindClick("loadGamesBtn", loadSavedGames);
+bindClick("addPlayerBtn", addPlayer);
+bindClick("assignRolesBtn", assignRoles);
+bindClick("nextStepBtn", nextStep);
+bindClick("prevStepBtn", prevStep);
+bindClick("newDayBtn", goDay);
+bindClick("killPlayerBtn", choosePlayerToKill);
+bindClick("resetGameBtn", resetGame);
+bindClick("openVoteBtn", openVote);
+bindClick("skipVoteBtn", skipVote);
+bindClick("resolveVoteBtn", () => resolveVote(false));
+
+const playerNameInput = $("playerName");
+if (playerNameInput) {
+  playerNameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") addPlayer();
+  });
+}
