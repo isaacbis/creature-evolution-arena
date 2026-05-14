@@ -26,3 +26,9 @@ git push
 
 Nota:
 Le regole Firestore sono aperte per test. Per uso pubblico serio vanno rese più sicure.
+
+
+Patch V18.1:
+- Corretto errore creazione stanza multiplayer.
+- Rimosse righe sbagliate hostLog: voteLog dentro createRoom().
+- Migliorato messaggio errore in caso Firestore Rules/connessione.

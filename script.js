@@ -987,9 +987,6 @@ async function createRoom() {
       nightNumber: 0,
       phaseSeconds,
       autoMode: phaseSeconds > 0,
-      hostLog: voteLog,
-      hostLog: voteLog,
-      hostLog: voteLog,
       phaseDeadline: null,
       players: [hostPlayer],
       votes: {},
@@ -1010,8 +1007,8 @@ async function createRoom() {
     show("roomView");
     toast(`Codice stanza: ${code}`);
   } catch (err) {
-    console.error(err);
-    toast("Errore creazione stanza. Controlla Firestore.");
+    console.error("Errore createRoom:", err);
+    toast(`Errore creazione stanza: ${err?.code || err?.message || "controlla Firestore"}`);
   }
 }
 
