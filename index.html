@@ -18,7 +18,10 @@
         <p class="eyebrow">Gioco di gruppo</p>
         <h1>Lupus Narratore</h1>
       </div>
-      <button id="resetAppBtn" class="ghost small">Reset</button>
+      <div class="top-actions">
+        <span class="version-pill">V18.2</span>
+        <button id="resetAppBtn" class="ghost small">Reset</button>
+      </div>
     </header>
 
     <main>
@@ -246,6 +249,11 @@
     </div>
   </div>
 
+  <div id="errorBox" class="error-box hidden">
+    <button id="closeErrorBoxBtn" class="overlay-close">×</button>
+    <h3>Errore tecnico</h3>
+    <pre id="errorBoxText"></pre>
+  </div>
   <div id="toast" class="toast"></div>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script type="module" src="script.js"></script>

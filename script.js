@@ -338,6 +338,24 @@ function toast(msg) {
   setTimeout(() => t.classList.remove("show"), 2600);
 }
 
+function showTechnicalError(title, err) {
+  const details = [
+    title,
+    `code: ${err?.code || "nessun codice"}`,
+    `message: ${err?.message || String(err)}`,
+    "",
+    "Se vedi ancora un errore generico dopo aver caricato la V18.2, svuota cache/sito o rimuovi l'app dalla schermata Home e riaprila."
+  ].join("\n");
+  console.error(title, err);
+  const box = $("#errorBox");
+  const text = $("#errorBoxText");
+  if (box && text) {
+    text.textContent = details;
+    box.classList.remove("hidden");
+  }
+  toast(`${title}: ${err?.code || err?.message || "errore sconosciuto"}`);
+}
+
 function show(viewId) {
   $$(".screen").forEach((s) => s.classList.remove("active"));
   const view = $("#" + viewId);
@@ -550,6 +568,7 @@ function init() {
     if (hostAction) handleHostAction(hostAction.dataset.hostAction);
   });
 
+  $("#closeErrorBoxBtn")?.addEventListener("click", () => $("#errorBox").classList.add("hidden"));
   $("#closeRoleOverlayBtn").onclick = closeRoleOverlay;
   $("#roleOverlay").addEventListener("click", (e) => {
     if (e.target.id === "roleOverlay" || e.target.classList.contains("role-overlay-bg")) closeRoleOverlay();
@@ -577,9 +596,19 @@ function init() {
 
   parseHashRoom();
 
-  $("#resetAppBtn").onclick = () => {
+  $("#resetAppBtn").onclick = async () => {
     localStorage.removeItem("lupusPlayerId");
     localStorage.removeItem("lupusLastRoom");
+    try {
+      if ("serviceWorker" in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch {}
     location.reload();
   };
 
@@ -1007,8 +1036,7 @@ async function createRoom() {
     show("roomView");
     toast(`Codice stanza: ${code}`);
   } catch (err) {
-    console.error("Errore createRoom:", err);
-    toast(`Errore creazione stanza: ${err?.code || err?.message || "controlla Firestore"}`);
+    showTechnicalError("Errore creazione stanza", err);
   }
 }
 
@@ -1041,8 +1069,7 @@ async function joinRoom() {
     listenRoom(code);
     show("roomView");
   } catch (err) {
-    console.error(err);
-    toast("Errore entrata stanza.");
+    showTechnicalError("Errore entrata stanza", err);
   }
 }
 
@@ -1076,8 +1103,7 @@ function listenRoom(code) {
     renderRoom();
     scheduleAuto();
   }, (err) => {
-    console.error(err);
-    toast("Errore lettura Firestore.");
+    showTechnicalError("Errore lettura Firestore", err);
   });
 }
 

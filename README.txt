@@ -32,3 +32,11 @@ Patch V18.1:
 - Corretto errore creazione stanza multiplayer.
 - Rimosse righe sbagliate hostLog: voteLog dentro createRoom().
 - Migliorato messaggio errore in caso Firestore Rules/connessione.
+
+
+Patch V18.2:
+- Corretto problema probabile di cache/service worker che poteva continuare a servire script.js vecchio.
+- Service worker passato a network-first per i file dell'app.
+- Aggiunto badge V18.2 visibile in alto.
+- Il pulsante Reset ora prova anche a cancellare service worker e cache.
+- Aggiunto pannello errore tecnico con code/message reali.

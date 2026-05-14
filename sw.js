@@ -1,4 +1,4 @@
-const CACHE_NAME = "lupus-narratore-v18";
+const CACHE_NAME = "lupus-narratore-v18-2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -19,16 +19,24 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
+// Network-first for app files, so Render updates are not stuck on old JS.
 self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET") return;
-  event.respondWith(
-    caches.match(req).then(cached => cached || fetch(req).then(res => {
-      const copy = res.clone();
-      if (new URL(req.url).origin === location.origin) {
+
+  const url = new URL(req.url);
+  const sameOrigin = url.origin === location.origin;
+
+  if (sameOrigin) {
+    event.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
-      }
-      return res;
-    }).catch(() => cached))
-  );
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  event.respondWith(fetch(req).catch(() => caches.match(req)));
 });
