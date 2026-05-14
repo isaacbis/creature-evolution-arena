@@ -1,17 +1,15 @@
-Lupus Narratore V17 - Game App Polish
-
-Questa versione mantiene la logica della V16 ma migliora ancora l'esperienza da app/gioco.
+Lupus Narratore V18 - Gameplay Pro
 
 Novità:
-- animazioni giorno/notte/votazione/fine partita;
-- sfondo dinamico in base alla fase;
-- carta ruolo più bella;
-- apertura ruolo a schermo pieno;
-- icone personalizzate per i ruoli;
-- transizioni più fluide;
-- micro-effetti su bottoni e liste;
-- vibrazione leggera sui feedback;
-- piccolo suono sintetico quando apri una carta ruolo.
+- QR code per entrare nella stanza online.
+- Bottone copia codice stanza.
+- Preset ruoli consigliati: consigliati, semplice, avanzato.
+- Log privato narratore in locale e online.
+- Schermata finale con ruoli rivelati.
+- Conferme anti-tap per azioni importanti.
+- Service worker per esperienza più da app/PWA.
+- Manifest migliorato.
+- Miglioramenti grafici per QR, log, finale e conferme.
 
 File:
 - index.html
@@ -19,8 +17,12 @@ File:
 - script.js
 - manifest.webmanifest
 - firestore-rules.txt
+- sw.js
 
 Deploy:
 git add .
-git commit -m "Aggiorno Lupus V17 game app"
+git commit -m "Aggiorno Lupus V18 gameplay pro"
 git push
+
+Nota:
+Le regole Firestore sono aperte per test. Per uso pubblico serio vanno rese più sicure.

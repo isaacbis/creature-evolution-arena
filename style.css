@@ -662,3 +662,95 @@ body.stage-end{
     font-size:3.4rem;
   }
 }
+
+
+/* ===== V18 GAMEPLAY PRO ===== */
+.preset-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:12px 0 4px;
+}
+.invite-card{
+  text-align:center;
+}
+.qr-canvas{
+  width:180px;
+  height:180px;
+  max-width:100%;
+  border-radius:24px;
+  padding:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 18px 45px rgba(0,0,0,.22);
+}
+.log-list{
+  display:grid;
+  gap:8px;
+  max-height:280px;
+  overflow:auto;
+  padding-right:4px;
+}
+.log-row{
+  display:grid;
+  grid-template-columns:58px 1fr;
+  gap:10px;
+  align-items:start;
+  padding:10px 11px;
+  border-radius:16px;
+  background:rgba(3,7,18,.35);
+  border:1px solid rgba(255,255,255,.08);
+}
+.log-row b{
+  color:#fdba74;
+  font-size:.82rem;
+}
+.log-row span{
+  color:#dbe5f7;
+  line-height:1.35;
+  font-size:.92rem;
+}
+.final-card{
+  background:
+    radial-gradient(circle at 0% 0%,rgba(34,197,94,.14),transparent 26%),
+    linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.045));
+}
+.confirm-modal{
+  position:fixed;
+  inset:0;
+  z-index:85;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(0,0,0,.64);
+  backdrop-filter:blur(16px);
+}
+.confirm-card{
+  width:min(420px,100%);
+  border-radius:30px;
+  padding:22px;
+  background:linear-gradient(180deg,rgba(27,37,61,.98),rgba(8,12,24,.98));
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 34px 100px rgba(0,0,0,.54),inset 0 1px 0 rgba(255,255,255,.08);
+  animation:roleZoom .22s cubic-bezier(.2,.85,.2,1);
+}
+.confirm-card h3{
+  margin:0 0 8px;
+  font-size:1.35rem;
+}
+.confirm-card p{
+  color:#d5def0;
+  line-height:1.45;
+  margin:0;
+}
+.stage-end .final-card{
+  box-shadow:0 24px 80px rgba(34,197,94,.18), inset 0 1px 0 rgba(255,255,255,.08);
+}
+@media(max-width:760px){
+  .preset-row .small{
+    flex:1;
+  }
+  .log-row{
+    grid-template-columns:50px 1fr;
+  }
+}

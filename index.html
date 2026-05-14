@@ -60,6 +60,11 @@
           <p>Inserisci i nomi, scegli i ruoli e avvia la partita.</p>
           <label>Nomi giocatori <small>uno per riga</small></label>
           <textarea id="localNames" rows="8" placeholder="Marco&#10;Giulia&#10;Luca&#10;Sara"></textarea>
+          <div class="preset-row">
+            <button class="ghost small" data-preset="local:auto">Ruoli consigliati</button>
+            <button class="ghost small" data-preset="local:simple">Semplice</button>
+            <button class="ghost small" data-preset="local:advanced">Avanzato</button>
+          </div>
           <div id="localRolePicker" class="role-picker"></div>
           <button id="startLocalBtn" class="primary full">Avvia partita locale</button>
         </div>
@@ -131,6 +136,18 @@
             <div id="localPlayersList" class="player-list"></div>
           </div>
 
+          <div id="localFinalRevealCard" class="card final-card hidden">
+            <h3>Ruoli finali</h3>
+            <p class="hint">A fine partita puoi rivelare tutti i ruoli.</p>
+            <div id="localFinalRevealList" class="player-list"></div>
+          </div>
+
+          <div class="card">
+            <h3>Log narratore</h3>
+            <p class="hint">Riepilogo privato degli eventi importanti.</p>
+            <div id="localHostLogList" class="log-list"></div>
+          </div>
+
           <div class="card action-card">
             <h3>Azioni narratore</h3><p class="subtle-line">Controlli veloci per gestire la partita in modo semplice.</p>
             <div id="localActionArea"></div>
@@ -155,6 +172,13 @@
             </div>
           </div>
 
+          <div class="card invite-card narrator-only hidden">
+            <h3>Invita giocatori</h3>
+            <p class="hint">Fai scansionare il QR oppure condividi il codice stanza.</p>
+            <canvas id="roomQrCanvas" class="qr-canvas"></canvas>
+            <button id="copyRoomCodeBtn" class="secondary full">Copia codice stanza</button>
+          </div>
+
           <div class="card player-card">
             <h3>La tua carta</h3>
             <div id="myRoleCard" class="role-card hidden-role">Il ruolo apparirà quando la partita inizia.</div>
@@ -163,6 +187,11 @@
 
           <div class="card narrator-only hidden">
             <h3>Pannello narratore</h3>
+            <div class="preset-row">
+              <button class="ghost small" data-preset="online:auto">Ruoli consigliati</button>
+              <button class="ghost small" data-preset="online:simple">Semplice</button>
+              <button class="ghost small" data-preset="online:advanced">Avanzato</button>
+            </div>
             <div id="onlineRolePicker" class="role-picker"></div>
             <button id="startOnlineGameBtn" class="primary full">Assegna ruoli e inizia</button>
             <button id="onlineRevealAllBtn" class="ghost full">Mostra ruoli al narratore</button>
@@ -173,6 +202,18 @@
             <div id="roomPlayersList" class="player-list"></div>
           </div>
 
+          <div id="finalRevealCard" class="card final-card hidden">
+            <h3>Ruoli finali</h3>
+            <p class="hint">Visibile a fine partita.</p>
+            <div id="finalRevealList" class="player-list"></div>
+          </div>
+
+          <div class="card narrator-only hidden">
+            <h3>Log narratore</h3>
+            <p class="hint">Riepilogo privato degli eventi importanti.</p>
+            <div id="hostLogList" class="log-list"></div>
+          </div>
+
           <div class="card action-card">
             <h3>Azioni</h3><p class="subtle-line">Qui appaiono le azioni del tuo ruolo o del narratore.</p>
             <div id="roomActionArea"></div>
@@ -180,6 +221,18 @@
         </div>
       </section>
     </main>
+  </div>
+
+
+  <div id="confirmModal" class="confirm-modal hidden">
+    <div class="confirm-card">
+      <h3 id="confirmTitle">Conferma</h3>
+      <p id="confirmText">Sei sicuro?</p>
+      <div class="split-actions">
+        <button id="confirmCancelBtn" class="secondary">Annulla</button>
+        <button id="confirmOkBtn" class="primary">Conferma</button>
+      </div>
+    </div>
   </div>
 
   <div id="roleOverlay" class="role-overlay hidden">
@@ -194,6 +247,7 @@
   </div>
 
   <div id="toast" class="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
   <script type="module" src="script.js"></script>
 
   <nav class="bottom-dock">
@@ -211,5 +265,10 @@
     </button>
   </nav>
 
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+    }
+  </script>
 </body>
 </html>

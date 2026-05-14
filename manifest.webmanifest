@@ -5,5 +5,11 @@
   "display": "standalone",
   "background_color": "#070914",
   "theme_color": "#070914",
-  "icons": []
+  "icons": [],
+  "description": "App narratore per Lupus in Fabula con modalità locale e multi-dispositivo.",
+  "orientation": "portrait",
+  "categories": [
+    "games",
+    "entertainment"
+  ]
 }
