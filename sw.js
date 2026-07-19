@@ -1,10 +1,12 @@
-const CACHE_NAME = "lupus-narratore-v20";
+const CACHE_NAME = "lupus-narratore-v21";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./script.js",
-  "./manifest.webmanifest"
+  "./manifest.webmanifest",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", event => {

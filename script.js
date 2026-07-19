@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V20";
+const APP_VERSION = "V21";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -73,9 +73,20 @@ function setStage(phase) {
     reveal: "stage-night"
   }[phase] || "stage-home";
   document.body.classList.add(cls);
+  const colors = {
+    "stage-home": "#080b16",
+    "stage-lobby": "#111827",
+    "stage-night": "#080b22",
+    "stage-day": "#211405",
+    "stage-vote": "#25090f",
+    "stage-end": "#07170e"
+  };
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = colors[cls] || "#080b16";
 }
 
 function blip(type = "soft") {
+  if (!settings.sound) return;
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     const ctx = new AudioCtx();
@@ -360,6 +371,14 @@ let room = {
   timer: null
 };
 
+const settings = {
+  sound: localStorage.getItem("lupusSound") !== "0",
+  vibration: localStorage.getItem("lupusVibration") !== "0",
+  wakeLock: localStorage.getItem("lupusWakeLock") === "1"
+};
+let wakeLockHandle = null;
+let actionBusy = false;
+
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
@@ -392,7 +411,7 @@ function showTechnicalError(title, err) {
     `code: ${err?.code || "nessun codice"}`,
     `message: ${err?.message || String(err)}`,
     "",
-    "Se vedi ancora un errore generico dopo aver caricato la V18.2, svuota cache/sito o rimuovi l'app dalla schermata Home e riaprila."
+    "Controlla di vedere V21 in alto. Se non compare, premi Reset e ricarica il sito."
   ].join("\n");
   console.error(title, err);
   const box = $("#errorBox");
@@ -408,6 +427,7 @@ function show(viewId) {
   $$(".screen").forEach((s) => s.classList.remove("active"));
   const view = $("#" + viewId);
   if (view) view.classList.add("active");
+  document.body.classList.toggle("in-game", ["localGameView", "roomView"].includes(viewId));
   if (viewId === "homeView") setStage("home");
   if (viewId === "onlineChoiceView" || viewId === "joinRoomView") setStage("lobby");
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -419,12 +439,64 @@ function speak(text) {
     const u = new SpeechSynthesisUtterance(String(text || ""));
     u.lang = "it-IT";
     u.rate = 0.93;
+    const italianVoice = speechSynthesis.getVoices().find(v => /^it(-|_)/i.test(v.lang));
+    if (italianVoice) u.voice = italianVoice;
     speechSynthesis.speak(u);
   } catch {}
 }
 
 function vibrate(ms = 80) {
+  if (!settings.vibration) return;
   try { navigator.vibrate?.(ms); } catch {}
+}
+
+async function updateWakeLock() {
+  const status = $("#wakeLockStatus");
+  try {
+    if (wakeLockHandle) {
+      await wakeLockHandle.release();
+      wakeLockHandle = null;
+    }
+    if (settings.wakeLock && "wakeLock" in navigator && document.visibilityState === "visible") {
+      wakeLockHandle = await navigator.wakeLock.request("screen");
+      wakeLockHandle.addEventListener("release", () => { wakeLockHandle = null; });
+      if (status) status.textContent = "Schermo sempre acceso: attivo.";
+    } else if (status) {
+      status.textContent = settings.wakeLock
+        ? "La funzione non è disponibile su questo browser."
+        : "Schermo sempre acceso: disattivato.";
+    }
+  } catch (err) {
+    if (status) status.textContent = "Non è stato possibile mantenere lo schermo acceso.";
+  }
+}
+
+function syncSettingsUi() {
+  $("#soundSetting").checked = settings.sound;
+  $("#vibrationSetting").checked = settings.vibration;
+  $("#wakeLockSetting").checked = settings.wakeLock;
+  updateWakeLock();
+}
+
+function openSettings() {
+  syncSettingsUi();
+  $("#settingsModal").classList.remove("hidden");
+}
+
+function closeSettings() {
+  $("#settingsModal").classList.add("hidden");
+}
+
+async function leaveCurrentRoom() {
+  clearTimeout(room.timer);
+  room.unsub?.();
+  room.unsub = null;
+  room.data = null;
+  room.code = null;
+  room.isHost = false;
+  room.revealMine = false;
+  show("homeView");
+  toast("Sei uscito dalla stanza.");
 }
 
 function roleName(roleId) {
@@ -490,6 +562,7 @@ function makeRolePicker(el, prefix, counts = DEFAULT_COUNTS) {
 
 function validateSetup(names, counts) {
   if (names.length < 5) return "Inserisci almeno 5 giocatori.";
+  if (new Set(names.map(n => n.trim().toLowerCase())).size !== names.length) return "Ogni giocatore deve avere un nome diverso.";
   if (totalCounts(counts) > names.length) return "Hai scelto più ruoli dei giocatori.";
   if ((counts.wolf || 0) + (counts.alpha || 0) < 1) return "Serve almeno un Lupo Mannaro o un Lupo Alfa.";
   return "";
@@ -732,6 +805,9 @@ async function quickBotTest() {
       phaseDeadline: phaseSeconds > 0 ? Date.now() + phaseSeconds * 1000 : null,
       players: assigned,
       roleCounts: counts,
+      nightOrder: buildNightOrder(assigned, true),
+      resolvingNight: false,
+      resolvingVote: false,
       votes: {},
       voteRound: 0,
       night: {},
@@ -768,6 +844,8 @@ async function restartLocalSamePlayers() {
     night: {},
     witch: { save: true, kill: true },
     loversChosen: false,
+    nightOrder: [],
+    winnerText: "",
     narration: narr("intro", "Nuova partita. Passa il telefono al primo giocatore."),
     hostNote: "",
     log: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Nuova partita con gli stessi giocatori." }]
@@ -797,6 +875,9 @@ async function restartOnlineSamePlayers() {
     votes: {},
     voteRound: 0,
     night: {},
+    nightOrder: [],
+    resolvingNight: false,
+    resolvingVote: false,
     privateResults: {},
     witch: { save: true, kill: true },
     loversChosen: false,
@@ -901,11 +982,117 @@ function phaseMetaHtml(title, desc, progress = null, extra = "") {
   `;
 }
 
+
+function initials(name = "") {
+  return name.trim().split(/\s+/).slice(0, 2).map(part => part[0] || "").join("").toUpperCase() || "?";
+}
+
+function playerRowHtml(p, options = {}) {
+  const showRole = Boolean(options.showRole && p.role);
+  const isMe = Boolean(options.meId && p.id === options.meId);
+  const avatar = showRole ? roleIcon(p.role) : initials(p.name);
+  return `<div class="player-row ${p.alive ? "" : "dead"} ${isMe ? "is-me" : ""}">
+    <div class="player-main">
+      <span class="player-avatar">${avatar}</span>
+      <span class="player-copy">
+        <b>${p.name}${isMe ? " · Tu" : ""}${p.isBot ? " 🤖" : ""}</b>
+        <small>${showRole ? roleName(p.role) : p.lover ? "Innamorato/a 💞" : p.alive ? "In gioco" : "Eliminato"}</small>
+      </span>
+    </div>
+    <span class="chip ${p.alive ? "alive-chip" : "dead-chip"}">${p.alive ? "vivo" : "morto"}</span>
+  </div>`;
+}
+
+function winnerBannerHtml(text = "") {
+  const lower = text.toLowerCase();
+  let icon = "🏆", title = "Partita conclusa", team = "neutral";
+  if (lower.includes("villaggio")) { icon = "🏘️"; title = "Vince il Villaggio"; team = "village"; }
+  else if (lower.includes("lupi") || lower.includes("lupo")) { icon = "🐺"; title = "Vincono i Lupi"; team = "wolves"; }
+  else if (lower.includes("giullare")) { icon = "🃏"; title = "Vince il Giullare"; team = "jester"; }
+  return `<div class="winner-symbol">${icon}</div><div><small>Risultato finale</small><b>${title}</b><p>${text}</p></div>`;
+}
+
+function buildNightOrder(players, includeCupid = false) {
+  const roles = new Set(alivePlayers(players).map(p => p.role));
+  const order = [];
+  if (includeCupid && roles.has("cupid")) order.push("cupid");
+  if ([...roles].some(isWolf)) order.push("wolves");
+  if (roles.has("seer")) order.push("seer");
+  if (roles.has("guard")) order.push("guard");
+  if (roles.has("witch")) order.push("witch");
+  if (roles.has("medium")) order.push("medium");
+  order.push("dawn");
+  return order;
+}
+
+function newlyDeadIds(beforePlayers, afterPlayers) {
+  const beforeAlive = new Set((beforePlayers || []).filter(p => p.alive).map(p => p.id));
+  return (afterPlayers || []).filter(p => beforeAlive.has(p.id) && !p.alive).map(p => p.id);
+}
+
+async function acquirePhaseLock(field, expectedPhase) {
+  const ref = doc(db, "lupusRooms", room.code);
+  try {
+    return await runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) return null;
+      const d = snap.data();
+      if (d.phase !== expectedPhase || d[field]) return null;
+      tx.update(ref, { [field]: true, updatedAt: serverTimestamp() });
+      return d;
+    });
+  } catch (err) {
+    console.error("Phase lock error", err);
+    return null;
+  }
+}
+
+function renderLocalSetupSummary() {
+  const box = $("#localSetupSummary");
+  if (!box) return;
+  const names = $("#localNames").value.split(/\n|,/).map(n => n.trim()).filter(Boolean);
+  const validation = setupValidation("local", names.length);
+  const duplicates = names.length - new Set(names.map(n => n.toLowerCase())).size;
+  const ok = validation.ok && duplicates === 0;
+  box.className = `setup-summary ${ok ? "ok-summary" : "error-summary"}`;
+  box.innerHTML = `
+    <div><b>${names.length}</b><span>Giocatori</span></div>
+    <div><b>${validation.selected}</b><span>Ruoli scelti</span></div>
+    <p>${duplicates ? `Ci sono ${duplicates} nomi duplicati.` : validation.message}</p>
+  `;
+  $("#startLocalBtn").disabled = !ok;
+}
+
 /* -------------------- INIT -------------------- */
 
 function init() {
   makeRolePicker($("#localRolePicker"), "local");
   makeRolePicker($("#onlineRolePicker"), "online");
+  renderLocalSetupSummary();
+
+  $("#settingsBtn").onclick = openSettings;
+  $("#closeSettingsBtn").onclick = closeSettings;
+  $("#settingsModal").addEventListener("click", e => {
+    if (e.target.id === "settingsModal") closeSettings();
+  });
+  $("#soundSetting").onchange = e => {
+    settings.sound = e.target.checked;
+    localStorage.setItem("lupusSound", settings.sound ? "1" : "0");
+    if (settings.sound) blip("phase");
+  };
+  $("#vibrationSetting").onchange = e => {
+    settings.vibration = e.target.checked;
+    localStorage.setItem("lupusVibration", settings.vibration ? "1" : "0");
+    if (settings.vibration) vibrate(60);
+  };
+  $("#wakeLockSetting").onchange = e => {
+    settings.wakeLock = e.target.checked;
+    localStorage.setItem("lupusWakeLock", settings.wakeLock ? "1" : "0");
+    updateWakeLock();
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (settings.wakeLock && document.visibilityState === "visible") updateWakeLock();
+  });
 
   document.addEventListener("click", (e) => {
     const jump = e.target.closest("[data-scroll-target]");
@@ -919,6 +1106,7 @@ function init() {
       const box = document.querySelector(`[data-${prefix}-role="${role}"]`);
       box.textContent = Math.max(0, Number(box.textContent || 0) + delta);
       if (prefix === "online") renderOnlineSetupSummary();
+      if (prefix === "local") renderLocalSetupSummary();
     }
 
     const open = e.target.closest("[data-open]");
@@ -964,6 +1152,25 @@ function init() {
     }
   });
 
+  $("#shareRoomBtn")?.addEventListener("click", async () => {
+    if (!room?.data?.code) return;
+    const link = makeRoomInviteLink(room.data.code);
+    const shareData = {
+      title: "Lupus Narratore",
+      text: `Entra nella stanza ${room.data.code}`,
+      url: link
+    };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(link);
+        toast("Link invito copiato.");
+      }
+    } catch (err) {
+      if (err?.name !== "AbortError") toast("Condivisione non riuscita.");
+    }
+  });
+
   document.addEventListener("click", (e) => {
     const preset = e.target.closest("[data-preset]");
     if (!preset) return;
@@ -1004,6 +1211,7 @@ function init() {
     toast("Demo caricata.");
   };
 
+  $("#localNames").addEventListener("input", renderLocalSetupSummary);
   $("#startLocalBtn").onclick = startLocal;
   $("#localSpeakBtn").onclick = () => speak($("#localNarration").textContent);
   $("#localNextBtn").onclick = localContinue;
@@ -1017,6 +1225,18 @@ function init() {
   $("#diagnosticsBtn").onclick = runDiagnostics;
   $("#restartLocalSameBtn").onclick = restartLocalSamePlayers;
   $("#restartOnlineSameBtn").onclick = restartOnlineSamePlayers;
+  $("#exitLocalGameBtn").onclick = () => confirmAction(
+    "Uscire dalla partita",
+    "La partita locale in corso verrà chiusa.",
+    () => { local = null; show("homeView"); },
+    "Esci"
+  );
+  $("#leaveRoomBtn").onclick = () => confirmAction(
+    "Uscire dalla stanza",
+    "Potrai rientrare in seguito dalla schermata Online.",
+    leaveCurrentRoom,
+    "Esci"
+  );
   $("#startOnlineGameBtn").onclick = startOnlineGame;
   $("#toggleMyRoleBtn").onclick = () => { room.revealMine = !room.revealMine; renderRoom(); };
   $("#onlineRevealAllBtn").onclick = () => { room.narratorShowRoles = !room.narratorShowRoles; renderRoom(); };
@@ -1046,6 +1266,8 @@ function startLocal() {
     night: {},
     witch: { save: true, kill: true },
     loversChosen: false,
+    nightOrder: [],
+    winnerText: "",
     narration: narr("intro", "Passa il telefono al primo giocatore per mostrare il ruolo."),
     hostNote: "",
     log: []
@@ -1066,15 +1288,13 @@ function renderLocal() {
   $("#localStatus").innerHTML = statusHtml(local.players, local.phase, {});
   const localInfo = localPhaseInfo();
   $("#localPhaseMeta").innerHTML = phaseMetaHtml(localInfo.title, localInfo.desc);
-  $("#localPlayersList").innerHTML = local.players.map((p) => `
-    <div class="player-row ${p.alive ? "" : "dead"}">
-      <span>${local.phase === "gameOver" ? roleIcon(p.role) + " " : ""}${p.name}${p.lover ? " 💞" : ""}</span>
-      <span class="chip ${p.alive ? "alive-chip" : "dead-chip"}">${p.alive ? "vivo" : "morto"}</span>
-    </div>
-  `).join("");
+  $("#localPlayersList").innerHTML = local.players
+    .map(p => playerRowHtml(p, { showRole: local.phase === "gameOver" }))
+    .join("");
 
   $("#localRevealCard").classList.toggle("hidden", local.phase !== "reveal");
   $("#localFinalRevealCard").classList.toggle("hidden", local.phase !== "gameOver");
+  $("#localWinnerBanner").innerHTML = winnerBannerHtml(local.winnerText || local.narration || "");
   renderFinalList("#localFinalRevealList", local.players);
   renderLog("#localHostLogList", local.log || []);
   renderLocalActions();
@@ -1106,6 +1326,7 @@ function nextLocalRole() {
   if (local.revealIndex >= local.players.length) {
     local.phase = "night";
     local.step = 0;
+    local.nightOrder = buildNightOrder(local.players, !local.loversChosen);
     local.narration = narr("night", "Prima notte. Tutti chiudono gli occhi.");
   } else {
     local.narration = `Passa il telefono a ${local.players[local.revealIndex].name}.`;
@@ -1123,8 +1344,11 @@ function localContinue() {
 }
 
 function localNightStep() {
-  const available = getAvailableNightSteps(local.players, local.step === 0);
-  const key = available[local.step] || "dawn";
+  const available = local.nightOrder?.length
+    ? local.nightOrder
+    : buildNightOrder(local.players, !local.loversChosen);
+  local.nightOrder = available;
+  const key = available[Math.min(local.step, available.length - 1)] || "dawn";
   const textByKey = {
     cupid: narr("intro", "Cupido apre gli occhi e sceglie due innamorati."),
     wolves: narr("wolves", "I lupi aprono gli occhi e scelgono una vittima."),
@@ -1146,16 +1370,7 @@ function localNightStep() {
 }
 
 function getAvailableNightSteps(players, includeCupid) {
-  const roles = new Set(alivePlayers(players).map((p) => p.role));
-  const steps = [];
-  if (includeCupid && roles.has("cupid")) steps.push("cupid");
-  if ([...roles].some(isWolf)) steps.push("wolves");
-  if (roles.has("seer")) steps.push("seer");
-  if (roles.has("guard")) steps.push("guard");
-  if (roles.has("witch")) steps.push("witch");
-  if (roles.has("medium")) steps.push("medium");
-  steps.push("dawn");
-  return steps;
+  return buildNightOrder(players, includeCupid);
 }
 
 function renderLocalActions() {
@@ -1278,35 +1493,46 @@ function handleLocalAction(action, target) {
 
 function resolveLocalNight() {
   if (!local || local.phase === "gameOver") return;
-  const deadIds = [];
-  if (local.night.victim && local.night.victim !== local.night.protected && !local.night.witchSave) deadIds.push(local.night.victim);
-  if (local.night.witchKill) deadIds.push(local.night.witchKill);
+  const initialDeadIds = [];
+  if (local.night.victim && local.night.victim !== local.night.protected && !local.night.witchSave) initialDeadIds.push(local.night.victim);
+  if (local.night.witchKill) initialDeadIds.push(local.night.witchKill);
 
-  local.players = applyLoversDeath(local.players, deadIds);
-  const deadNames = [...new Set(deadIds)]
-    .map((id) => local.players.find((p) => p.id === id)?.name)
+  const beforePlayers = local.players;
+  const updatedPlayers = applyLoversDeath(beforePlayers, initialDeadIds);
+  const allDeadIds = newlyDeadIds(beforePlayers, updatedPlayers);
+  local.players = updatedPlayers;
+
+  const deadNames = allDeadIds
+    .map(id => beforePlayers.find(p => p.id === id)?.name)
     .filter(Boolean);
+  const hunter = updatedPlayers.find(p => allDeadIds.includes(p.id) && p.role === "hunter");
 
-  const hunter = local.players.find((p) => deadIds.includes(p.id) && p.role === "hunter");
-  const win = checkWin(local.players);
   if (deadNames.length) addLocalLog(`Notte risolta: morti ${deadNames.join(", ")}.`);
   else addLocalLog("Notte risolta: nessun morto.");
 
   local.night = {};
   local.currentNightKey = "";
   local.step = 0;
+  local.nightOrder = [];
   local.hostNote = hunter ? `${hunter.name} era il Cacciatore: può sparare.` : "";
+  const baseText = deadNames.length
+    ? narr("death", deadNames.map(publicDeath).join(" "))
+    : narr("safe", "Non è morto nessuno.");
 
-  if (win) {
-    local.phase = "gameOver";
-    local.narration = (deadNames.length ? narr("death", deadNames.map(publicDeath).join(" ")) : narr("safe", "Non è morto nessuno.")) + " " + win;
-  } else if (hunter) {
+  if (hunter) {
     local.phase = "hunter";
     local.pendingHunterId = hunter.id;
-    local.narration = narr("death", deadNames.map(publicDeath).join(" "));
+    local.narration = baseText;
   } else {
-    local.phase = "day";
-    local.narration = deadNames.length ? narr("death", deadNames.map(publicDeath).join(" ")) : narr("safe", "Non è morto nessuno.");
+    const win = checkWin(local.players);
+    if (win) {
+      local.phase = "gameOver";
+      local.winnerText = win;
+      local.narration = `${baseText} ${win}`;
+    } else {
+      local.phase = "day";
+      local.narration = baseText;
+    }
   }
   renderLocal();
   speak(local.narration);
@@ -1322,6 +1548,7 @@ function startLocalVote() {
 function skipLocalVote() {
   local.phase = "night";
   local.step = 0;
+  local.nightOrder = buildNightOrder(local.players, !local.loversChosen);
   local.hostNote = "";
   local.narration = narr("skip", "Tutti chiudono gli occhi. Ricomincia la notte.");
   renderLocal();
@@ -1329,35 +1556,48 @@ function skipLocalVote() {
 }
 
 function lynchLocal(id) {
-  const p = local.players.find((x) => x.id === id);
-  if (!p) return;
-  local.players = applyLoversDeath(local.players, [id]);
+  const target = local.players.find(p => p.id === id);
+  if (!target) return;
+
+  const beforePlayers = local.players;
+  const updatedPlayers = applyLoversDeath(beforePlayers, [id]);
+  const allDeadIds = newlyDeadIds(beforePlayers, updatedPlayers);
+  local.players = updatedPlayers;
   local.hostNote = "";
 
-  if (p.role === "jester") {
+  if (target.role === "jester") {
     local.phase = "gameOver";
-    addLocalLog(`${p.name} eliminato al voto. Vittoria del Giullare.`);
-    local.narration = narr("vote", `${p.name} è stato eliminato. Il ruolo resta segreto. Il Giullare ha vinto.`);
-    renderLocal(); speak(local.narration); return;
+    local.winnerText = "Il Giullare ha vinto facendosi eliminare dal villaggio.";
+    addLocalLog(`${target.name} eliminato al voto. Vittoria del Giullare.`);
+    local.narration = narr("vote", `${target.name} è stato eliminato. Il Giullare ha vinto.`);
+    renderLocal();
+    speak(local.narration);
+    return;
   }
 
-  if (p.role === "hunter") {
+  const hunter = updatedPlayers.find(p => allDeadIds.includes(p.id) && p.role === "hunter");
+  if (hunter) {
     local.phase = "hunter";
-    local.pendingHunterId = p.id;
-    local.hostNote = `${p.name} era il Cacciatore: può sparare.`;
-    local.narration = narr("vote", `${p.name} è stato eliminato. Il ruolo resta segreto.`);
-    renderLocal(); speak(local.narration); return;
+    local.pendingHunterId = hunter.id;
+    local.hostNote = `${hunter.name} era il Cacciatore: può sparare.`;
+    local.narration = narr("vote", `${target.name} è stato eliminato. Il ruolo resta segreto.`);
+    addLocalLog(`${target.name} è stato eliminato al voto.`);
+    renderLocal();
+    speak(local.narration);
+    return;
   }
 
-  addLocalLog(`${p.name} è stato eliminato al voto.`);
+  addLocalLog(`${target.name} è stato eliminato al voto.`);
   const win = checkWin(local.players);
   if (win) {
     local.phase = "gameOver";
-    local.narration = narr("vote", `${p.name} è stato eliminato. Il ruolo resta segreto. ${win}`);
+    local.winnerText = win;
+    local.narration = narr("vote", `${target.name} è stato eliminato. Il ruolo resta segreto. ${win}`);
   } else {
     local.phase = "night";
     local.step = 0;
-    local.narration = narr("vote", `${p.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`);
+    local.nightOrder = buildNightOrder(local.players, !local.loversChosen);
+    local.narration = narr("vote", `${target.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`);
   }
   renderLocal();
   speak(local.narration);
@@ -1375,6 +1615,7 @@ function hunterShotLocal(id) {
   const win = checkWin(local.players);
   if (win) {
     local.phase = "gameOver";
+    local.winnerText = win;
     local.narration += " " + win;
   } else {
     local.phase = "day";
@@ -1411,6 +1652,9 @@ async function createRoom() {
       autoMode: phaseSeconds > 0,
       phaseDeadline: null,
       players: [hostPlayer],
+      nightOrder: [],
+      resolvingNight: false,
+      resolvingVote: false,
       votes: {},
       voteRound: 0,
       night: {},
@@ -1516,6 +1760,9 @@ async function startOnlineGame() {
     roleCounts: counts,
     phase: "night",
     step: 0,
+    nightOrder: buildNightOrder(assigned, true),
+    resolvingNight: false,
+    resolvingVote: false,
     nightNumber: 1,
     dayNumber: 0,
     phaseSeconds: seconds,
@@ -1569,16 +1816,16 @@ function renderRoom() {
 
   updateRoomQr();
   $("#finalRevealCard").classList.toggle("hidden", d.phase !== "gameOver");
+  $("#roomWinnerBanner").innerHTML = winnerBannerHtml(d.winnerText || d.narration || "");
   renderFinalList("#finalRevealList", players);
   renderLog("#hostLogList", d.hostLog || []);
 
-  $("#roomPlayersList").innerHTML = players.length ? players.map((p) => {
-    const role = room.isHost && room.narratorShowRoles && p.role ? ` · ${roleName(p.role)}` : "";
-    return `<div class="player-row ${p.alive ? "" : "dead"}">
-      <span>${room.isHost && room.narratorShowRoles && p.role ? roleIcon(p.role) + " " : ""}${p.name}${p.isBot ? " 🤖" : ""}${p.lover ? " 💞" : ""}${role}</span>
-      <span class="chip ${p.alive ? "alive-chip" : "dead-chip"}">${p.alive ? "vivo" : "morto"}</span>
-    </div>`;
-  }).join("") : "<p class='hint'>Nessun giocatore nella stanza.</p>";
+  $("#roomPlayersList").innerHTML = players.length
+    ? players.map(p => playerRowHtml(p, {
+        showRole: room.isHost && room.narratorShowRoles,
+        meId: room.playerId
+      })).join("")
+    : "<p class='hint'>Nessun giocatore nella stanza.</p>";
 
   renderOnlineSetupSummary();
   renderRoomActions(d, players, me);
@@ -1777,15 +2024,9 @@ function nightStepLabel(step) {
 }
 
 function currentNightStep(d, players) {
-  const roles = new Set(alivePlayers(players).map((p) => p.role));
-  const available = [];
-  if (!d.loversChosen && roles.has("cupid")) available.push("cupid");
-  if ([...roles].some(isWolf)) available.push("wolves");
-  if (roles.has("seer")) available.push("seer");
-  if (roles.has("guard")) available.push("guard");
-  if (roles.has("witch")) available.push("witch");
-  if (roles.has("medium")) available.push("medium");
-  available.push("dawn");
+  const available = Array.isArray(d.nightOrder) && d.nightOrder.length
+    ? d.nightOrder
+    : buildNightOrder(players, !d.loversChosen);
   return available[Math.min(d.step || 0, available.length - 1)] || "dawn";
 }
 
@@ -1801,11 +2042,16 @@ function hasActed(d, playerId, step) {
 }
 
 async function handleOnlinePlayerAction(action, target) {
-  if (!room.data || !room.code) return;
-  if (action === "cupidPick") return handleCupidPick(target);
-  if (action === "vote") return submitVote(target);
-  if (["wolf", "seer", "guard", "witchSave", "witchKill", "witchSkip", "medium", "mediumSkip"].includes(action)) {
-    return submitNightAction(action, target);
+  if (!room.data || !room.code || actionBusy) return;
+  actionBusy = true;
+  try {
+    if (action === "cupidPick") return await handleCupidPick(target);
+    if (action === "vote") return await submitVote(target);
+    if (["wolf", "seer", "guard", "witchSave", "witchKill", "witchSkip", "medium", "mediumSkip"].includes(action)) {
+      return await submitNightAction(action, target);
+    }
+  } finally {
+    setTimeout(() => { actionBusy = false; }, 350);
   }
 }
 
@@ -1965,13 +2211,16 @@ async function botsAct(silent = false) {
 
   if (d.phase === "night") {
     const step = currentNightStep(d, players);
+    const coordinatedWolfTarget = step === "wolves"
+      ? randomTarget(players, null, p => !winsWithWolves(p.role))
+      : null;
     bots.forEach((bot) => {
       if (step === "cupid" && bot.role === "cupid" && !night[`cupid_${bot.id}`]) {
         const a = randomTarget(players, bot.id), b = randomTarget(players, a?.id);
         if (a && b) { night[`cupid_${bot.id}`] = [a.id, b.id]; patch.players = players.map((p) => p.id === a.id ? { ...p, lover: b.id } : p.id === b.id ? { ...p, lover: a.id } : p); patch.loversChosen = true; }
       }
       if (step === "wolves" && isWolf(bot.role) && !night[`wolf_${bot.id}`]) {
-        const t = randomTarget(players, bot.id, (p) => !isWolf(p.role));
+        const t = coordinatedWolfTarget || randomTarget(players, bot.id, p => !winsWithWolves(p.role));
         if (t) night[`wolf_${bot.id}`] = t.id;
       }
       if (step === "seer" && bot.role === "seer" && !night[`seer_${bot.id}`]) {
@@ -1993,11 +2242,18 @@ async function botsAct(silent = false) {
     });
     patch = { ...patch, night, witch, privateResults };
   } else if (d.phase === "vote") {
-    bots.forEach((bot) => {
-      if (!votes[bot.id]) {
-        const t = randomTarget(players, bot.id);
-        if (t) votes[bot.id] = t.id;
+    bots.forEach(bot => {
+      if (votes[bot.id]) return;
+      let target = null;
+      if (bot.role === "seer") {
+        const knownWolf = Object.values(privateResults).find(r => r?.type === "seer" && r?.result === "LUPO");
+        target = knownWolf ? players.find(p => p.name === knownWolf.targetName && p.alive) : null;
       }
+      if (!target && winsWithWolves(bot.role)) {
+        target = randomTarget(players, bot.id, p => !winsWithWolves(p.role));
+      }
+      if (!target) target = randomTarget(players, bot.id);
+      if (target) votes[bot.id] = target.id;
     });
     patch = { votes };
   } else {
@@ -2070,94 +2326,135 @@ async function onlineAdvanceManual() {
   if (d.phase === "vote") return resolveOnlineVote();
 }
 
-async function advanceNightStep(d) {
-  const players = d.players || [];
-  const step = currentNightStep(d, players);
-  if (step === "dawn") return resolveOnlineNight(d);
+async function advanceNightStep(d = room.data) {
+  const ref = doc(db, "lupusRooms", room.code);
+  let shouldResolve = false;
 
-  const nextStep = (d.step || 0) + 1;
-  const seconds = Number(d.phaseSeconds || 20);
-  const nextKey = currentNightStep({ ...d, step: nextStep }, players);
-  const texts = {
-    cupid: narr("intro", "Cupido sceglie due innamorati."),
-    wolves: narr("wolves", "I lupi scelgono una vittima."),
-    seer: narr("seer", "Il Veggente sceglie chi controllare."),
-    guard: narr("guard", "La Guardia sceglie chi proteggere."),
-    witch: narr("witch", "La Strega decide se usare le pozioni."),
-    medium: "Il Medium può controllare un morto.",
-    dawn: narr("day", "La notte si chiude. Si scopre cosa è successo.")
-  };
+  await runTransaction(db, async tx => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) return;
+    const current = snap.data();
+    if (current.phase !== "night" || current.resolvingNight) return;
 
-  await updateDoc(doc(db, "lupusRooms", room.code), {
-    step: nextStep,
-    narration: texts[nextKey] || "Notte.",
-    phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
-    updatedAt: serverTimestamp()
-  });
-}
+    const players = current.players || [];
+    const step = currentNightStep(current, players);
+    if (step === "dawn") {
+      shouldResolve = true;
+      return;
+    }
 
-async function resolveOnlineNight(d = room.data) {
-  const players = d.players || [];
-  const night = d.night || {};
-  const deadIds = [];
+    const nextStep = (current.step || 0) + 1;
+    const seconds = Number(current.phaseSeconds || 20);
+    const nextKey = currentNightStep({ ...current, step: nextStep }, players);
+    const texts = {
+      cupid: narr("intro", "Cupido sceglie due innamorati."),
+      wolves: narr("wolves", "I lupi scelgono una vittima."),
+      seer: narr("seer", "Il Veggente sceglie chi controllare."),
+      guard: narr("guard", "La Guardia sceglie chi proteggere."),
+      witch: narr("witch", "La Strega decide se usare le pozioni."),
+      medium: "Il Medium può controllare un morto.",
+      dawn: narr("day", "La notte si chiude. Si scopre cosa è successo.")
+    };
 
-  const wolfTargets = Object.entries(night).filter(([k]) => k.startsWith("wolf_")).map(([, v]) => v);
-  const wolfVictim = mostFrequent(wolfTargets);
-  const guardTargets = Object.entries(night).filter(([k]) => k.startsWith("guard_")).map(([, v]) => v);
-  const protectedId = guardTargets[0] || null;
-  const witchActions = Object.entries(night).filter(([k]) => k.startsWith("witch_")).map(([, v]) => v);
-  const witchSaved = witchActions.some((a) => a?.save);
-  const witchKill = witchActions.find((a) => a?.kill)?.kill || null;
-
-  if (wolfVictim && wolfVictim !== protectedId && !witchSaved) deadIds.push(wolfVictim);
-  if (witchKill) deadIds.push(witchKill);
-
-  const updatedPlayers = applyLoversDeath(players, deadIds);
-  const deadNames = [...new Set(deadIds)].map((id) => players.find((p) => p.id === id)?.name).filter(Boolean);
-  const hunter = updatedPlayers.find((p) => deadIds.includes(p.id) && p.role === "hunter");
-  const win = checkWin(updatedPlayers);
-
-  const baseText = deadNames.length ? narr("death", deadNames.map(publicDeath).join(" ")) : narr("safe", "Non è morto nessuno.");
-  const seconds = Number(d.phaseSeconds || 20);
-  const nightLogText = deadNames.length ? `Notte risolta: morti ${deadNames.join(", ")}.` : "Notte risolta: nessun morto.";
-  const hostLog = [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: nightLogText }, ...((d.hostLog || []).slice(0, 29))];
-
-  if (win) {
-    await updateDoc(doc(db, "lupusRooms", room.code), {
-      players: updatedPlayers,
-      phase: "gameOver",
-      winnerText: win,
-      narration: `${baseText} ${win}`,
-      night: {},
-      hostLog,
-      phaseDeadline: null,
-      updatedAt: serverTimestamp()
-    });
-  } else if (hunter) {
-    await updateDoc(doc(db, "lupusRooms", room.code), {
-      players: updatedPlayers,
-      phase: "hunter",
-      pendingHunterId: hunter.id,
-      narration: baseText,
-      hostNote: `${hunter.name} era il Cacciatore: può sparare.`,
-      night: {},
-      hostLog,
-      phaseDeadline: null,
-      updatedAt: serverTimestamp()
-    });
-  } else {
-    await updateDoc(doc(db, "lupusRooms", room.code), {
-      players: updatedPlayers,
-      phase: "day",
-      step: 0,
-      dayNumber: (d.dayNumber || 0) + 1,
-      narration: `${baseText} Ora discutete.`,
-      night: {},
-      hostLog,
-      votes: {},
+    tx.update(ref, {
+      step: nextStep,
+      narration: texts[nextKey] || "Notte.",
       phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
       updatedAt: serverTimestamp()
     });
+  });
+
+  if (shouldResolve) await resolveOnlineNight();
+}
+
+async function resolveOnlineNight(d = room.data) {
+  const locked = await acquirePhaseLock("resolvingNight", "night");
+  if (!locked) return;
+  d = locked;
+
+  try {
+    const players = d.players || [];
+    const night = d.night || {};
+    const initialDeadIds = [];
+
+    const wolfTargets = Object.entries(night).filter(([k]) => k.startsWith("wolf_")).map(([, v]) => v);
+    const wolfVictim = mostFrequent(wolfTargets);
+    const guardTargets = Object.entries(night).filter(([k]) => k.startsWith("guard_")).map(([, v]) => v);
+    const protectedId = guardTargets[0] || null;
+    const witchActions = Object.entries(night).filter(([k]) => k.startsWith("witch_")).map(([, v]) => v);
+    const witchSaved = witchActions.some(a => a?.save);
+    const witchKill = witchActions.find(a => a?.kill)?.kill || null;
+
+    if (wolfVictim && wolfVictim !== protectedId && !witchSaved) initialDeadIds.push(wolfVictim);
+    if (witchKill) initialDeadIds.push(witchKill);
+
+    const updatedPlayers = applyLoversDeath(players, initialDeadIds);
+    const allDeadIds = newlyDeadIds(players, updatedPlayers);
+    const deadNames = allDeadIds.map(id => players.find(p => p.id === id)?.name).filter(Boolean);
+    const hunter = updatedPlayers.find(p => allDeadIds.includes(p.id) && p.role === "hunter");
+
+    const baseText = deadNames.length
+      ? narr("death", deadNames.map(publicDeath).join(" "))
+      : narr("safe", "Non è morto nessuno.");
+    const seconds = Number(d.phaseSeconds || 20);
+    const nightLogText = deadNames.length
+      ? `Notte risolta: morti ${deadNames.join(", ")}.`
+      : "Notte risolta: nessun morto.";
+    const hostLog = [{
+      at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+      text: nightLogText
+    }, ...((d.hostLog || []).slice(0, 29))];
+
+    if (hunter) {
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        players: updatedPlayers,
+        phase: "hunter",
+        pendingHunterId: hunter.id,
+        narration: baseText,
+        hostNote: `${hunter.name} era il Cacciatore: può sparare.`,
+        night: {},
+        nightOrder: [],
+        hostLog,
+        resolvingNight: false,
+        phaseDeadline: null,
+        updatedAt: serverTimestamp()
+      });
+      return;
+    }
+
+    const win = checkWin(updatedPlayers);
+    if (win) {
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        players: updatedPlayers,
+        phase: "gameOver",
+        winnerText: win,
+        narration: `${baseText} ${win}`,
+        night: {},
+        nightOrder: [],
+        hostLog,
+        resolvingNight: false,
+        phaseDeadline: null,
+        updatedAt: serverTimestamp()
+      });
+    } else {
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        players: updatedPlayers,
+        phase: "day",
+        step: 0,
+        dayNumber: (d.dayNumber || 0) + 1,
+        narration: `${baseText} Ora discutete.`,
+        night: {},
+        nightOrder: [],
+        hostLog,
+        votes: {},
+        resolvingNight: false,
+        phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+        updatedAt: serverTimestamp()
+      });
+    }
+  } catch (err) {
+    await updateDoc(doc(db, "lupusRooms", room.code), { resolvingNight: false }).catch(() => {});
+    showTechnicalError("Errore risoluzione notte", err);
   }
 }
 
@@ -2179,6 +2476,7 @@ async function startOnlineVote() {
   await updateDoc(doc(db, "lupusRooms", room.code), {
     phase: "vote",
     votes: {},
+    resolvingVote: false,
     voteRound: (d.voteRound || 0) + 1,
     narration: narr("vote", "Ogni giocatore vivo può votare una sola volta."),
     hostLog,
@@ -2197,13 +2495,18 @@ async function startOnlineNight(customText = null) {
   const d = room.data;
   if (!d || d.phase === "gameOver") return;
   const seconds = Number(d.phaseSeconds || 20);
+  const players = d.players || [];
   const hostLog = [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Nuova notte iniziata." }, ...((d.hostLog || []).slice(0, 29))];
   await updateDoc(doc(db, "lupusRooms", room.code), {
     phase: "night",
     step: 0,
+    nightOrder: buildNightOrder(players, !d.loversChosen),
+    resolvingNight: false,
+    resolvingVote: false,
     nightNumber: (d.nightNumber || 0) + 1,
     votes: {},
     night: {},
+    hostNote: "",
     narration: customText || narr("night", "Tutti chiudono gli occhi. Ricomincia la notte."),
     hostLog,
     phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
@@ -2212,75 +2515,139 @@ async function startOnlineNight(customText = null) {
 }
 
 async function resolveOnlineVote() {
-  const d = room.data;
-  if (!d || d.phase !== "vote") return;
-  const players = d.players || [];
-  const { targetId, tie } = countVotes(players, d.votes || {});
-  if (tie || !targetId) {
-    await startOnlineNight(narr("tie", "Nessuno viene eliminato. Tutti chiudono gli occhi."));
-    return;
-  }
+  const locked = await acquirePhaseLock("resolvingVote", "vote");
+  if (!locked) return;
+  const d = locked;
 
-  const target = players.find((p) => p.id === targetId);
-  let updatedPlayers = applyLoversDeath(players, [targetId]);
+  try {
+    const players = d.players || [];
+    const { targetId, tie } = countVotes(players, d.votes || {});
+    const seconds = Number(d.phaseSeconds || 20);
 
-  const voteLog = [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: `${target.name} eliminato al voto.` }, ...((d.hostLog || []).slice(0, 29))];
+    if (tie || !targetId) {
+      const hostLog = [{
+        at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+        text: "Votazione conclusa senza eliminazione."
+      }, ...((d.hostLog || []).slice(0, 29))];
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        phase: "night",
+        step: 0,
+        nightOrder: buildNightOrder(players, !d.loversChosen),
+        resolvingVote: false,
+        resolvingNight: false,
+        nightNumber: (d.nightNumber || 0) + 1,
+        votes: {},
+        night: {},
+        hostNote: "",
+        narration: narr("tie", "Nessuno viene eliminato. Tutti chiudono gli occhi."),
+        hostLog,
+        phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+        updatedAt: serverTimestamp()
+      });
+      return;
+    }
 
-  if (target.role === "jester") {
-    await updateDoc(doc(db, "lupusRooms", room.code), {
-      players: updatedPlayers,
-      phase: "gameOver",
-      winnerText: "Il Giullare ha vinto facendosi eliminare dal villaggio.",
-      narration: `${target.name} è stato eliminato. Il ruolo resta segreto. Il Giullare ha vinto.`,
-      phaseDeadline: null,
-      updatedAt: serverTimestamp()
-    });
-    return;
-  }
+    const target = players.find(p => p.id === targetId);
+    const updatedPlayers = applyLoversDeath(players, [targetId]);
+    const allDeadIds = newlyDeadIds(players, updatedPlayers);
+    const voteLog = [{
+      at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+      text: `${target.name} eliminato al voto.`
+    }, ...((d.hostLog || []).slice(0, 29))];
 
-  if (target.role === "hunter") {
-    await updateDoc(doc(db, "lupusRooms", room.code), {
-      players: updatedPlayers,
-      phase: "hunter",
-      pendingHunterId: target.id,
-      narration: `${target.name} è stato eliminato. Il ruolo resta segreto.`,
-      hostNote: `${target.name} era il Cacciatore: può sparare.`,
-      phaseDeadline: null,
-      updatedAt: serverTimestamp()
-    });
-    return;
-  }
+    if (target.role === "jester") {
+      const winnerText = "Il Giullare ha vinto facendosi eliminare dal villaggio.";
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        players: updatedPlayers,
+        phase: "gameOver",
+        winnerText,
+        narration: `${target.name} è stato eliminato. ${winnerText}`,
+        hostLog: voteLog,
+        resolvingVote: false,
+        phaseDeadline: null,
+        updatedAt: serverTimestamp()
+      });
+      return;
+    }
 
-  const win = checkWin(updatedPlayers);
-  if (win) {
-    await updateDoc(doc(db, "lupusRooms", room.code), {
-      players: updatedPlayers,
-      phase: "gameOver",
-      winnerText: win,
-      narration: `${target.name} è stato eliminato. Il ruolo resta segreto. ${win}`,
-      phaseDeadline: null,
-      updatedAt: serverTimestamp()
-    });
-  } else {
-    await startOnlineNight(`${target.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`);
-    await updateDoc(doc(db, "lupusRooms", room.code), { players: updatedPlayers, updatedAt: serverTimestamp() });
+    const hunter = updatedPlayers.find(p => allDeadIds.includes(p.id) && p.role === "hunter");
+    if (hunter) {
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        players: updatedPlayers,
+        phase: "hunter",
+        pendingHunterId: hunter.id,
+        narration: `${target.name} è stato eliminato. Il ruolo resta segreto.`,
+        hostNote: `${hunter.name} era il Cacciatore: può sparare.`,
+        hostLog: voteLog,
+        resolvingVote: false,
+        phaseDeadline: null,
+        updatedAt: serverTimestamp()
+      });
+      return;
+    }
+
+    const win = checkWin(updatedPlayers);
+    if (win) {
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        players: updatedPlayers,
+        phase: "gameOver",
+        winnerText: win,
+        narration: `${target.name} è stato eliminato. Il ruolo resta segreto. ${win}`,
+        hostLog: voteLog,
+        resolvingVote: false,
+        phaseDeadline: null,
+        updatedAt: serverTimestamp()
+      });
+    } else {
+      await updateDoc(doc(db, "lupusRooms", room.code), {
+        players: updatedPlayers,
+        phase: "night",
+        step: 0,
+        nightOrder: buildNightOrder(updatedPlayers, !d.loversChosen),
+        resolvingVote: false,
+        resolvingNight: false,
+        nightNumber: (d.nightNumber || 0) + 1,
+        votes: {},
+        night: {},
+        hostNote: "",
+        narration: `${target.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`,
+        hostLog: voteLog,
+        phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+        updatedAt: serverTimestamp()
+      });
+    }
+  } catch (err) {
+    await updateDoc(doc(db, "lupusRooms", room.code), { resolvingVote: false }).catch(() => {});
+    showTechnicalError("Errore risoluzione voto", err);
   }
 }
 
 async function resolveHunterShot(targetId) {
   const d = room.data;
   if (!d || d.phase !== "hunter") return;
-  let players = d.players || [];
+  const beforePlayers = d.players || [];
+  let players = beforePlayers;
+  let shotText = "Il Cacciatore non ha sparato.";
+
   if (targetId && targetId !== "skip") {
-    players = applyLoversDeath(players, [targetId]);
+    players = applyLoversDeath(beforePlayers, [targetId]);
+    const target = beforePlayers.find(p => p.id === targetId);
+    shotText = `${target?.name || "Un giocatore"} è stato colpito dal Cacciatore.`;
   }
+
   const win = checkWin(players);
+  const hostLog = [{
+    at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+    text: shotText
+  }, ...((d.hostLog || []).slice(0, 29))];
+
   if (win) {
     await updateDoc(doc(db, "lupusRooms", room.code), {
       players,
       phase: "gameOver",
       winnerText: win,
-      narration: `Il Cacciatore ha scelto. ${win}`,
+      narration: `${shotText} ${win}`,
+      hostLog,
       pendingHunterId: null,
       phaseDeadline: null,
       updatedAt: serverTimestamp()
@@ -2292,7 +2659,8 @@ async function resolveHunterShot(targetId) {
       phase: "day",
       pendingHunterId: null,
       hostNote: "",
-      narration: "Il Cacciatore ha scelto. La discussione può continuare.",
+      narration: `${shotText} La discussione può continuare.`,
+      hostLog,
       phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
       updatedAt: serverTimestamp()
     });

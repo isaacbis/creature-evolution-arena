@@ -8,18 +8,24 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Lupus" />
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="description" content="Lupus Narratore: gioco locale e multiplayer ottimizzato per smartphone." />
   <title>Lupus Narratore</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="stage-home">
   <div class="app-shell">
     <header class="topbar appbar">
-      <div>
-        <p class="eyebrow">Gioco di gruppo</p>
-        <h1>Lupus Narratore</h1>
+      <div class="brand-lockup">
+        <img class="app-logo" src="icon-192.png" alt="" />
+        <div>
+          <p class="eyebrow">Gioco di gruppo</p>
+          <h1>Lupus Narratore</h1>
+        </div>
       </div>
       <div class="top-actions">
-        <span class="version-pill">V20</span>
+        <span class="version-pill">V21</span>
+        <button id="settingsBtn" class="icon-btn" aria-label="Impostazioni">⚙️</button>
         <button id="resetAppBtn" class="ghost small">Reset</button>
       </div>
     </header>
@@ -27,9 +33,14 @@
     <main>
       <section id="homeView" class="screen active">
         <div class="hero card hero-card">
-          <div class="hero-kicker">Lupus in Fabula</div>
-          <h2>Scegli modalità</h2>
-          <p>Usa un solo telefono come narratore oppure fai entrare ogni giocatore dal proprio dispositivo.</p>
+          <div class="hero-brand">
+            <img src="icon-512.png" alt="" />
+            <div>
+              <div class="hero-kicker">Lupus in Fabula</div>
+              <h2>La notte comincia qui</h2>
+            </div>
+          </div>
+          <p>Scegli la modalità, assegna i ruoli e lascia che l’app guidi notte, giorno e votazioni.</p>
           <div class="feature-chips"><span class="feature-chip">📲 Mobile UX</span><span class="feature-chip">🎮 Giocabilità migliorata</span>
             <span class="feature-chip">🎙️ Narratore</span>
             <span class="feature-chip">📱 Multi-dispositivo</span>
@@ -68,6 +79,7 @@
             <button class="ghost small" data-preset="local:simple">Semplice</button>
             <button class="ghost small" data-preset="local:advanced">Avanzato</button>
           </div>
+          <div id="localSetupSummary" class="setup-summary"></div>
           <div id="localRolePicker" class="role-picker"></div>
           <button id="startLocalBtn" class="primary full">Avvia partita locale</button>
         </div>
@@ -127,12 +139,13 @@
               <span id="localAliveCount"></span>
             </div>
             <h2>Partita locale</h2>
-            <p id="localNarration">Pronto per iniziare.</p>
+            <p id="localNarration" aria-live="polite">Pronto per iniziare.</p>
             <div id="localStatus"></div><div id="localPhaseMeta" class="phase-meta"></div>
             <div class="voice-row">
               <button id="localSpeakBtn" class="secondary">🔊 Ripeti voce</button>
               <button id="localNextBtn" class="primary">Continua</button>
             </div>
+            <button id="exitLocalGameBtn" class="ghost danger-outline full">Esci dalla partita</button>
           </div>
 
           <div class="card" id="localRevealCard">
@@ -151,6 +164,7 @@
           </div>
 
           <div id="localFinalRevealCard" class="card final-card hidden">
+            <div id="localWinnerBanner" class="winner-banner"></div>
             <h3>Ruoli finali</h3>
             <p class="hint">A fine partita puoi rivelare tutti i ruoli.</p>
             <div id="localFinalRevealList" class="player-list"></div>
@@ -185,12 +199,13 @@
               <span id="roomPhaseBadge" class="badge alt">Lobby</span>
             </div>
             <h2>Stanza online</h2>
-            <p id="roomNarration">In attesa dei giocatori.</p>
+            <p id="roomNarration" aria-live="polite">In attesa dei giocatori.</p>
             <div id="roomStatus"></div><div id="roomPhaseMeta" class="phase-meta"></div>
             <div class="voice-row narrator-only hidden">
               <button id="roomSpeakBtn" class="secondary">🔊 Parla</button>
               <button id="roomNextBtn" class="primary">Continua fase</button>
             </div>
+            <button id="leaveRoomBtn" class="ghost danger-outline full">Esci dalla stanza</button>
           </div>
 
           <div class="card invite-card narrator-only hidden">
@@ -201,8 +216,11 @@
               <img id="roomQrImage" class="qr-image hidden" alt="QR stanza" />
             </div>
             <div id="roomJoinLink" class="join-link-box"></div>
-            <button id="copyRoomCodeBtn" class="secondary full">Copia codice stanza</button>
-            <button id="copyRoomLinkBtn" class="ghost full">Copia link invito</button>
+            <div class="invite-actions">
+              <button id="shareRoomBtn" class="primary full">Condividi invito</button>
+              <button id="copyRoomCodeBtn" class="secondary full">Copia codice</button>
+              <button id="copyRoomLinkBtn" class="ghost full">Copia link</button>
+            </div>
           </div>
 
           <div id="roomRoleSection" class="card player-card">
@@ -230,6 +248,7 @@
           </div>
 
           <div id="finalRevealCard" class="card final-card hidden">
+            <div id="roomWinnerBanner" class="winner-banner"></div>
             <h3>Ruoli finali</h3>
             <p class="hint">Visibile a fine partita.</p>
             <div id="finalRevealList" class="player-list"></div>
@@ -251,6 +270,33 @@
     </main>
   </div>
 
+
+
+  <div id="settingsModal" class="settings-modal hidden">
+    <div class="settings-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">
+        <div>
+          <p class="eyebrow">Preferenze</p>
+          <h3>Impostazioni partita</h3>
+        </div>
+        <button id="closeSettingsBtn" class="icon-btn" aria-label="Chiudi">×</button>
+      </div>
+      <label class="setting-row">
+        <div><b>Effetti sonori</b><small>Suoni brevi per azioni e cambi fase.</small></div>
+        <input id="soundSetting" type="checkbox" />
+      </label>
+      <label class="setting-row">
+        <div><b>Vibrazione</b><small>Feedback tattile quando tocchi i comandi.</small></div>
+        <input id="vibrationSetting" type="checkbox" />
+      </label>
+      <label class="setting-row">
+        <div><b>Schermo sempre acceso</b><small>Evita che il telefono si blocchi durante la partita.</small></div>
+        <input id="wakeLockSetting" type="checkbox" />
+      </label>
+      <p id="wakeLockStatus" class="hint"></p>
+    </div>
+  </div>
 
   <div id="confirmModal" class="confirm-modal hidden">
     <div class="confirm-card">
