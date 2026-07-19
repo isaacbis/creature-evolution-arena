@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V23";
+const APP_VERSION = "V23.1";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -1661,6 +1661,7 @@ function renderRoom() {
 
   updateRoomQr();
   $("#finalRevealCard").classList.toggle("hidden", d.phase !== "gameOver");
+  $("#restartOnlineSameBtn").classList.toggle("hidden", !(room.isHost && d.phase === "gameOver"));
   $("#roomWinnerBanner").innerHTML = winnerBannerHtml(d.winnerText || d.narration || "");
   renderFinalList("#finalRevealList", players);
   renderLog("#hostLogList", d.hostLog || []);
@@ -1668,7 +1669,7 @@ function renderRoom() {
   $("#roomPlayersList").innerHTML = players.length
     ? players.map(p => playerRowHtml(p, {
         showRole: room.isHost && room.narratorShowRoles,
-        meId: room.playerId
+        meId: room.playerId,
         phase: d.phase,
         votes: d.votes || {}
       })).join("")
@@ -1921,6 +1922,7 @@ function hasActed(d, playerId, step) {
 async function handleOnlinePlayerAction(action, target) {
   if (!room.data || !room.code || actionBusy) return;
   actionBusy = true;
+  document.body.classList.add("action-busy");
   try {
     if (action === "cupidPick") return await handleCupidPick(target);
     if (action === "vote") return await submitVote(target);
@@ -1928,7 +1930,10 @@ async function handleOnlinePlayerAction(action, target) {
       return await submitNightAction(action, target);
     }
   } finally {
-    setTimeout(() => { actionBusy = false; }, 350);
+    setTimeout(() => {
+      actionBusy = false;
+      document.body.classList.remove("action-busy");
+    }, 350);
   }
 }
 
@@ -2034,7 +2039,15 @@ async function handleHostAction(action) {
   if (action === "bot6") return addBots(6);
   if (action === "clearBots") return clearBots();
   if (action === "botsAct") return botsAct();
-  if (action === "toggleAuto") return updateDoc(doc(db, "lupusRooms", room.code), { autoMode: !room.data.autoMode, phaseDeadline: null, updatedAt: serverTimestamp() });
+  if (action === "toggleAuto") {
+    const enable = !room.data.autoMode;
+    const duration = phaseDuration(room.data.phaseSeconds || 25, room.data.phase);
+    return updateDoc(doc(db, "lupusRooms", room.code), {
+      autoMode: enable,
+      phaseDeadline: enable && duration > 0 ? Date.now() + duration * 1000 : null,
+      updatedAt: serverTimestamp()
+    });
+  }
   if (action === "next") return onlineAdvanceManual();
   if (action === "resolveNight") return confirmAction("Risolvi notte", "Vuoi chiudere subito la notte e calcolare le vittime?", () => resolveOnlineNight(room.data), "Risolvi");
   if (action === "startVote") return confirmAction("Aprire votazione", "Vuoi aprire la votazione per tutti i giocatori vivi?", startOnlineVote, "Apri voto");

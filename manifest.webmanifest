@@ -1,5 +1,5 @@
 {
-  "name": "Lupus Online V23",
+  "name": "Lupus Online V23.1",
   "short_name": "Lupus",
   "start_url": "./",
   "display": "standalone",
@@ -19,7 +19,7 @@
       "purpose": "any maskable"
     }
   ],
-  "description": "Lupus Online V23: interfaccia mobile pulita, azioni chiare e gameplay migliorato.",
+  "description": "Lupus Online V23.1: correzione avvio e interfaccia mobile.",
   "orientation": "portrait",
   "categories": [
     "games",
