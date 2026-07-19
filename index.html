@@ -25,7 +25,7 @@
         </div>
       </div>
       <div class="top-actions">
-        <span class="version-pill">V23.1</span>
+        <span class="version-pill">V24</span>
         <button id="settingsBtn" class="icon-btn" aria-label="Impostazioni">⚙️</button>
       </div>
     </header>
@@ -116,138 +116,100 @@
         </details>
       </section>
 
-      <section id="roomView" class="screen">
-        <div id="gameQuickNav" class="mobile-nav card nav-strip">
-          <button class="nav-pill" data-scroll-target="roomStatusCard">Stato</button>
-          <button class="nav-pill" data-scroll-target="roomRoleSection">Ruolo</button>
-          <button class="nav-pill" data-scroll-target="roomPlayersSection">Giocatori</button>
-          <button class="nav-pill" data-scroll-target="roomActionSection">Azioni</button>
-        </div>
+      <section id="roomView" class="screen room-screen">
+        <div id="oneScreenDashboard" class="one-screen-dashboard">
+          <header class="game-header">
+            <div class="game-room-info">
+              <button id="roomCodeBadge" class="room-code-button" type="button">ROOM</button>
+              <span id="roomPhaseBadge" class="phase-compact">Lobby</span>
+              <span id="gameTimerCompact" class="timer-compact hidden">--</span>
+            </div>
+            <div class="game-header-actions">
+              <button id="roomSpeakBtn" class="mini-icon-btn narrator-only hidden" type="button" aria-label="Ripeti voce">🔊</button>
+              <button id="roomSettingsBtn" class="mini-icon-btn" type="button" aria-label="Impostazioni">⚙️</button>
+              <button id="leaveRoomBtn" class="mini-icon-btn danger-mini" type="button" aria-label="Esci">×</button>
+            </div>
+          </header>
 
-        <div class="game-layout app-layout">
-          <div id="roomStatusCard" class="card status-card status-hero">
-            <div class="section-label">Stanza online</div>
-            <div class="phase-row">
-              <span id="roomCodeBadge" class="badge room-code-badge">ROOM</span>
-              <span id="roomPhaseBadge" class="badge alt">Lobby</span>
-            </div>
-            <div id="turnBanner" class="turn-banner hidden"></div>
-            <h2 id="roomMainTitle">La partita</h2>
-            <p id="roomNarration" aria-live="polite">In attesa dei giocatori.</p>
-            <div id="roomStatus"></div>
-            <div id="roomPhaseMeta" class="phase-meta"></div>
-            <div id="hostPhaseControls" class="voice-row narrator-only hidden">
-              <button id="roomSpeakBtn" class="secondary">🔊 Ripeti</button>
-              <button id="roomNextBtn" class="primary">Continua</button>
-            </div>
-            <button id="leaveRoomBtn" class="ghost danger-outline full">Esci dalla stanza</button>
+          <div id="turnBanner" class="turn-banner one-screen-turn"></div>
+
+          <div class="one-screen-main">
+            <section id="roomStatusCard" class="dashboard-panel compact-status-panel">
+              <h2 id="roomMainTitle">Prepara la stanza</h2>
+              <p id="roomNarration" aria-live="polite">In attesa dei giocatori.</p>
+              <div id="roomStatus"></div>
+              <div id="roomPhaseMeta" class="phase-meta compact-phase-meta"></div>
+              <div id="hostPhaseControls" class="hidden"><button id="roomNextBtn" type="button">Continua</button></div>
+            </section>
+
+            <section id="inviteSection" class="dashboard-panel lobby-invite narrator-only hidden">
+              <div class="panel-title"><span>Invita</span><b>1</b></div>
+              <div id="roomJoinLink" class="compact-room-code"></div>
+              <div class="compact-invite-buttons">
+                <button id="shareRoomBtn" class="primary">Condividi</button>
+                <button id="copyRoomCodeBtn" class="secondary">Copia codice</button>
+                <button id="copyRoomLinkBtn" class="ghost">Copia link</button>
+              </div>
+              <details class="qr-details one-screen-qr">
+                <summary>QR</summary>
+                <div class="qr-wrap"><canvas id="roomQrCanvas" class="qr-canvas"></canvas><img id="roomQrImage" class="qr-image hidden" alt="QR stanza" /></div>
+              </details>
+            </section>
+
+            <section id="hostSetupSection" class="dashboard-panel lobby-setup narrator-only hidden">
+              <div class="panel-title"><span>Prepara</span><b>2</b></div>
+              <button class="primary compact-recommend" data-preset="online:auto">Ruoli consigliati</button>
+              <div id="onlineSetupSummary" class="setup-summary compact-setup-summary"></div>
+              <div class="compact-bot-row">
+                <button class="secondary" data-host-action="bot3">+3 bot</button>
+                <button class="secondary" data-host-action="bot6">+6 bot</button>
+                <button class="ghost" data-host-action="clearBots">Togli bot</button>
+              </div>
+              <button id="startOnlineGameBtn" class="primary start-one-screen">Inizia partita</button>
+              <details class="advanced-details one-screen-advanced">
+                <summary>Personalizza ruoli</summary>
+                <div class="advanced-overlay-card">
+                  <div class="preset-row compact-presets"><button class="ghost small" data-preset="online:simple">Semplice</button><button class="ghost small" data-preset="online:advanced">Avanzata</button></div>
+                  <div id="onlineRolePicker" class="role-picker"></div>
+                  <button class="primary full close-details-btn" type="button">Chiudi</button>
+                </div>
+              </details>
+            </section>
+
+            <section id="roomRoleSection" class="dashboard-panel compact-role-panel hidden">
+              <div class="panel-title"><span>Ruolo</span><b>👁</b></div>
+              <div id="myRoleCard" class="mini-role-card hidden-role">Nascosto</div>
+              <div id="roomPrivateInfo" class="room-private-info"></div>
+              <p id="roleAutoHideHint" class="privacy-hint hidden"></p>
+              <button id="toggleMyRoleBtn" class="secondary role-toggle-button">Mostra</button>
+            </section>
+
+            <section id="roomActionSection" class="dashboard-panel compact-action-panel hidden">
+              <div class="panel-title"><span>Azione</span><b>⚡</b></div>
+              <div id="roomActionArea" class="compact-action-area"></div>
+            </section>
+
+            <section id="roomPlayersSection" class="dashboard-panel compact-players-panel">
+              <div class="panel-title"><span>Giocatori</span><b id="playerCountBadge">0</b></div>
+              <div id="roomPlayersList" class="one-screen-player-grid"></div>
+              <div id="playersPager" class="compact-pager hidden"><button id="playersPrevBtn" class="ghost" type="button">‹</button><span id="playersPageLabel">1/1</span><button id="playersNextBtn" class="ghost" type="button">›</button></div>
+            </section>
+
+            <section id="hostControlBar" class="dashboard-panel compact-host-panel narrator-only hidden">
+              <div class="panel-title host-title"><span>Narratore</span><button id="onlineRevealAllBtn" class="ghost reveal-all-compact" type="button">Ruoli</button></div>
+              <div id="hostControlsArea" class="host-controls-area"></div>
+            </section>
+
+            <section id="finalRevealCard" class="dashboard-panel one-screen-final hidden">
+              <div id="roomWinnerBanner" class="winner-banner"></div>
+              <div id="finalRevealList" class="hidden"></div>
+              <button id="restartOnlineSameBtn" class="primary narrator-only hidden">Rigioca</button>
+            </section>
           </div>
 
-          <section id="inviteSection" class="card invite-card narrator-only hidden">
-            <div class="card-heading-row">
-              <div>
-                <p class="eyebrow">Invita gli amici</p>
-                <h3>Condividi la stanza</h3>
-              </div>
-              <span class="step-badge">1</span>
-            </div>
-
-            <div id="roomJoinLink" class="join-link-box"></div>
-
-            <div class="invite-actions">
-              <button id="shareRoomBtn" class="primary full">Condividi invito</button>
-              <button id="copyRoomCodeBtn" class="secondary full">Copia codice</button>
-              <button id="copyRoomLinkBtn" class="ghost full">Copia link</button>
-            </div>
-
-            <details class="qr-details">
-              <summary>Mostra QR code</summary>
-              <div class="qr-wrap">
-                <canvas id="roomQrCanvas" class="qr-canvas"></canvas>
-                <img id="roomQrImage" class="qr-image hidden" alt="QR stanza" />
-              </div>
-            </details>
-          </section>
-
-          <section id="roomPlayersSection" class="card">
-            <div class="card-heading-row">
-              <div>
-                <p class="eyebrow">Partecipanti</p>
-                <h3>Giocatori</h3>
-              </div>
-              <span id="playerCountBadge" class="step-badge">0</span>
-            </div>
-            <div id="roomPlayersList" class="player-list"></div>
-          </section>
-
-          <section id="hostSetupSection" class="card narrator-only hidden">
-            <div class="card-heading-row">
-              <div>
-                <p class="eyebrow">Solo narratore</p>
-                <h3>Prepara la partita</h3>
-              </div>
-              <span class="step-badge">2</span>
-            </div>
-
-            <button class="primary full recommend-btn" data-preset="online:auto">Usa ruoli consigliati</button>
-            <div id="onlineSetupSummary" class="setup-summary"></div>
-
-            <div class="bot-row">
-              <button class="secondary" data-host-action="bot3">+3 bot</button>
-              <button class="secondary" data-host-action="bot6">+6 bot</button>
-              <button class="ghost" data-host-action="clearBots">Rimuovi bot</button>
-            </div>
-
-            <details class="advanced-details">
-              <summary>Personalizza i ruoli</summary>
-              <div class="preset-row compact-presets">
-                <button class="ghost small" data-preset="online:simple">Configurazione semplice</button>
-                <button class="ghost small" data-preset="online:advanced">Configurazione avanzata</button>
-              </div>
-              <div id="onlineRolePicker" class="role-picker"></div>
-            </details>
-
-            <button id="startOnlineGameBtn" class="primary full start-game-btn">Inizia la partita</button>
-          </section>
-
-          <section id="roomRoleSection" class="card player-card hidden">
-            <div class="card-heading-row">
-              <div>
-                <p class="eyebrow">Privato</p>
-                <h3>Il tuo ruolo</h3>
-              </div>
-              <span class="step-badge">👁️</span>
-            </div>
-            <div id="myRoleCard" class="role-card hidden-role">Il ruolo apparirà quando la partita inizia.</div>
-            <p id="roleAutoHideHint" class="privacy-hint hidden"></p>
-            <button id="toggleMyRoleBtn" class="secondary full">Mostra il mio ruolo</button>
-          </section>
-
-          <section id="roomActionSection" class="card action-card hidden">
-            <div class="card-heading-row">
-              <div>
-                <p class="eyebrow">Cosa devi fare</p>
-                <h3>Azione corrente</h3>
-              </div>
-              <span class="step-badge">3</span>
-            </div>
-            <div id="roomActionArea"></div>
-          </section>
-
-          <section id="finalRevealCard" class="card final-card hidden">
-            <div id="roomWinnerBanner" class="winner-banner"></div>
-            <h3>Ruoli finali</h3>
-            <div id="finalRevealList" class="player-list"></div>
-            <button id="restartOnlineSameBtn" class="primary full narrator-only hidden">Nuova partita con gli stessi giocatori</button>
-          </section>
-
-          <details id="narratorToolsSection" class="card narrator-only hidden narrator-tools">
-            <summary>Strumenti del narratore</summary>
-            <div class="tools-body">
-              <button id="onlineRevealAllBtn" class="ghost full">Mostra/Nascondi tutti i ruoli</button>
-              <div id="hostLogList" class="log-list"></div>
-            </div>
-          </details>
+          <details id="narratorToolsSection" class="hidden narrator-only"><summary>Strumenti</summary><div id="hostLogList" class="log-list"></div></details>
+          <div id="gameQuickNav" class="hidden"></div>
+          <div id="mobileGameDock" class="hidden"><button id="mobileActionNavBtn" type="button"><i id="actionNavDot"></i></button></div>
         </div>
       </section>
     </main>

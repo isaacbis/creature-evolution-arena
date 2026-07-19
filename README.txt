@@ -1,15 +1,17 @@
-LUPUS ONLINE V23.1 — CORREZIONE AVVIO
+LUPUS ONLINE V24 — ONE SCREEN
 
-Correzioni:
-- corretta una virgola mancante nel rendering della lista giocatori;
-- il JavaScript ora viene controllato come modulo ES prima della consegna;
-- indicatore visivo durante l’invio di voto/azione;
-- pulsante nuova partita visibile correttamente a fine partita;
-- riattivazione modalità automatica con nuovo timer valido.
+Durante lobby e partita tutto rimane nella schermata del telefono, senza scorrere la pagina.
 
-Deploy:
+- Stato, ruolo, azione, giocatori e comandi narratore nella stessa dashboard.
+- Fino a 8 giocatori visibili insieme; oltre si usano frecce pagina.
+- Bersagli delle azioni divisi in pagine da 6.
+- Comandi narratore sempre visibili in basso.
+- QR e personalizzazione ruoli si aprono sopra la dashboard.
+- Il narratore continua a essere anche giocatore.
+
+DEPLOY
 git add .
-git commit -m "Correggo Lupus Online V23.1"
+git commit -m "Aggiorno Lupus Online V24 One Screen"
 git push origin main
 
-Dopo il deploy controlla V23.1 e svuota la cache dalle impostazioni.
+Dopo il deploy controlla V24, poi svuota la cache dalle impostazioni.

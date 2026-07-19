@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V23.1";
+const APP_VERSION = "V24";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -380,6 +380,9 @@ let roleHideTimer = null;
 let roleHideInterval = null;
 let lastRenderedPhase = null;
 let lastTurnKey = "";
+let playersPage = 0;
+let targetPage = 0;
+let targetContext = "";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -497,6 +500,9 @@ async function leaveCurrentRoom() {
   room.code = null;
   room.isHost = false;
   room.revealMine = false;
+  playersPage = 0;
+  targetPage = 0;
+  targetContext = "";
   history.replaceState(null, "", location.pathname + location.search);
   show("homeView");
   toast("Sei uscito dalla stanza.");
@@ -1187,12 +1193,45 @@ function updateNetworkState() {
   document.body.classList.toggle("is-offline", offline);
 }
 
+
+function playerPageSize() { return window.innerWidth <= 760 ? 8 : 12; }
+function paginateList(items, page, size) {
+  const pages = Math.max(1, Math.ceil(items.length / size));
+  const safePage = Math.max(0, Math.min(page, pages - 1));
+  return { pages, page: safePage, items: items.slice(safePage * size, safePage * size + size) };
+}
+function targetPagerHtml(pages, page) {
+  if (pages <= 1) return "";
+  return `<div class="target-pager"><button class="ghost" data-target-page="${Math.max(0, page - 1)}" ${page <= 0 ? "disabled" : ""}>‹</button><span>${page + 1}/${pages}</span><button class="ghost" data-target-page="${Math.min(pages - 1, page + 1)}" ${page >= pages - 1 ? "disabled" : ""}>›</button></div>`;
+}
+function compactPlayerRowHtml(p, options = {}) {
+  const showRole = Boolean(options.showRole && p.role);
+  const isMe = options.meId === p.id;
+  const hasVoted = options.phase === "vote" && Boolean(options.votes?.[p.id]);
+  const label = showRole ? roleName(p.role) : hasVoted ? "Votato ✓" : p.alive ? "Vivo" : "Morto";
+  return `<div class="mini-player ${p.alive ? "" : "dead"} ${isMe ? "is-me" : ""}"><span class="mini-player-avatar">${showRole ? roleIcon(p.role) : initials(p.name)}</span><span class="mini-player-copy"><b>${p.name}${p.isBot ? " 🤖" : ""}</b><small>${label}</small></span></div>`;
+}
+function renderPlayerPages(d, players) {
+  const paged = paginateList(players, playersPage, playerPageSize());
+  playersPage = paged.page;
+  $("#roomPlayersList").innerHTML = paged.items.map(p => compactPlayerRowHtml(p, { showRole: d.phase === "gameOver" || (room.isHost && room.narratorShowRoles), meId: room.playerId, phase: d.phase, votes: d.votes || {} })).join("");
+  $("#playersPager").classList.toggle("hidden", paged.pages <= 1);
+  $("#playersPageLabel").textContent = `${paged.page + 1}/${paged.pages}`;
+  $("#playersPrevBtn").disabled = paged.page <= 0;
+  $("#playersNextBtn").disabled = paged.page >= paged.pages - 1;
+}
+function compactTimerText(d) {
+  if (!d.autoMode || !d.phaseDeadline || ["lobby", "gameOver"].includes(d.phase)) return "";
+  return `${Math.max(0, Math.ceil((d.phaseDeadline - Date.now()) / 1000))}s`;
+}
+
 /* -------------------- INIT -------------------- */
 
 function init() {
   makeRolePicker($("#onlineRolePicker"), "online");
 
   $("#settingsBtn").onclick = openSettings;
+  $("#roomSettingsBtn").onclick = openSettings;
   $("#closeSettingsBtn").onclick = closeSettings;
   $("#settingsModal").addEventListener("click", e => {
     if (e.target.id === "settingsModal") closeSettings();
@@ -1233,11 +1272,12 @@ function init() {
       }
     }
 
+    const targetPager = e.target.closest("[data-target-page]");
+    if (targetPager) { targetPage = Number(targetPager.dataset.targetPage || 0); renderRoom(); return; }
+    const closeDetails = e.target.closest(".close-details-btn");
+    if (closeDetails) { closeDetails.closest("details")?.removeAttribute("open"); return; }
     const onlineAction = e.target.closest("[data-online-action]");
-    if (onlineAction) handleOnlinePlayerAction(
-      onlineAction.dataset.onlineAction,
-      onlineAction.dataset.target || null
-    );
+    if (onlineAction) handleOnlinePlayerAction(onlineAction.dataset.onlineAction, onlineAction.dataset.target || null);
 
     const hostAction = e.target.closest("[data-host-action]");
     if (hostAction) handleHostAction(hostAction.dataset.hostAction);
@@ -1263,6 +1303,13 @@ function init() {
     }
   });
 
+  $("#roomCodeBadge").onclick = async () => {
+    if (!room?.data?.code) return;
+    try { await navigator.clipboard.writeText(room.data.code); toast("Codice copiato."); }
+    catch { toast(`Codice: ${room.data.code}`); }
+  };
+  $("#playersPrevBtn").onclick = () => { playersPage = Math.max(0, playersPage - 1); renderRoom(); };
+  $("#playersNextBtn").onclick = () => { playersPage += 1; renderRoom(); };
   $("#copyRoomCodeBtn").onclick = async () => {
     if (!room?.data?.code) return;
     try {
@@ -1634,7 +1681,7 @@ function renderRoom() {
   if (!room.revealMine) $("#roleAutoHideHint").classList.add("hidden");
   if (me?.role && room.revealMine) {
     $("#myRoleCard").className = "role-card";
-    $("#myRoleCard").innerHTML = `<span class="role-icon">${roleIcon(me.role)}</span>${me.name}<br><small>${roleName(me.role)}</small><em>${roleDesc(me.role)}</em>`;
+    $("#myRoleCard").innerHTML = `<span class="mini-role-icon">${roleIcon(me.role)}</span><span><b>${roleName(me.role)}</b><small>${me.name}</small></span>`;
     $("#myRoleCard").onclick = () => openRoleOverlay(me.role, me.name);
   } else {
     $("#myRoleCard").className = "role-card hidden-role";
@@ -1642,15 +1689,25 @@ function renderRoom() {
     $("#myRoleCard").onclick = null;
   }
 
+  $("#roomPrivateInfo").innerHTML = room.revealMine ? privateIntelHtml(d, players, me) : "";
+
   const isLobby = d.phase === "lobby";
+  const isGameOver = d.phase === "gameOver";
+  $("#oneScreenDashboard").classList.toggle("lobby-mode", isLobby);
+  $("#oneScreenDashboard").classList.toggle("game-mode", !isLobby && !isGameOver);
+  $("#oneScreenDashboard").classList.toggle("end-mode", isGameOver);
   $("#inviteSection").classList.toggle("hidden", !(room.isHost && isLobby));
   $("#hostSetupSection").classList.toggle("hidden", !(room.isHost && isLobby));
-  $("#roomRoleSection").classList.toggle("hidden", isLobby);
-  $("#roomActionSection").classList.toggle("hidden", isLobby || d.phase === "gameOver");
-  $("#gameQuickNav").classList.toggle("hidden", isLobby);
-  $("#mobileGameDock").classList.toggle("hidden", isLobby);
-  $("#hostPhaseControls").classList.toggle("hidden", !(room.isHost && !isLobby && d.phase !== "gameOver"));
-  $("#narratorToolsSection").classList.toggle("hidden", !room.isHost);
+  $("#roomRoleSection").classList.toggle("hidden", isLobby || isGameOver);
+  $("#roomActionSection").classList.toggle("hidden", isLobby || isGameOver);
+  $("#hostControlBar").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
+  $("#hostPhaseControls").classList.add("hidden");
+  $("#gameQuickNav").classList.add("hidden");
+  $("#mobileGameDock").classList.add("hidden");
+  $("#narratorToolsSection").classList.add("hidden");
+  const compactTimer = compactTimerText(d);
+  $("#gameTimerCompact").textContent = compactTimer;
+  $("#gameTimerCompact").classList.toggle("hidden", !compactTimer);
   $("#playerCountBadge").textContent = players.length;
   $("#roomMainTitle").textContent = isLobby ? "Prepara la stanza" : phaseLabel(d.phase);
 
@@ -1666,15 +1723,7 @@ function renderRoom() {
   renderFinalList("#finalRevealList", players);
   renderLog("#hostLogList", d.hostLog || []);
 
-  $("#roomPlayersList").innerHTML = players.length
-    ? players.map(p => playerRowHtml(p, {
-        showRole: room.isHost && room.narratorShowRoles,
-        meId: room.playerId,
-        phase: d.phase,
-        votes: d.votes || {}
-      })).join("")
-    : "<p class='hint'>Nessun giocatore nella stanza.</p>";
-
+  renderPlayerPages(d, players);
   renderOnlineSetupSummary();
   renderRoomActions(d, players, me);
 }
@@ -1694,48 +1743,33 @@ function privateResultHtml(d, me) {
   const r = (d.privateResults || {})[me.id];
   if (!r) return "";
   if (r.type === "seer") {
-    return `<div class="private-result"><b>Risultato Veggente</b><br>${r.targetName}: <b>${r.result}</b><small>Resta visibile solo a te.</small></div>`;
+    return `<div class="private-result compact-private-result"><b>Risultato Veggente</b><br>${r.targetName}: <b>${r.result}</b><small>Resta visibile solo a te.</small></div>`;
   }
   if (r.type === "medium") {
-    return `<div class="private-result"><b>Risultato Medium</b><br>${r.targetName}: <b>${r.result}</b><small>Resta visibile solo a te.</small></div>`;
+    return `<div class="private-result compact-private-result"><b>Risultato Medium</b><br>${r.targetName}: <b>${r.result}</b><small>Resta visibile solo a te.</small></div>`;
   }
   if (r.type === "cupid") {
-    return `<div class="private-result"><b>Scelta di Cupido</b><br>${r.firstName} 💞 ${r.secondName}<small>Resta visibile solo a te.</small></div>`;
+    return `<div class="private-result compact-private-result"><b>Scelta di Cupido</b><br>${r.firstName} 💞 ${r.secondName}<small>Resta visibile solo a te.</small></div>`;
   }
   return "";
 }
 
 function renderRoomActions(d, players, me) {
   const area = $("#roomActionArea");
-  const privateBox = privateResultHtml(d, me);
-  const intelBox = privateIntelHtml(d, players, me);
-
-  if (d.phase === "lobby") {
-    area.innerHTML = room.isHost
-      ? "<p>Invita i giocatori e premi “Inizia la partita” quando la configurazione è pronta.</p>"
-      : "<p>Sei entrato. Aspetta che il narratore inizi la partita.</p>";
-    return;
-  }
-
-  if (d.phase === "gameOver") {
-    area.innerHTML = `<p><b>Partita conclusa.</b></p><p>${d.winnerText || d.narration || ""}</p>`;
-    return;
-  }
-
-  const playerControls = renderPlayerControls(d, players, me);
-  const hostControls = room.isHost ? renderHostControls(d, players) : "";
-
-  area.innerHTML = `${privateBox}${intelBox}${playerControls}${hostControls}`;
+  const hostArea = $("#hostControlsArea");
+  if (d.phase === "lobby" || d.phase === "gameOver") { area.innerHTML = ""; hostArea.innerHTML = ""; return; }
+  area.innerHTML = `${privateResultHtml(d, me)}${renderPlayerControls(d, players, me)}`;
+  hostArea.innerHTML = room.isHost ? renderHostControls(d, players) : "";
 }
 
 function renderPlayerControls(d, players, me) {
-  if (!me) return `<div class="action-state state-wait"><span>⚠️</span><div><b>Dispositivo non registrato</b><small>Rientra usando lo stesso telefono.</small></div></div>`;
-  if (!me.alive) return `<div class="action-state state-dead"><span>👻</span><div><b>Sei morto</b><small>Puoi seguire la partita, ma non puoi agire o votare.</small></div></div>`;
+  if (!me) return `<div class="compact-state state-wait"><span>⚠️</span><div><b>Non registrato</b><small>Rientra con questo telefono.</small></div></div>`;
+  if (!me.alive) return `<div class="compact-state state-dead"><span>👻</span><div><b>Sei morto</b><small>Puoi soltanto seguire.</small></div></div>`;
 
   const step = currentNightStep(d, players);
   const acted = hasActed(d, me.id, step);
-  const done = text => `<div class="action-state state-done"><span>✓</span><div><b>Azione registrata</b><small>${text}</small></div></div>${timerHtml(d)}`;
-  const wait = text => `<div class="action-state state-wait"><span>🌙</span><div><b>Aspetta il tuo turno</b><small>${text}</small></div></div>${timerHtml(d)}`;
+  const done = text => `<div class="compact-state state-done"><span>✓</span><div><b>Registrata</b><small>${text}</small></div></div>`;
+  const wait = text => `<div class="compact-state state-wait"><span>🌙</span><div><b>Aspetta</b><small>${text}</small></div></div>`;
 
   if (d.phase === "night") {
     if (step === "cupid" && me.role === "cupid") return acted ? done("I due innamorati sono stati scelti.") : cupidControls(players);
@@ -1748,96 +1782,50 @@ function renderPlayerControls(d, players, me) {
   }
 
   if (d.phase === "day") {
-    return `<div class="action-state state-talk"><span>☀️</span><div><b>Parlate e discutete</b><small>Accusate, difendetevi e cercate di trovare i lupi.</small></div></div>${timerHtml(d)}`;
+    return `<div class="compact-state state-talk"><span>☀️</span><div><b>Discutete</b><small>Accusate e difendetevi.</small></div></div>`;
   }
 
   if (d.phase === "vote") {
     const votes = d.votes || {};
     if (votes[me.id]) {
       const voted = players.find(p => p.id === votes[me.id]);
-      return `<div class="action-state state-done"><span>🗳️</span><div><b>Voto registrato</b><small>${voted ? `Hai votato ${voted.name}.` : "Hai già votato."}</small></div></div>${voteProgress(d, players)}${timerHtml(d)}`;
+      return `<div class="compact-state state-done"><span>🗳️</span><div><b>Votato</b><small>${voted ? voted.name : "Voto registrato"}</small></div></div>${voteProgress(d, players)}`;
     }
-    return `${targetButtons("Chi vuoi eliminare?", players, me.id, "vote", "🗳️")}${voteProgress(d, players)}${timerHtml(d)}`;
+    return `${targetButtons("Chi elimini?", players, me.id, "vote", "🗳️")}${voteProgress(d, players)}`;
   }
 
   if (d.phase === "hunter") {
-    return `<div class="action-state state-wait"><span>🏹</span><div><b>Azione del Cacciatore</b><small>Il narratore sta scegliendo il bersaglio.</small></div></div>`;
+    return `<div class="compact-state state-wait"><span>🏹</span><div><b>Cacciatore</b><small>Il narratore sceglie il bersaglio.</small></div></div>`;
   }
 
-  return `<div class="action-state state-wait"><span>…</span><div><b>Attendi</b><small>La partita sta proseguendo.</small></div></div>`;
+  return `<div class="compact-state state-wait"><span>…</span><div><b>Attendi</b><small>La partita continua.</small></div></div>`;
 }
 
 function renderHostControls(d, players) {
-  let hunterBox = "";
   if (d.phase === "hunter") {
-    const hunter = players.find((p) => p.id === d.pendingHunterId);
-    hunterBox = `<div class="host-note"><b>Cacciatore:</b> ${hunter?.name || ""} può sparare.
-      <div class="action-grid">
-        ${alivePlayers(players).filter((p) => p.id !== hunter?.id).map((p) => `<button class="target-btn" data-host-action="hunter:${p.id}">${p.name}</button>`).join("")}
-        <button class="secondary full" data-host-action="hunter:skip">Non sparare</button>
-      </div>
-    </div>`;
+    const hunter = players.find(p => p.id === d.pendingHunterId);
+    const targets = alivePlayers(players).filter(p => p.id !== hunter?.id);
+    if (targetContext !== "host-hunter") { targetContext = "host-hunter"; targetPage = 0; }
+    const paged = paginateList(targets, targetPage, 4); targetPage = paged.page;
+    return `<div class="host-hunter-line"><span><b>🏹 ${hunter?.name || "Cacciatore"}</b><small>Scegli bersaglio</small></span><div class="host-targets">${paged.items.map(p => `<button class="secondary" data-host-action="hunter:${p.id}">${p.name}</button>`).join("")}<button class="ghost" data-host-action="hunter:skip">Passa</button></div>${targetPagerHtml(paged.pages, paged.page)}</div>`;
   }
-
   const buttons = [];
-  if (d.phase === "night") {
-    buttons.push(`<button class="secondary" data-host-action="botsAct">Fai giocare i bot</button>`);
-    buttons.push(`<button class="secondary" data-host-action="next">Continua fase</button>`);
-    buttons.push(`<button class="secondary" data-host-action="resolveNight">Risolvi notte</button>`);
-  }
-  if (d.phase === "day") {
-    buttons.push(`<button class="primary" data-host-action="startVote">Apri votazione</button>`);
-    buttons.push(`<button class="secondary" data-host-action="skipVote">Salta votazione</button>`);
-    buttons.push(`<button class="ghost" data-host-action="newNight">Vai direttamente alla notte</button>`);
-  }
-  if (d.phase === "vote") {
-    const missing = alivePlayers(players).filter(p => !(d.votes || {})[p.id]).map(p => p.name);
-    buttons.push(`<button class="secondary" data-host-action="botsAct">Fai votare i bot</button>`);
-    buttons.push(`<button class="primary" data-host-action="resolveVote">Conta i voti ora</button>`);
-    buttons.push(`<button class="secondary" data-host-action="skipVote">Annulla votazione</button>`);
-    if (missing.length) hunterBox += `<div class="missing-voters"><b>Mancano ${missing.length} voti</b><small>${missing.join(", ")}</small></div>`;
-  }
-  if (!["hunter", "gameOver", "lobby"].includes(d.phase)) {
-    buttons.push(`<button class="ghost" data-host-action="toggleAuto">${d.autoMode ? "Disattiva automatico" : "Attiva automatico"}</button>`);
-  }
-
-  return `<div class="host-note">
-    <b>Pannello narratore</b>
-    <p class="hint">${d.hostNote || "Controlli disponibili per questa fase."}</p>
-    ${timerHtml(d)}
-    ${hunterBox}
-    <div class="action-grid">${buttons.join("")}</div>
-  </div>`;
+  if (d.phase === "night") { buttons.push(`<button class="secondary" data-host-action="botsAct">🤖 Bot</button>`,`<button class="primary" data-host-action="next">Avanti</button>`,`<button class="secondary" data-host-action="resolveNight">Alba</button>`); }
+  else if (d.phase === "day") { buttons.push(`<button class="primary" data-host-action="startVote">Apri voto</button>`,`<button class="secondary" data-host-action="skipVote">Salta</button>`,`<button class="ghost" data-host-action="newNight">Notte</button>`); }
+  else if (d.phase === "vote") { const missing = alivePlayers(players).filter(p => !(d.votes || {})[p.id]).length; buttons.push(`<button class="secondary" data-host-action="botsAct">🤖 Bot</button>`,`<button class="primary" data-host-action="resolveVote">Conta${missing ? ` · ${missing}` : ""}</button>`,`<button class="ghost" data-host-action="skipVote">Annulla</button>`); }
+  if (!["gameOver","lobby","hunter"].includes(d.phase)) buttons.push(`<button class="ghost auto-mini" data-host-action="toggleAuto">${d.autoMode ? "Auto ON" : "Auto OFF"}</button>`);
+  return `<div class="compact-host-buttons">${buttons.join("")}</div>`;
 }
 
 function targetButtons(title, players, excludeId, action, icon = "🎯") {
   const targets = alivePlayers(players).filter(p => p.id !== excludeId);
-  return `<div class="action-prompt">
-      <span>${icon}</span>
-      <div><b>${title}</b><small>Tocca una persona. La scelta viene registrata subito.</small></div>
-    </div>
-    <div class="target-grid">
-      ${targets.map(p => `<button class="target-card" data-online-action="${action}" data-target="${p.id}">
-        <span class="target-avatar">${initials(p.name)}</span>
-        <span>${p.name}</span>
-        <i>›</i>
-      </button>`).join("")}
-    </div>`;
+  const context = `online-${action}`;
+  if (targetContext !== context) { targetContext = context; targetPage = 0; }
+  const paged = paginateList(targets, targetPage, 6); targetPage = paged.page;
+  return `<div class="mini-action-title"><span>${icon}</span><b>${title}</b></div><div class="compact-target-grid">${paged.items.map(p => `<button class="compact-target" data-online-action="${action}" data-target="${p.id}"><span>${initials(p.name)}</span><b>${p.name}</b></button>`).join("")}</div>${targetPagerHtml(paged.pages, paged.page)}`;
 }
 
-function cupidControls(players) {
-  const alive = alivePlayers(players);
-  return `<div class="action-prompt">
-      <span>💘</span>
-      <div><b>Scegli due innamorati</b><small>Devono essere due persone diverse.</small></div>
-    </div>
-    <div class="target-grid cupid-grid">
-      ${alive.map(p => `<button class="target-card" data-online-action="cupidPick" data-target="${p.id}">
-        <span class="target-avatar">${initials(p.name)}</span><span>${p.name}</span><i>›</i>
-      </button>`).join("")}
-    </div>
-    <p id="cupidHint" class="hint">Scegli il primo giocatore.</p>`;
-}
+function cupidControls(players) { return `${targetButtons("Scegli due innamorati", players, null, "cupidPick", "💘")}<p id="cupidHint" class="compact-hint">${cupidBuffer.length ? "Ora scegli il secondo." : "Scegli il primo."}</p>`; }
 
 let cupidBuffer = [];
 async function handleCupidPick(targetId) {
@@ -1881,21 +1869,14 @@ function witchControls(d, players) {
 }
 
 function mediumControls(players) {
-  const dead = (players || []).filter((p) => !p.alive);
-  if (!dead.length) return `<p>Medium: non ci sono morti da controllare.</p><button class="secondary full" data-online-action="mediumSkip" data-target="skip">Passa</button>`;
-  return `<p>Medium: scegli un morto da controllare.</p><div class="action-grid">${dead.map((p) => `<button class="target-btn" data-online-action="medium" data-target="${p.id}">${p.name}</button>`).join("")}</div>`;
+  const dead = (players || []).filter(p => !p.alive);
+  if (!dead.length) return `<div class="compact-state"><span>🕯️</span><b>Nessun morto</b></div><button class="secondary compact-skip" data-online-action="mediumSkip" data-target="skip">Passa</button>`;
+  if (targetContext !== "online-medium") { targetContext = "online-medium"; targetPage = 0; }
+  const paged = paginateList(dead, targetPage, 6); targetPage = paged.page;
+  return `<div class="mini-action-title"><span>🕯️</span><b>Scegli un morto</b></div><div class="compact-target-grid">${paged.items.map(p => `<button class="compact-target" data-online-action="medium" data-target="${p.id}"><span>${initials(p.name)}</span><b>${p.name}</b></button>`).join("")}</div>${targetPagerHtml(paged.pages, paged.page)}`;
 }
 
-function voteProgress(d, players) {
-  const alive = alivePlayers(players);
-  const votes = d.votes || {};
-  const count = alive.filter(p => votes[p.id]).length;
-  const percent = alive.length ? Math.round((count / alive.length) * 100) : 0;
-  return `<div class="vote-progress">
-    <div><b>${count}/${alive.length}</b><span>hanno votato</span></div>
-    <div class="vote-meter"><i style="width:${percent}%"></i></div>
-  </div>`;
-}
+function voteProgress(d, players) { const alive = alivePlayers(players); const count = alive.filter(p => (d.votes || {})[p.id]).length; const percent = alive.length ? Math.round((count / alive.length) * 100) : 0; return `<div class="compact-vote-progress"><span>${count}/${alive.length}</span><i><b style="width:${percent}%"></b></i></div>`; }
 
 function nightStepLabel(step) {
   return { cupid: "Cupido", wolves: "Lupi", seer: "Veggente", guard: "Guardia", witch: "Strega", medium: "Medium", dawn: "Arriva il giorno" }[step] || step;
@@ -1930,6 +1911,8 @@ async function handleOnlinePlayerAction(action, target) {
       return await submitNightAction(action, target);
     }
   } finally {
+    targetPage = 0;
+    targetContext = "";
     setTimeout(() => {
       actionBusy = false;
       document.body.classList.remove("action-busy");

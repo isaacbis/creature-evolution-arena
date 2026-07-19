@@ -1,5 +1,5 @@
 {
-  "name": "Lupus Online V23.1",
+  "name": "Lupus Online V24",
   "short_name": "Lupus",
   "start_url": "./",
   "display": "standalone",
@@ -19,7 +19,7 @@
       "purpose": "any maskable"
     }
   ],
-  "description": "Lupus Online V23.1: correzione avvio e interfaccia mobile.",
+  "description": "Lupus Online V24: dashboard unica senza scorrimento per narratore e giocatori.",
   "orientation": "portrait",
   "categories": [
     "games",
