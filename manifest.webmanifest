@@ -1,7 +1,7 @@
 {
-  "name": "Lupus Narratore V21",
+  "name": "Lupus Online V22",
   "short_name": "Lupus",
-  "start_url": ".",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#080b16",
   "theme_color": "#080b16",
@@ -19,7 +19,7 @@
       "purpose": "any maskable"
     }
   ],
-  "description": "Lupus Narratore V21: grafica premium, gameplay stabile e interfaccia mobile.",
+  "description": "Versione online semplice di Lupus in Fabula, ottimizzata per smartphone.",
   "orientation": "portrait",
   "categories": [
     "games",

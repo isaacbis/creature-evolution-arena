@@ -1,4 +1,4 @@
-const CACHE_NAME = "lupus-narratore-v21";
+const CACHE_NAME = "lupus-online-v22";
 const ASSETS = [
   "./",
   "./index.html",

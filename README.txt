@@ -1,40 +1,44 @@
-Lupus Narratore V21 — Ultimate Mobile
+LUPUS ONLINE V22 — VERSIONE SEMPLICE
 
-MIGLIORAMENTI GRAFICI
-- Nuova identità visiva e nuova icona app.
-- Home più moderna e modalità più leggibili.
-- Carte, giocatori, vincitore e azioni ridisegnati.
-- Grafica dinamica per notte, giorno, voto e fine partita.
-- Layout ottimizzato per iPhone e Android.
-- Pulsanti touch più grandi e nessuno scorrimento orizzontale.
-- Menu impostazioni mobile a comparsa.
+Questa versione contiene soltanto la modalità online.
 
-MIGLIORAMENTI DI GIOCABILITÀ
-- Ordine dei ruoli notturni stabile: Cupido non fa più saltare il turno dei Lupi.
-- Votazione online risolta in un unico aggiornamento.
-- Protezione dai doppi tocchi e dalle doppie risoluzioni.
-- Morte degli innamorati gestita anche per Cacciatore e vittime secondarie.
-- Cacciatore gestito prima del controllo vittoria.
-- Bot lupi coordinati sulla stessa vittima.
-- Voto dei bot leggermente più intelligente.
-- Nomi duplicati bloccati.
-- Schermata sempre accesa opzionale.
-- Pulsanti sicuri per uscire dalla partita o dalla stanza.
-- Condivisione stanza tramite menu nativo del telefono.
+COSA CAMBIA
+- Eliminata la modalità Narratore unico.
+- Eliminata la scelta iniziale tra più modalità.
+- Home con soltanto:
+  1. Crea stanza
+  2. Entra in stanza
+  3. Rientra nell'ultima stanza
+- Il nome viene ricordato sul telefono.
+- Nessuna finestra prompt per creare la stanza.
+- Timer semplificato: tranquillo, normale, veloce o manuale.
+- QR code nascosto in una sezione apribile.
+- Ruoli consigliati applicati automaticamente quando entrano almeno 5 giocatori.
+- Personalizzazione ruoli spostata nelle opzioni avanzate.
+- Bot e diagnostica spostati in “Strumenti e prova”.
+- Durante la lobby vengono mostrate soltanto le sezioni utili.
+- Durante la partita compaiono Ruolo e Azione corrente.
+- Grafica mobile più pulita e meno affollata.
 
-INSTALLAZIONE
-Sostituisci tutti i file del progetto con quelli presenti nello ZIP, poi esegui:
+FILE
+- index.html
+- style.css
+- script.js
+- manifest.webmanifest
+- sw.js
+- firestore-rules.txt
+- icon-192.png
+- icon-512.png
+
+COME CARICARLA
+Copia tutti i file nella cartella collegata a GitHub, poi:
 
 git add .
-git commit -m "Aggiorno Lupus V21 Ultimate Mobile"
+git commit -m "Aggiorno Lupus Online V22"
 git push origin main
 
 DOPO IL DEPLOY
-1. Controlla che in alto compaia V21.
-2. Premi Reset una volta per cancellare la vecchia cache.
-3. Riapri il sito.
-4. Prova prima “Controllo rapido”.
-5. Prova “Prova subito con i bot”.
-
-NOTA
-Le regole Firestore incluse sono ancora aperte per test. Prima di rendere pubblica l'app conviene aggiungere autenticazione anonima e regole più restrittive.
+1. Controlla che appaia V22 in alto.
+2. Apri Impostazioni.
+3. Premi “Aggiorna app e svuota cache” una volta.
+4. Riapri il sito.

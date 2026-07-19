@@ -1594,3 +1594,330 @@ body.stage-end{--v21-glow:rgba(34,197,94,.28)}
     min-height:auto;
   }
 }
+
+
+/* ======================================================
+   V22 — ONLINE ONLY / SIMPLE UI
+   ====================================================== */
+body.online-only{
+  background:
+    radial-gradient(circle at 50% -20%,rgba(249,115,22,.15),transparent 38%),
+    linear-gradient(180deg,#080b16,#050710 72%);
+}
+.simple-shell{
+  width:min(920px,100%);
+}
+.simple-topbar{
+  margin-bottom:14px;
+}
+.welcome-card{
+  display:grid;
+  grid-template-columns:92px 1fr;
+  align-items:center;
+  gap:18px;
+  padding:22px;
+  background:
+    radial-gradient(circle at 0 0,rgba(249,115,22,.16),transparent 42%),
+    linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,.035));
+}
+.welcome-icon img{
+  width:92px;
+  height:92px;
+  display:block;
+  border-radius:27px;
+  box-shadow:0 20px 48px rgba(0,0,0,.34);
+}
+.welcome-card h2{
+  margin:3px 0 7px;
+  font-size:clamp(2rem,6vw,3.3rem);
+}
+.welcome-card p:last-child{
+  margin:0;
+}
+.entry-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.entry-card{
+  padding:20px;
+}
+.entry-heading,
+.card-heading-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:13px;
+  margin-bottom:14px;
+}
+.entry-heading{
+  justify-content:flex-start;
+}
+.entry-heading h2,
+.card-heading-row h3{
+  margin:2px 0 0;
+}
+.entry-number,
+.step-badge{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  flex:0 0 42px;
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(249,115,22,.24),rgba(249,115,22,.1));
+  border:1px solid rgba(249,115,22,.26);
+  color:#fed7aa;
+  font-weight:1000;
+}
+.entry-card input,
+.entry-card select{
+  min-height:56px;
+  font-size:1rem;
+}
+.main-cta{
+  min-height:58px;
+  margin-top:14px;
+  font-size:1.02rem;
+}
+.centered-hint{
+  margin:10px 0 0;
+  text-align:center;
+}
+.code-input{
+  text-transform:uppercase;
+  letter-spacing:.16em;
+  font-size:1.2rem!important;
+  font-weight:950;
+  text-align:center;
+}
+.rejoin-card{
+  width:100%;
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  align-items:center;
+  gap:12px;
+  text-align:left;
+  color:#fff;
+  margin-bottom:14px;
+  cursor:pointer;
+  border-color:rgba(34,197,94,.22);
+  background:linear-gradient(90deg,rgba(34,197,94,.12),rgba(255,255,255,.04));
+}
+.rejoin-icon{
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  border-radius:15px;
+  background:rgba(34,197,94,.14);
+}
+.rejoin-card b,
+.rejoin-card small{
+  display:block;
+}
+.rejoin-card small{
+  margin-top:3px;
+}
+.rejoin-arrow{
+  font-size:1.7rem;
+  opacity:.5;
+}
+.tools-details,
+.advanced-details,
+.qr-details,
+.narrator-tools{
+  overflow:hidden;
+}
+.tools-details>summary,
+.advanced-details>summary,
+.qr-details>summary,
+.narrator-tools>summary{
+  list-style:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  font-weight:900;
+}
+.tools-details>summary::-webkit-details-marker,
+.advanced-details>summary::-webkit-details-marker,
+.qr-details>summary::-webkit-details-marker,
+.narrator-tools>summary::-webkit-details-marker{
+  display:none;
+}
+.tools-details>summary::after,
+.advanced-details>summary::after,
+.qr-details>summary::after,
+.narrator-tools>summary::after{
+  content:"＋";
+  font-size:1.15rem;
+  color:#fdba74;
+}
+details[open]>summary::after{
+  content:"−";
+}
+.tools-details summary span,
+.tools-details summary small{
+  display:block;
+}
+.tools-details summary small{
+  margin-top:3px;
+}
+.tools-body{
+  padding-top:15px;
+}
+.room-code-badge{
+  letter-spacing:.12em;
+  font-size:1rem;
+}
+.bot-row{
+  display:grid;
+  grid-template-columns:1fr 1fr 1.25fr;
+  gap:8px;
+  margin:11px 0;
+}
+.recommend-btn{
+  min-height:56px;
+}
+.advanced-details{
+  margin:12px 0 15px;
+  padding:13px;
+  border-radius:18px;
+  background:rgba(3,7,18,.32);
+  border:1px solid rgba(255,255,255,.08);
+}
+.compact-presets{
+  margin-top:13px;
+}
+.qr-details{
+  margin-top:12px;
+  padding:12px;
+  border-radius:18px;
+  background:rgba(3,7,18,.3);
+}
+.narrator-tools{
+  padding:16px;
+}
+.start-game-btn{
+  min-height:61px;
+  font-size:1.06rem;
+}
+.online-only .bottom-dock{
+  display:none!important;
+}
+.online-only .mode-grid,
+.online-only .feature-chips{
+  display:none;
+}
+.online-only .role-picker{
+  margin-top:12px;
+}
+.online-only .role-item{
+  background:rgba(255,255,255,.045);
+}
+.online-only .status-card{
+  position:relative;
+  overflow:hidden;
+}
+.online-only .status-card::after{
+  content:"";
+  position:absolute;
+  width:160px;
+  height:160px;
+  right:-65px;
+  top:-70px;
+  border-radius:50%;
+  background:radial-gradient(circle,var(--v21-glow),transparent 70%);
+  pointer-events:none;
+}
+.online-only .invite-card{
+  text-align:left;
+}
+.online-only .join-link-box{
+  margin-top:0;
+}
+.online-only .game-layout{
+  gap:0;
+}
+.online-only .player-card.hidden,
+.online-only .action-card.hidden{
+  display:none!important;
+}
+.online-only .narrator-only.hidden{
+  display:none!important;
+}
+
+@media(max-width:760px){
+  .simple-shell{
+    padding-left:9px;
+    padding-right:9px;
+  }
+  .welcome-card{
+    grid-template-columns:68px 1fr;
+    gap:13px;
+    padding:16px;
+  }
+  .welcome-icon img{
+    width:68px;
+    height:68px;
+    border-radius:21px;
+  }
+  .welcome-card h2{
+    font-size:2rem;
+  }
+  .entry-grid{
+    grid-template-columns:1fr;
+  }
+  .entry-card{
+    padding:16px;
+  }
+  .entry-heading{
+    margin-bottom:11px;
+  }
+  .entry-number,
+  .step-badge{
+    width:39px;
+    height:39px;
+    flex-basis:39px;
+    border-radius:13px;
+  }
+  .main-cta{
+    position:relative;
+  }
+  .bot-row{
+    grid-template-columns:1fr 1fr;
+  }
+  .bot-row .ghost{
+    grid-column:1/-1;
+  }
+  .invite-actions{
+    grid-template-columns:1fr 1fr;
+  }
+  .invite-actions .primary{
+    grid-column:1/-1;
+  }
+  .online-only .nav-strip{
+    top:64px;
+  }
+  .online-only .role-picker{
+    grid-template-columns:1fr!important;
+  }
+  .online-only .status-card h2{
+    margin-bottom:7px;
+  }
+}
+@media(max-width:390px){
+  .welcome-card{
+    grid-template-columns:1fr;
+    text-align:center;
+  }
+  .welcome-icon{
+    display:flex;
+    justify-content:center;
+  }
+  .simple-topbar h1{
+    max-width:52vw;
+  }
+}

@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V21";
+const APP_VERSION = "V22";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -133,12 +133,7 @@ function confirmAction(title, text, onOk, okLabel = "Conferma") {
   };
 }
 
-function addLocalLog(text) {
-  if (!local) return;
-  local.log = local.log || [];
-  local.log.unshift({ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text });
-  local.log = local.log.slice(0, 30);
-}
+
 
 async function addRoomLog(text) {
   if (!room?.code || !room?.data) return;
@@ -187,9 +182,7 @@ function applyCounts(prefix, counts) {
   });
 }
 
-function getLocalNameCount() {
-  return $("#localNames").value.split(/\n|,/).map(n => n.trim()).filter(Boolean).length;
-}
+
 
 function getOnlinePlayerCount() {
   return (room.data?.players || []).length || 8;
@@ -271,10 +264,13 @@ function showQrImageFallback(inviteLink) {
 
 function parseHashRoom() {
   const match = location.hash.match(/room=([A-Z0-9]{4,8})/i);
-  if (match) {
-    show("joinRoomView");
-    $("#joinCode").value = match[1].toUpperCase();
-  }
+  if (!match) return;
+  show("homeView");
+  $("#joinCode").value = match[1].toUpperCase();
+  setTimeout(() => {
+    $("#joinSection")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    $("#joinName")?.focus();
+  }, 120);
 }
 
 const DEFAULT_COUNTS = {
@@ -378,6 +374,8 @@ const settings = {
 };
 let wakeLockHandle = null;
 let actionBusy = false;
+let onlineRolesTouched = false;
+let lastRecommendedPlayerCount = 0;
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -495,6 +493,7 @@ async function leaveCurrentRoom() {
   room.code = null;
   room.isHost = false;
   room.revealMine = false;
+  history.replaceState(null, "", location.pathname + location.search);
   show("homeView");
   toast("Sei uscito dalla stanza.");
 }
@@ -769,7 +768,7 @@ async function quickBotTest() {
   try {
     const code = roomCode();
     const hostId = uid();
-    const hostName = "Tu";
+    const hostName = ($("#createName")?.value.trim().slice(0, 24) || "Tu");
     const phaseSeconds = Number($("#phaseSeconds").value || 20);
     const human = { id: hostId, name: hostName, role: null, alive: true, isBot: false, lover: null, joinedAt: Date.now() };
     const bots = BOT_NAMES.slice(0, 7).map(name => ({
@@ -830,32 +829,7 @@ async function quickBotTest() {
   }
 }
 
-async function restartLocalSamePlayers() {
-  if (!local?.players?.length) return;
-  const names = local.players.map(p => p.name);
-  const counts = local.roleCounts || recommendedCounts(names.length, "auto");
-  const players = makePlayers(names, counts);
-  local = {
-    players,
-    roleCounts: counts,
-    phase: "reveal",
-    step: 0,
-    revealIndex: 0,
-    night: {},
-    witch: { save: true, kill: true },
-    loversChosen: false,
-    nightOrder: [],
-    winnerText: "",
-    narration: narr("intro", "Nuova partita. Passa il telefono al primo giocatore."),
-    hostNote: "",
-    log: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Nuova partita con gli stessi giocatori." }]
-  };
-  $("#localRevealBox").dataset.visible = "0";
-  $("#localRevealBox").className = "role-card hidden-role";
-  $("#localRevealBox").textContent = "Tocca “Mostra carta”";
-  renderLocal();
-  setStage("reveal");
-}
+
 
 async function restartOnlineSamePlayers() {
   if (!room.isHost || !room.data) return;
@@ -906,35 +880,7 @@ function phaseProgress(deadline) {
   return Math.max(0, Math.min(100, (left / total) * 100));
 }
 
-function localPhaseInfo() {
-  if (!local) return { title: "", desc: "" };
-  const alive = alivePlayers(local.players).length;
-  if (local.phase === "reveal") return {
-    title: `Mostra carte · ${local.revealIndex + 1}/${local.players.length}`,
-    desc: "Passa il telefono a ogni giocatore e mostra il ruolo in privato."
-  };
-  if (local.phase === "night") return {
-    title: local.currentNightKey ? `Notte · ${nightStepLabel(local.currentNightKey)}` : "Notte",
-    desc: "Segna le azioni dei ruoli e poi risolvi la notte."
-  };
-  if (local.phase === "day") return {
-    title: `Giorno · ${alive} vivi`,
-    desc: "Discutete dal vivo e poi scegli se aprire o saltare la votazione."
-  };
-  if (local.phase === "vote") return {
-    title: "Votazione",
-    desc: "Scegli chi eliminare. A meno di ruoli speciali, il ruolo resta segreto."
-  };
-  if (local.phase === "hunter") return {
-    title: "Cacciatore",
-    desc: "Il Cacciatore può sparare una volta prima che il gioco prosegua."
-  };
-  if (local.phase === "gameOver") return {
-    title: "Partita conclusa",
-    desc: "Puoi vedere i ruoli finali e iniziare una nuova partita con gli stessi giocatori."
-  };
-  return { title: local.phase, desc: "" };
-}
+
 
 function roomPhaseInfo(d, me) {
   const alive = alivePlayers(d.players || []).length;
@@ -1047,34 +993,19 @@ async function acquirePhaseLock(field, expectedPhase) {
   }
 }
 
-function renderLocalSetupSummary() {
-  const box = $("#localSetupSummary");
-  if (!box) return;
-  const names = $("#localNames").value.split(/\n|,/).map(n => n.trim()).filter(Boolean);
-  const validation = setupValidation("local", names.length);
-  const duplicates = names.length - new Set(names.map(n => n.toLowerCase())).size;
-  const ok = validation.ok && duplicates === 0;
-  box.className = `setup-summary ${ok ? "ok-summary" : "error-summary"}`;
-  box.innerHTML = `
-    <div><b>${names.length}</b><span>Giocatori</span></div>
-    <div><b>${validation.selected}</b><span>Ruoli scelti</span></div>
-    <p>${duplicates ? `Ci sono ${duplicates} nomi duplicati.` : validation.message}</p>
-  `;
-  $("#startLocalBtn").disabled = !ok;
-}
+
 
 /* -------------------- INIT -------------------- */
 
 function init() {
-  makeRolePicker($("#localRolePicker"), "local");
   makeRolePicker($("#onlineRolePicker"), "online");
-  renderLocalSetupSummary();
 
   $("#settingsBtn").onclick = openSettings;
   $("#closeSettingsBtn").onclick = closeSettings;
   $("#settingsModal").addEventListener("click", e => {
     if (e.target.id === "settingsModal") closeSettings();
   });
+
   $("#soundSetting").onchange = e => {
     settings.sound = e.target.checked;
     localStorage.setItem("lupusSound", settings.sound ? "1" : "0");
@@ -1094,100 +1025,120 @@ function init() {
     if (settings.wakeLock && document.visibilityState === "visible") updateWakeLock();
   });
 
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", e => {
     const jump = e.target.closest("[data-scroll-target]");
     if (jump) scrollToSection(jump.dataset.scrollTarget);
 
     const step = e.target.closest("[data-step-role]");
     if (step) {
       const role = step.dataset.stepRole;
-      const prefix = step.dataset.prefix;
       const delta = Number(step.dataset.delta || 0);
-      const box = document.querySelector(`[data-${prefix}-role="${role}"]`);
-      box.textContent = Math.max(0, Number(box.textContent || 0) + delta);
-      if (prefix === "online") renderOnlineSetupSummary();
-      if (prefix === "local") renderLocalSetupSummary();
+      const box = document.querySelector(`[data-online-role="${role}"]`);
+      if (box) {
+        box.textContent = Math.max(0, Number(box.textContent || 0) + delta);
+        onlineRolesTouched = true;
+        renderOnlineSetupSummary();
+      }
     }
 
-    const open = e.target.closest("[data-open]");
-    if (open) show(open.dataset.open);
-
-    const back = e.target.closest(".back");
-    if (back) show("homeView");
-
-    const localAction = e.target.closest("[data-local-action]");
-    if (localAction) handleLocalAction(localAction.dataset.localAction, localAction.dataset.target || null);
-
     const onlineAction = e.target.closest("[data-online-action]");
-    if (onlineAction) handleOnlinePlayerAction(onlineAction.dataset.onlineAction, onlineAction.dataset.target || null);
+    if (onlineAction) handleOnlinePlayerAction(
+      onlineAction.dataset.onlineAction,
+      onlineAction.dataset.target || null
+    );
 
     const hostAction = e.target.closest("[data-host-action]");
     if (hostAction) handleHostAction(hostAction.dataset.hostAction);
+
+    const preset = e.target.closest("[data-preset]");
+    if (preset) {
+      const mode = preset.dataset.preset.split(":")[1] || "auto";
+      const count = getOnlinePlayerCount();
+      if (count < 5) return toast("Servono almeno 5 giocatori.");
+      applyCounts("online", recommendedCounts(count, mode));
+      onlineRolesTouched = true;
+      lastRecommendedPlayerCount = count;
+      renderOnlineSetupSummary();
+      toast(mode === "auto" ? "Ruoli consigliati impostati." : "Configurazione applicata.");
+    }
   });
 
-  $("#closeErrorBoxBtn")?.addEventListener("click", () => $("#errorBox").classList.add("hidden"));
+  $("#closeErrorBoxBtn").onclick = () => $("#errorBox").classList.add("hidden");
   $("#closeRoleOverlayBtn").onclick = closeRoleOverlay;
-  $("#roleOverlay").addEventListener("click", (e) => {
-    if (e.target.id === "roleOverlay" || e.target.classList.contains("role-overlay-bg")) closeRoleOverlay();
+  $("#roleOverlay").addEventListener("click", e => {
+    if (e.target.id === "roleOverlay" || e.target.classList.contains("role-overlay-bg")) {
+      closeRoleOverlay();
+    }
   });
 
-  $("#copyRoomCodeBtn")?.addEventListener("click", async () => {
+  $("#copyRoomCodeBtn").onclick = async () => {
     if (!room?.data?.code) return;
     try {
       await navigator.clipboard.writeText(room.data.code);
-      toast("Codice stanza copiato.");
+      toast("Codice copiato.");
     } catch {
       toast(`Codice: ${room.data.code}`);
     }
-  });
+  };
 
-  $("#copyRoomLinkBtn")?.addEventListener("click", async () => {
+  $("#copyRoomLinkBtn").onclick = async () => {
     if (!room?.data?.code) return;
-    const link = makeRoomInviteLink(room.data.code);
     try {
-      await navigator.clipboard.writeText(link);
-      toast("Link invito copiato.");
+      await navigator.clipboard.writeText(makeRoomInviteLink(room.data.code));
+      toast("Link copiato.");
     } catch {
       toast("Non riesco a copiare il link.");
     }
-  });
+  };
 
-  $("#shareRoomBtn")?.addEventListener("click", async () => {
+  $("#shareRoomBtn").onclick = async () => {
     if (!room?.data?.code) return;
     const link = makeRoomInviteLink(room.data.code);
-    const shareData = {
-      title: "Lupus Narratore",
-      text: `Entra nella stanza ${room.data.code}`,
-      url: link
-    };
     try {
-      if (navigator.share) await navigator.share(shareData);
-      else {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Lupus Online",
+          text: `Entra nella stanza ${room.data.code}`,
+          url: link
+        });
+      } else {
         await navigator.clipboard.writeText(link);
-        toast("Link invito copiato.");
+        toast("Link copiato.");
       }
     } catch (err) {
       if (err?.name !== "AbortError") toast("Condivisione non riuscita.");
     }
+  };
+
+  $("#createRoomBtn").onclick = createRoom;
+  $("#joinRoomBtn").onclick = joinRoom;
+  $("#rejoinLastRoomBtn").onclick = rejoinLastRoom;
+  $("#quickBotTestBtn").onclick = quickBotTest;
+  $("#diagnosticsBtn").onclick = runDiagnostics;
+  $("#restartOnlineSameBtn").onclick = restartOnlineSamePlayers;
+
+  $("#leaveRoomBtn").onclick = () => confirmAction(
+    "Uscire dalla stanza",
+    "Potrai rientrare dall’ultima stanza salvata.",
+    leaveCurrentRoom,
+    "Esci"
+  );
+
+  $("#startOnlineGameBtn").onclick = startOnlineGame;
+  $("#toggleMyRoleBtn").onclick = () => {
+    room.revealMine = !room.revealMine;
+    renderRoom();
+  };
+  $("#onlineRevealAllBtn").onclick = () => {
+    room.narratorShowRoles = !room.narratorShowRoles;
+    renderRoom();
+  };
+  $("#roomSpeakBtn").onclick = () => speak($("#roomNarration").textContent);
+  $("#roomNextBtn").onclick = onlineAdvanceManual;
+
+  $("#joinCode").addEventListener("input", e => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
   });
-
-  document.addEventListener("click", (e) => {
-    const preset = e.target.closest("[data-preset]");
-    if (!preset) return;
-    const [prefix, mode] = preset.dataset.preset.split(":");
-    const count = prefix === "local" ? getLocalNameCount() : getOnlinePlayerCount();
-    if (!count || count < 5) return toast("Servono almeno 5 giocatori per consigliare i ruoli.");
-    applyCounts(prefix, recommendedCounts(count, mode));
-    toast("Ruoli consigliati applicati.");
-  });
-
-  parseHashRoom();
-
-  setInterval(() => {
-    try {
-      if ($("#roomView")?.classList.contains("active") && room.data) renderRoom();
-    } catch {}
-  }, 1000);
 
   $("#resetAppBtn").onclick = async () => {
     localStorage.removeItem("lupusPlayerId");
@@ -1205,43 +1156,17 @@ function init() {
     location.reload();
   };
 
-  $("#demoBtn").onclick = () => {
-    $("#localNames").value = DEMO_NAMES.join("\n");
-    show("localSetupView");
-    toast("Demo caricata.");
-  };
+  const savedName = localStorage.getItem("lupusDisplayName") || "";
+  $("#createName").value = savedName;
+  $("#joinName").value = savedName;
 
-  $("#localNames").addEventListener("input", renderLocalSetupSummary);
-  $("#startLocalBtn").onclick = startLocal;
-  $("#localSpeakBtn").onclick = () => speak($("#localNarration").textContent);
-  $("#localNextBtn").onclick = localContinue;
-  $("#showRoleBtn").onclick = toggleLocalRole;
-  $("#nextRoleBtn").onclick = nextLocalRole;
+  parseHashRoom();
 
-  $("#createRoomBtn").onclick = createRoom;
-  $("#joinRoomBtn").onclick = joinRoom;
-  $("#rejoinLastRoomBtn").onclick = rejoinLastRoom;
-  $("#quickBotTestBtn").onclick = quickBotTest;
-  $("#diagnosticsBtn").onclick = runDiagnostics;
-  $("#restartLocalSameBtn").onclick = restartLocalSamePlayers;
-  $("#restartOnlineSameBtn").onclick = restartOnlineSamePlayers;
-  $("#exitLocalGameBtn").onclick = () => confirmAction(
-    "Uscire dalla partita",
-    "La partita locale in corso verrà chiusa.",
-    () => { local = null; show("homeView"); },
-    "Esci"
-  );
-  $("#leaveRoomBtn").onclick = () => confirmAction(
-    "Uscire dalla stanza",
-    "Potrai rientrare in seguito dalla schermata Online.",
-    leaveCurrentRoom,
-    "Esci"
-  );
-  $("#startOnlineGameBtn").onclick = startOnlineGame;
-  $("#toggleMyRoleBtn").onclick = () => { room.revealMine = !room.revealMine; renderRoom(); };
-  $("#onlineRevealAllBtn").onclick = () => { room.narratorShowRoles = !room.narratorShowRoles; renderRoom(); };
-  $("#roomSpeakBtn").onclick = () => speak($("#roomNarration").textContent);
-  $("#roomNextBtn").onclick = () => onlineAdvanceManual();
+  setInterval(() => {
+    try {
+      if ($("#roomView").classList.contains("active") && room.data) renderRoom();
+    } catch {}
+  }, 1000);
 
   const last = localStorage.getItem("lupusLastRoom");
   $("#rejoinLastRoomBtn").classList.toggle("hidden", !last);
@@ -1249,389 +1174,19 @@ function init() {
 
 init();
 
-/* -------------------- LOCAL MODE -------------------- */
-
-function startLocal() {
-  const names = $("#localNames").value.split(/\n|,/).map((n) => n.trim()).filter(Boolean);
-  const counts = getCounts("local");
-  const err = validateSetup(names, counts);
-  if (err) return toast(err);
-
-  local = {
-    players: makePlayers(names, counts),
-    roleCounts: counts,
-    phase: "reveal",
-    step: 0,
-    revealIndex: 0,
-    night: {},
-    witch: { save: true, kill: true },
-    loversChosen: false,
-    nightOrder: [],
-    winnerText: "",
-    narration: narr("intro", "Passa il telefono al primo giocatore per mostrare il ruolo."),
-    hostNote: "",
-    log: []
-  };
-
-  show("localGameView");
-  renderLocal();
-  speak(local.narration);
-}
-
-function renderLocal() {
-  if (!local) return;
-  setStage(local.phase);
-
-  $("#localPhaseBadge").textContent = local.phase;
-  $("#localAliveCount").textContent = `Vivi: ${alivePlayers(local.players).length}/${local.players.length}`;
-  $("#localNarration").textContent = local.narration;
-  $("#localStatus").innerHTML = statusHtml(local.players, local.phase, {});
-  const localInfo = localPhaseInfo();
-  $("#localPhaseMeta").innerHTML = phaseMetaHtml(localInfo.title, localInfo.desc);
-  $("#localPlayersList").innerHTML = local.players
-    .map(p => playerRowHtml(p, { showRole: local.phase === "gameOver" }))
-    .join("");
-
-  $("#localRevealCard").classList.toggle("hidden", local.phase !== "reveal");
-  $("#localFinalRevealCard").classList.toggle("hidden", local.phase !== "gameOver");
-  $("#localWinnerBanner").innerHTML = winnerBannerHtml(local.winnerText || local.narration || "");
-  renderFinalList("#localFinalRevealList", local.players);
-  renderLog("#localHostLogList", local.log || []);
-  renderLocalActions();
-}
-
-function toggleLocalRole() {
-  const p = local?.players?.[local.revealIndex];
-  if (!p) return;
-  const box = $("#localRevealBox");
-  if (box.dataset.visible === "1") {
-    box.dataset.visible = "0";
-    box.className = "role-card hidden-role";
-    box.innerHTML = "Carta nascosta";
-  } else {
-    box.dataset.visible = "1";
-    box.className = "role-card";
-    box.innerHTML = `<span class="role-icon">${roleIcon(p.role)}</span>${p.name}<br><small>${roleName(p.role)}</small><em>${roleDesc(p.role)}</em>`;
-    box.onclick = () => openRoleOverlay(p.role, p.name);
-  }
-}
-
-function nextLocalRole() {
-  if (!local) return;
-  $("#localRevealBox").dataset.visible = "0";
-  $("#localRevealBox").className = "role-card hidden-role";
-  $("#localRevealBox").innerHTML = "Tocca “Mostra carta”";
-  local.revealIndex += 1;
-
-  if (local.revealIndex >= local.players.length) {
-    local.phase = "night";
-    local.step = 0;
-    local.nightOrder = buildNightOrder(local.players, !local.loversChosen);
-    local.narration = narr("night", "Prima notte. Tutti chiudono gli occhi.");
-  } else {
-    local.narration = `Passa il telefono a ${local.players[local.revealIndex].name}.`;
-  }
-  renderLocal();
-}
-
-function localContinue() {
-  if (!local) return;
-  if (local.phase === "gameOver") return toast("La partita è finita.");
-  if (local.phase === "reveal") return nextLocalRole();
-  if (local.phase === "night") return localNightStep();
-  if (local.phase === "day") return startLocalVote();
-  if (local.phase === "vote") return toast("Scegli chi eliminare nella sezione azioni.");
-}
-
-function localNightStep() {
-  const available = local.nightOrder?.length
-    ? local.nightOrder
-    : buildNightOrder(local.players, !local.loversChosen);
-  local.nightOrder = available;
-  const key = available[Math.min(local.step, available.length - 1)] || "dawn";
-  const textByKey = {
-    cupid: narr("intro", "Cupido apre gli occhi e sceglie due innamorati."),
-    wolves: narr("wolves", "I lupi aprono gli occhi e scelgono una vittima."),
-    seer: narr("seer", "Il Veggente apre gli occhi e può controllare un giocatore."),
-    guard: narr("guard", "La Guardia apre gli occhi e sceglie chi proteggere."),
-    witch: narr("witch", "La Strega apre gli occhi. Può usare le pozioni."),
-    medium: "Il Medium può ricevere informazioni sui morti.",
-    dawn: narr("day", "Tutti aprono gli occhi.")
-  };
-  local.narration = textByKey[key] || "Notte.";
-  local.currentNightKey = key;
-  local.step += 1;
-
-  if (key === "dawn") resolveLocalNight();
-  else {
-    renderLocal();
-    speak(local.narration);
-  }
-}
-
-function getAvailableNightSteps(players, includeCupid) {
-  return buildNightOrder(players, includeCupid);
-}
-
-function renderLocalActions() {
-  const area = $("#localActionArea");
-  const note = local.hostNote ? `<div class="host-note"><b>Nota narratore:</b> ${local.hostNote}</div>` : "";
-
-  if (local.phase === "gameOver") {
-    area.innerHTML = `${note}<p><b>Partita conclusa.</b></p>`;
-    return;
-  }
-
-  if (local.phase === "reveal") {
-    area.innerHTML = "<p class='hint'>Prima mostra i ruoli a tutti.</p>";
-    return;
-  }
-
-  if (local.phase === "night") {
-    const key = local.currentNightKey || "";
-    area.innerHTML = `${note}<div class="action-grid">
-      <p class="hint">Azioni manuali del narratore. I ruoli dei morti restano segreti ai giocatori.</p>
-      <button class="secondary" data-local-action="cupid">Cupido: scegli innamorati</button>
-      <button class="secondary" data-local-action="wolf">Lupi: scegli vittima</button>
-      <button class="secondary" data-local-action="seer">Veggente: controlla</button>
-      <button class="secondary" data-local-action="guard">Guardia: proteggi</button>
-      <button class="secondary" data-local-action="witchSave">Strega: salva vittima</button>
-      <button class="secondary" data-local-action="witchKill">Strega: uccidi</button>
-      <button class="secondary" data-local-action="medium">Medium: vedi un morto</button>
-      <button class="primary" data-local-action="resolveNight">Risolvi notte / giorno</button>
-    </div>`;
-    return;
-  }
-
-  if (local.phase === "hunter") {
-    const hunter = local.players.find((p) => p.id === local.pendingHunterId);
-    area.innerHTML = `${note}<p>Il Cacciatore ${hunter?.name || ""} può sparare.</p>
-      <div class="action-grid">
-        ${alivePlayers(local.players).filter((p) => p.id !== hunter?.id).map((p) => `<button class="target-btn" data-local-action="hunterShot" data-target="${p.id}">${p.name}</button>`).join("")}
-        <button class="secondary full" data-local-action="hunterShot" data-target="skip">Non sparare</button>
-      </div>`;
-    return;
-  }
-
-  if (local.phase === "day") {
-    area.innerHTML = `${note}<div class="action-grid">
-      <button class="primary" data-local-action="startVote">Inizia votazione</button>
-      <button class="secondary" data-local-action="skipVote">Salta votazione e vai alla notte</button>
-    </div>`;
-    return;
-  }
-
-  if (local.phase === "vote") {
-    area.innerHTML = `${note}<p>Vota chi eliminare:</p>
-      <div class="action-grid">
-        ${alivePlayers(local.players).map((p) => `<button class="target-btn" data-local-action="lynch" data-target="${p.id}">${p.name}</button>`).join("")}
-        <button class="secondary full" data-local-action="skipVote">Nessuna eliminazione</button>
-      </div>`;
-  }
-}
-
-function chooseLocalTarget(title, callback, filter = () => true) {
-  const players = alivePlayers(local.players).filter(filter);
-  $("#localActionArea").innerHTML = `<p>${title}</p><div class="action-grid">${players.map((p) => `<button class="target-btn" data-temp="${p.id}">${p.name}</button>`).join("")}</div>`;
-  $$("#localActionArea [data-temp]").forEach((b) => {
-    b.onclick = () => callback(b.dataset.temp);
-  });
-}
-
-function handleLocalAction(action, target) {
-  if (!local) return;
-  if (action === "resolveNight") return confirmAction("Risolvi notte", "Vuoi chiudere la notte e mostrare l'esito?", resolveLocalNight, "Risolvi");
-  if (action === "startVote") return startLocalVote();
-  if (action === "skipVote") return confirmAction("Saltare voto", "Vuoi davvero saltare la votazione e passare alla notte?", skipLocalVote, "Salta voto");
-
-  if (action === "cupid") {
-    const picked = [];
-    chooseLocalTarget("Cupido: scegli il primo innamorato.", (id1) => {
-      picked.push(id1);
-      chooseLocalTarget("Cupido: scegli il secondo innamorato.", (id2) => {
-        if (id1 === id2) return toast("Scegli due persone diverse.");
-        local.players = local.players.map((p) => p.id === id1 ? { ...p, lover: id2 } : p.id === id2 ? { ...p, lover: id1 } : p);
-        local.loversChosen = true;
-        local.hostNote = "Cupido ha scelto gli innamorati."; addLocalLog("Cupido ha scelto due innamorati.");
-        renderLocal();
-      });
-    });
-  }
-
-  if (action === "wolf") chooseLocalTarget("Vittima scelta dai lupi:", (id) => { local.night.victim = id; local.hostNote = "Vittima dei lupi segnata."; addLocalLog("I lupi hanno scelto una vittima."); renderLocal(); });
-  if (action === "seer") chooseLocalTarget("Veggente: chi controlli?", (id) => {
-    const p = local.players.find((x) => x.id === id);
-    local.hostNote = `${p.name}: ${seerResult(p.role)}.`; addLocalLog(`Veggente: ${p.name} è ${seerResult(p.role)}.`);
-    toast(local.hostNote);
-    renderLocal();
-  });
-  if (action === "guard") chooseLocalTarget("Guardia: chi proteggi?", (id) => { local.night.protected = id; local.hostNote = "Protezione segnata."; addLocalLog("La Guardia ha scelto una protezione."); renderLocal(); });
-  if (action === "witchSave") {
-    if (!local.witch.save) return toast("Pozione salvezza già usata.");
-    local.night.witchSave = true; local.witch.save = false; local.hostNote = "La Strega ha salvato la vittima."; addLocalLog("La Strega ha usato la pozione salvezza."); renderLocal();
-  }
-  if (action === "witchKill") {
-    if (!local.witch.kill) return toast("Pozione morte già usata.");
-    chooseLocalTarget("Strega: chi vuoi avvelenare?", (id) => { local.night.witchKill = id; local.witch.kill = false; local.hostNote = "Pozione morte usata."; addLocalLog("La Strega ha usato la pozione morte."); renderLocal(); });
-  }
-  if (action === "medium") {
-    const dead = local.players.filter((p) => !p.alive);
-    if (!dead.length) return toast("Non ci sono morti da controllare.");
-    $("#localActionArea").innerHTML = `<p>Medium: scegli un morto.</p><div class="action-grid">${dead.map((p) => `<button class="target-btn" data-dead="${p.id}">${p.name}</button>`).join("")}</div>`;
-    $$("#localActionArea [data-dead]").forEach((b) => b.onclick = () => {
-      const p = local.players.find((x) => x.id === b.dataset.dead);
-      local.hostNote = `${p.name} era ${roleName(p.role)}.`; addLocalLog(`Medium: ${p.name} era ${roleName(p.role)}.`);
-      renderLocal();
-    });
-  }
-  if (action === "lynch") {
-    const p = local.players.find(x => x.id === target);
-    return confirmAction("Eliminare giocatore", `Vuoi eliminare ${p?.name || "questo giocatore"}?`, () => lynchLocal(target), "Elimina");
-  }
-  if (action === "hunterShot") return hunterShotLocal(target);
-}
-
-function resolveLocalNight() {
-  if (!local || local.phase === "gameOver") return;
-  const initialDeadIds = [];
-  if (local.night.victim && local.night.victim !== local.night.protected && !local.night.witchSave) initialDeadIds.push(local.night.victim);
-  if (local.night.witchKill) initialDeadIds.push(local.night.witchKill);
-
-  const beforePlayers = local.players;
-  const updatedPlayers = applyLoversDeath(beforePlayers, initialDeadIds);
-  const allDeadIds = newlyDeadIds(beforePlayers, updatedPlayers);
-  local.players = updatedPlayers;
-
-  const deadNames = allDeadIds
-    .map(id => beforePlayers.find(p => p.id === id)?.name)
-    .filter(Boolean);
-  const hunter = updatedPlayers.find(p => allDeadIds.includes(p.id) && p.role === "hunter");
-
-  if (deadNames.length) addLocalLog(`Notte risolta: morti ${deadNames.join(", ")}.`);
-  else addLocalLog("Notte risolta: nessun morto.");
-
-  local.night = {};
-  local.currentNightKey = "";
-  local.step = 0;
-  local.nightOrder = [];
-  local.hostNote = hunter ? `${hunter.name} era il Cacciatore: può sparare.` : "";
-  const baseText = deadNames.length
-    ? narr("death", deadNames.map(publicDeath).join(" "))
-    : narr("safe", "Non è morto nessuno.");
-
-  if (hunter) {
-    local.phase = "hunter";
-    local.pendingHunterId = hunter.id;
-    local.narration = baseText;
-  } else {
-    const win = checkWin(local.players);
-    if (win) {
-      local.phase = "gameOver";
-      local.winnerText = win;
-      local.narration = `${baseText} ${win}`;
-    } else {
-      local.phase = "day";
-      local.narration = baseText;
-    }
-  }
-  renderLocal();
-  speak(local.narration);
-}
-
-function startLocalVote() {
-  local.phase = "vote";
-  local.narration = narr("vote", "Il villaggio vota chi eliminare.");
-  renderLocal();
-  speak(local.narration);
-}
-
-function skipLocalVote() {
-  local.phase = "night";
-  local.step = 0;
-  local.nightOrder = buildNightOrder(local.players, !local.loversChosen);
-  local.hostNote = "";
-  local.narration = narr("skip", "Tutti chiudono gli occhi. Ricomincia la notte.");
-  renderLocal();
-  speak(local.narration);
-}
-
-function lynchLocal(id) {
-  const target = local.players.find(p => p.id === id);
-  if (!target) return;
-
-  const beforePlayers = local.players;
-  const updatedPlayers = applyLoversDeath(beforePlayers, [id]);
-  const allDeadIds = newlyDeadIds(beforePlayers, updatedPlayers);
-  local.players = updatedPlayers;
-  local.hostNote = "";
-
-  if (target.role === "jester") {
-    local.phase = "gameOver";
-    local.winnerText = "Il Giullare ha vinto facendosi eliminare dal villaggio.";
-    addLocalLog(`${target.name} eliminato al voto. Vittoria del Giullare.`);
-    local.narration = narr("vote", `${target.name} è stato eliminato. Il Giullare ha vinto.`);
-    renderLocal();
-    speak(local.narration);
-    return;
-  }
-
-  const hunter = updatedPlayers.find(p => allDeadIds.includes(p.id) && p.role === "hunter");
-  if (hunter) {
-    local.phase = "hunter";
-    local.pendingHunterId = hunter.id;
-    local.hostNote = `${hunter.name} era il Cacciatore: può sparare.`;
-    local.narration = narr("vote", `${target.name} è stato eliminato. Il ruolo resta segreto.`);
-    addLocalLog(`${target.name} è stato eliminato al voto.`);
-    renderLocal();
-    speak(local.narration);
-    return;
-  }
-
-  addLocalLog(`${target.name} è stato eliminato al voto.`);
-  const win = checkWin(local.players);
-  if (win) {
-    local.phase = "gameOver";
-    local.winnerText = win;
-    local.narration = narr("vote", `${target.name} è stato eliminato. Il ruolo resta segreto. ${win}`);
-  } else {
-    local.phase = "night";
-    local.step = 0;
-    local.nightOrder = buildNightOrder(local.players, !local.loversChosen);
-    local.narration = narr("vote", `${target.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`);
-  }
-  renderLocal();
-  speak(local.narration);
-}
-
-function hunterShotLocal(id) {
-  if (id && id !== "skip") {
-    local.players = applyLoversDeath(local.players, [id]);
-    const target = local.players.find((p) => p.id === id);
-    local.hostNote = `${target?.name || "Un giocatore"} è stato colpito dal Cacciatore.`;
-  } else {
-    local.hostNote = "Il Cacciatore non ha sparato.";
-  }
-
-  const win = checkWin(local.players);
-  if (win) {
-    local.phase = "gameOver";
-    local.winnerText = win;
-    local.narration += " " + win;
-  } else {
-    local.phase = "day";
-  }
-  local.pendingHunterId = null;
-  renderLocal();
-}
-
 /* -------------------- ONLINE MODE -------------------- */
 
 async function createRoom() {
   try {
     const code = roomCode();
     const hostId = uid();
-    const hostName = (prompt("Nome del giocatore su questo telefono?", "Tu") || "Tu").trim().slice(0, 24) || "Tu";
-    const phaseSeconds = Number($("#phaseSeconds").value || 20);
+    const hostName = $("#createName").value.trim().slice(0, 24);
+    if (!hostName) {
+      $("#createName").focus();
+      return toast("Inserisci il tuo nome.");
+    }
+    localStorage.setItem("lupusDisplayName", hostName);
+    const phaseSeconds = Number($("#phaseSeconds").value || 25);
     const hostPlayer = { id: hostId, name: hostName, role: null, alive: true, isBot: false, lover: null, joinedAt: Date.now() };
 
     room.code = code;
@@ -1682,6 +1237,7 @@ async function joinRoom() {
     const code = $("#joinCode").value.trim().toUpperCase();
     const name = $("#joinName").value.trim().slice(0, 24);
     if (!code || !name) return toast("Inserisci codice e nome.");
+    localStorage.setItem("lupusDisplayName", name);
 
     const ref = doc(db, "lupusRooms", code);
     const snap = await getDoc(ref);
@@ -1802,8 +1358,11 @@ function renderRoom() {
     ? phaseProgress(d.phaseDeadline)
     : null;
   $("#roomPhaseMeta").innerHTML = phaseMetaHtml(info.title, info.desc, progress, timerExtra);
-  $$(".narrator-only").forEach((el) => el.classList.toggle("hidden", !room.isHost));
+  $$(".narrator-only").forEach(el => {
+    if (!room.isHost) el.classList.add("hidden");
+  });
 
+  $("#toggleMyRoleBtn").textContent = room.revealMine ? "Nascondi il mio ruolo" : "Mostra il mio ruolo";
   if (me?.role && room.revealMine) {
     $("#myRoleCard").className = "role-card";
     $("#myRoleCard").innerHTML = `<span class="role-icon">${roleIcon(me.role)}</span>${me.name}<br><small>${roleName(me.role)}</small><em>${roleDesc(me.role)}</em>`;
@@ -1812,6 +1371,22 @@ function renderRoom() {
     $("#myRoleCard").className = "role-card hidden-role";
     $("#myRoleCard").innerHTML = me?.role ? "Carta nascosta" : "Ruolo non ancora assegnato";
     $("#myRoleCard").onclick = null;
+  }
+
+  const isLobby = d.phase === "lobby";
+  $("#inviteSection").classList.toggle("hidden", !(room.isHost && isLobby));
+  $("#hostSetupSection").classList.toggle("hidden", !(room.isHost && isLobby));
+  $("#roomRoleSection").classList.toggle("hidden", isLobby);
+  $("#roomActionSection").classList.toggle("hidden", isLobby || d.phase === "gameOver");
+  $("#gameQuickNav").classList.toggle("hidden", isLobby);
+  $("#hostPhaseControls").classList.toggle("hidden", !(room.isHost && !isLobby && d.phase !== "gameOver"));
+  $("#narratorToolsSection").classList.toggle("hidden", !room.isHost);
+  $("#playerCountBadge").textContent = players.length;
+  $("#roomMainTitle").textContent = isLobby ? "Prepara la stanza" : phaseLabel(d.phase);
+
+  if (room.isHost && isLobby && players.length >= 5 && !onlineRolesTouched && lastRecommendedPlayerCount !== players.length) {
+    applyCounts("online", recommendedCounts(players.length, "auto"));
+    lastRecommendedPlayerCount = players.length;
   }
 
   updateRoomQr();
@@ -1860,14 +1435,8 @@ function renderRoomActions(d, players, me) {
 
   if (d.phase === "lobby") {
     area.innerHTML = room.isHost
-      ? `<p>Condividi il codice <b>${d.code}</b>. Poi assegna i ruoli.</p>
-         <div class="action-grid">
-           <button class="secondary" data-host-action="bot1">+1 bot</button>
-           <button class="secondary" data-host-action="bot3">+3 bot</button>
-           <button class="secondary" data-host-action="bot6">+6 bot</button>
-           <button class="ghost" data-host-action="clearBots">Rimuovi bot</button>
-         </div>`
-      : "<p>Attendi che chi ha creato la stanza inizi la partita.</p>";
+      ? "<p>Invita i giocatori e premi “Inizia la partita” quando la configurazione è pronta.</p>"
+      : "<p>Sei entrato. Aspetta che il narratore inizi la partita.</p>";
     return;
   }
 
