@@ -19,7 +19,7 @@
         <h1>Lupus Narratore</h1>
       </div>
       <div class="top-actions">
-        <span class="version-pill">V18.3</span>
+        <span class="version-pill">V20</span>
         <button id="resetAppBtn" class="ghost small">Reset</button>
       </div>
     </header>
@@ -30,7 +30,7 @@
           <div class="hero-kicker">Lupus in Fabula</div>
           <h2>Scegli modalità</h2>
           <p>Usa un solo telefono come narratore oppure fai entrare ogni giocatore dal proprio dispositivo.</p>
-          <div class="feature-chips">
+          <div class="feature-chips"><span class="feature-chip">📲 Mobile UX</span><span class="feature-chip">🎮 Giocabilità migliorata</span>
             <span class="feature-chip">🎙️ Narratore</span>
             <span class="feature-chip">📱 Multi-dispositivo</span>
             <span class="feature-chip">🤖 Bot di prova</span>
@@ -91,7 +91,12 @@
             <button class="secondary" data-open="joinRoomView">Entra</button>
           </div>
           <button id="rejoinLastRoomBtn" class="ghost full hidden">Rientra ultima stanza</button>
-          <p class="hint">Serve Firestore attivo. Le regole di test sono nel file <b>firestore-rules.txt</b>.</p>
+          <div class="utility-grid">
+            <button id="quickBotTestBtn" class="secondary">⚡ Prova subito con i bot</button>
+            <button id="diagnosticsBtn" class="ghost">🩺 Controllo rapido</button>
+          </div>
+          <div id="diagnosticsPanel" class="diagnostics-panel hidden"></div>
+          <p class="hint">Serve Firestore attivo. Le regole di test sono nel file <b>firestore-rules.txt</b>. Durante la modalità automatica il telefono host deve restare aperto.</p>
         </div>
       </section>
 
@@ -108,8 +113,14 @@
       </section>
 
       <section id="localGameView" class="screen">
-        <div class="game-layout app-layout">
-          <div class="card status-card status-hero">
+        <div class="mobile-nav card nav-strip">
+            <button class="nav-pill" data-scroll-target="localStatusCard">Panoramica</button>
+            <button class="nav-pill" data-scroll-target="localRevealCard">Ruolo</button>
+            <button class="nav-pill" data-scroll-target="localPlayersSection">Giocatori</button>
+            <button class="nav-pill" data-scroll-target="localActionSection">Azioni</button>
+          </div>
+          <div class="game-layout app-layout">
+          <div id="localStatusCard" class="card status-card status-hero">
             <div class="section-label">Partita</div>
             <div class="phase-row">
               <span id="localPhaseBadge" class="badge">Setup</span>
@@ -117,7 +128,7 @@
             </div>
             <h2>Partita locale</h2>
             <p id="localNarration">Pronto per iniziare.</p>
-            <div id="localStatus"></div>
+            <div id="localStatus"></div><div id="localPhaseMeta" class="phase-meta"></div>
             <div class="voice-row">
               <button id="localSpeakBtn" class="secondary">🔊 Ripeti voce</button>
               <button id="localNextBtn" class="primary">Continua</button>
@@ -134,7 +145,7 @@
             </div>
           </div>
 
-          <div class="card">
+          <div id="localPlayersSection" class="card">
             <h3>Giocatori</h3>
             <div id="localPlayersList" class="player-list"></div>
           </div>
@@ -143,6 +154,7 @@
             <h3>Ruoli finali</h3>
             <p class="hint">A fine partita puoi rivelare tutti i ruoli.</p>
             <div id="localFinalRevealList" class="player-list"></div>
+            <button id="restartLocalSameBtn" class="primary full">Nuova partita con gli stessi giocatori</button>
           </div>
 
           <div class="card">
@@ -151,7 +163,7 @@
             <div id="localHostLogList" class="log-list"></div>
           </div>
 
-          <div class="card action-card">
+          <div id="localActionSection" class="card action-card">
             <h3>Azioni narratore</h3><p class="subtle-line">Controlli veloci per gestire la partita in modo semplice.</p>
             <div id="localActionArea"></div>
           </div>
@@ -159,8 +171,14 @@
       </section>
 
       <section id="roomView" class="screen">
-        <div class="game-layout app-layout">
-          <div class="card status-card status-hero">
+        <div class="mobile-nav card nav-strip">
+            <button class="nav-pill" data-scroll-target="roomStatusCard">Panoramica</button>
+            <button class="nav-pill" data-scroll-target="roomRoleSection">Ruolo</button>
+            <button class="nav-pill" data-scroll-target="roomPlayersSection">Giocatori</button>
+            <button class="nav-pill" data-scroll-target="roomActionSection">Azioni</button>
+          </div>
+          <div class="game-layout app-layout">
+          <div id="roomStatusCard" class="card status-card status-hero">
             <div class="section-label">Stanza</div>
             <div class="phase-row">
               <span id="roomCodeBadge" class="badge">ROOM</span>
@@ -168,7 +186,7 @@
             </div>
             <h2>Stanza online</h2>
             <p id="roomNarration">In attesa dei giocatori.</p>
-            <div id="roomStatus"></div>
+            <div id="roomStatus"></div><div id="roomPhaseMeta" class="phase-meta"></div>
             <div class="voice-row narrator-only hidden">
               <button id="roomSpeakBtn" class="secondary">🔊 Parla</button>
               <button id="roomNextBtn" class="primary">Continua fase</button>
@@ -187,7 +205,7 @@
             <button id="copyRoomLinkBtn" class="ghost full">Copia link invito</button>
           </div>
 
-          <div class="card player-card">
+          <div id="roomRoleSection" class="card player-card">
             <h3>La tua carta</h3>
             <div id="myRoleCard" class="role-card hidden-role">Il ruolo apparirà quando la partita inizia.</div>
             <button id="toggleMyRoleBtn" class="secondary full">Mostra/Nascondi ruolo</button>
@@ -200,12 +218,13 @@
               <button class="ghost small" data-preset="online:simple">Semplice</button>
               <button class="ghost small" data-preset="online:advanced">Avanzato</button>
             </div>
+            <div id="onlineSetupSummary" class="setup-summary"></div>
             <div id="onlineRolePicker" class="role-picker"></div>
             <button id="startOnlineGameBtn" class="primary full">Assegna ruoli e inizia</button>
             <button id="onlineRevealAllBtn" class="ghost full">Mostra ruoli al narratore</button>
           </div>
 
-          <div class="card">
+          <div id="roomPlayersSection" class="card">
             <h3>Giocatori</h3>
             <div id="roomPlayersList" class="player-list"></div>
           </div>
@@ -214,6 +233,7 @@
             <h3>Ruoli finali</h3>
             <p class="hint">Visibile a fine partita.</p>
             <div id="finalRevealList" class="player-list"></div>
+            <button id="restartOnlineSameBtn" class="primary full narrator-only hidden">Nuova partita con gli stessi giocatori</button>
           </div>
 
           <div class="card narrator-only hidden">
@@ -222,7 +242,7 @@
             <div id="hostLogList" class="log-list"></div>
           </div>
 
-          <div class="card action-card">
+          <div id="roomActionSection" class="card action-card">
             <h3>Azioni</h3><p class="subtle-line">Qui appaiono le azioni del tuo ruolo o del narratore.</p>
             <div id="roomActionArea"></div>
           </div>

@@ -1,51 +1,32 @@
-Lupus Narratore V18 - Gameplay Pro
+Lupus Narratore V20 - Mobile UX & Gameplay
 
-Novità:
-- QR code per entrare nella stanza online.
-- Bottone copia codice stanza.
-- Preset ruoli consigliati: consigliati, semplice, avanzato.
-- Log privato narratore in locale e online.
-- Schermata finale con ruoli rivelati.
-- Conferme anti-tap per azioni importanti.
-- Service worker per esperienza più da app/PWA.
-- Manifest migliorato.
-- Miglioramenti grafici per QR, log, finale e conferme.
+Migliorie principali:
+- grafica più curata e leggibile;
+- miglior visione su cellulare;
+- barra di navigazione rapida nelle schermate di gioco;
+- pannelli fase più chiari con spiegazione di cosa fare;
+- timer visivo con barra di avanzamento nel multiplayer;
+- pulsanti e aree touch più grandi;
+- più ordine nelle schermate ruoli / giocatori / azioni;
+- versione aggiornata a V20;
+- cache service worker aggiornata.
 
-File:
+File inclusi:
 - index.html
 - style.css
 - script.js
 - manifest.webmanifest
 - firestore-rules.txt
 - sw.js
+- README.txt
 
 Deploy:
 git add .
-git commit -m "Aggiorno Lupus V18 gameplay pro"
+git commit -m "Aggiorno Lupus V20 mobile UX"
 git push
 
-Nota:
-Le regole Firestore sono aperte per test. Per uso pubblico serio vanno rese più sicure.
-
-
-Patch V18.1:
-- Corretto errore creazione stanza multiplayer.
-- Rimosse righe sbagliate hostLog: voteLog dentro createRoom().
-- Migliorato messaggio errore in caso Firestore Rules/connessione.
-
-
-Patch V18.2:
-- Corretto problema probabile di cache/service worker che poteva continuare a servire script.js vecchio.
-- Service worker passato a network-first per i file dell'app.
-- Aggiunto badge V18.2 visibile in alto.
-- Il pulsante Reset ora prova anche a cancellare service worker e cache.
-- Aggiunto pannello errore tecnico con code/message reali.
-
-
-Patch V18.3:
-- Corretto QR code che poteva non apparire se la libreria QRCode CDN non veniva caricata.
-- Aggiunto fallback QR tramite immagine esterna.
-- Aggiunto box con codice stanza e link invito.
-- Aggiunto bottone copia link invito.
-- Aggiornato badge visibile a V18.3.
-- Aggiornato service worker cache a v18-3.
+Dopo il deploy:
+1. controlla che in alto compaia V20;
+2. premi Reset una volta;
+3. ricarica la pagina;
+4. prova in particolare le schermate multiplayer e la navigazione su cellulare.

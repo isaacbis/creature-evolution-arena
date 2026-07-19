@@ -5,6 +5,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   serverTimestamp,
   runTransaction
@@ -22,6 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const APP_VERSION = "V20";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -582,6 +584,323 @@ function statusHtml(players, phase, votes = {}) {
   `;
 }
 
+
+function setupValidation(prefix, playerCount) {
+  const counts = getCounts(prefix);
+  const selected = totalCounts(counts);
+  const wolves = Number(counts.wolf || 0) + Number(counts.alpha || 0);
+  let message = "";
+  let ok = true;
+
+  if (playerCount < 5) {
+    ok = false;
+    message = `Servono almeno 5 giocatori. Ora: ${playerCount}.`;
+  } else if (selected > playerCount) {
+    ok = false;
+    message = `Hai scelto ${selected} ruoli per ${playerCount} giocatori.`;
+  } else if (wolves < 1) {
+    ok = false;
+    message = "Serve almeno un Lupo Mannaro o un Lupo Alfa.";
+  } else {
+    const autoVillagers = playerCount - selected;
+    message = autoVillagers > 0
+      ? `${playerCount} giocatori · ${selected} ruoli speciali · ${autoVillagers} Contadini aggiunti automaticamente.`
+      : `${playerCount} giocatori · configurazione completa.`;
+  }
+  return { ok, message, selected, counts };
+}
+
+function renderOnlineSetupSummary() {
+  const box = $("#onlineSetupSummary");
+  const btn = $("#startOnlineGameBtn");
+  if (!box || !room.data) return;
+  const count = (room.data.players || []).length;
+  const validation = setupValidation("online", count);
+  box.className = `setup-summary ${validation.ok ? "ok-summary" : "error-summary"}`;
+  box.innerHTML = `
+    <div><b>${count}</b><span>Giocatori</span></div>
+    <div><b>${validation.selected}</b><span>Ruoli scelti</span></div>
+    <p>${validation.message}</p>
+  `;
+  if (btn) btn.disabled = !validation.ok || room.data.phase !== "lobby";
+}
+
+async function runDiagnostics() {
+  const panel = $("#diagnosticsPanel");
+  if (!panel) return;
+  panel.classList.remove("hidden");
+  panel.innerHTML = `<div class="diag-row pending"><span>⏳</span><div><b>Verifica in corso</b><small>Controllo app, rete, Firestore, QR e cache.</small></div></div>`;
+
+  const results = [];
+  results.push({
+    label: "Versione app",
+    ok: true,
+    detail: APP_VERSION
+  });
+  results.push({
+    label: "Connessione",
+    ok: navigator.onLine,
+    detail: navigator.onLine ? "Dispositivo online" : "Dispositivo offline"
+  });
+
+  let firestoreOk = false;
+  let firestoreDetail = "";
+  const testId = `diag_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const testRef = doc(db, "lupusRooms", testId);
+  try {
+    await setDoc(testRef, {
+      code: testId,
+      diagnostic: true,
+      createdAt: serverTimestamp()
+    });
+    const snap = await getDoc(testRef);
+    firestoreOk = snap.exists();
+    firestoreDetail = firestoreOk ? "Lettura e scrittura riuscite" : "Documento di test non leggibile";
+  } catch (err) {
+    firestoreDetail = `${err?.code || "errore"}: ${err?.message || err}`;
+  } finally {
+    try { await deleteDoc(testRef); } catch {}
+  }
+  results.push({ label: "Firestore", ok: firestoreOk, detail: firestoreDetail });
+
+  const qrCanvas = typeof window.QRCode !== "undefined";
+  const qrFallback = navigator.onLine;
+  results.push({
+    label: "QR invito",
+    ok: qrCanvas || qrFallback,
+    detail: qrCanvas ? "Generatore QR disponibile" : qrFallback ? "Disponibile tramite fallback online" : "QR non disponibile offline"
+  });
+
+  let swDetail = "Non supportato";
+  let swOk = false;
+  try {
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      swOk = Boolean(reg);
+      swDetail = reg ? "Service worker registrato" : "Service worker non ancora registrato";
+    }
+  } catch (err) {
+    swDetail = err?.message || String(err);
+  }
+  results.push({ label: "Cache app", ok: swOk, detail: swDetail });
+
+  panel.innerHTML = results.map(r => `
+    <div class="diag-row ${r.ok ? "diag-ok" : "diag-error"}">
+      <span>${r.ok ? "✓" : "!"}</span>
+      <div><b>${r.label}</b><small>${r.detail}</small></div>
+    </div>
+  `).join("");
+}
+
+async function quickBotTest() {
+  try {
+    const code = roomCode();
+    const hostId = uid();
+    const hostName = "Tu";
+    const phaseSeconds = Number($("#phaseSeconds").value || 20);
+    const human = { id: hostId, name: hostName, role: null, alive: true, isBot: false, lover: null, joinedAt: Date.now() };
+    const bots = BOT_NAMES.slice(0, 7).map(name => ({
+      id: "bot_" + uid(),
+      name,
+      role: null,
+      alive: true,
+      isBot: true,
+      lover: null,
+      joinedAt: Date.now()
+    }));
+    const players = [human, ...bots];
+    const counts = recommendedCounts(players.length, "auto");
+    const deck = makeDeck(counts, players.length);
+    const assigned = players.map((p, i) => ({ ...p, role: deck[i] }));
+
+    room.code = code;
+    room.playerId = hostId;
+    room.isHost = true;
+    room.revealMine = false;
+    localStorage.setItem("lupusPlayerId", hostId);
+    localStorage.setItem("lupusLastRoom", JSON.stringify({ code, playerId: hostId }));
+
+    await setDoc(doc(db, "lupusRooms", code), {
+      code,
+      hostId,
+      phase: "night",
+      step: 0,
+      dayNumber: 0,
+      nightNumber: 1,
+      phaseSeconds,
+      autoMode: phaseSeconds > 0,
+      phaseDeadline: phaseSeconds > 0 ? Date.now() + phaseSeconds * 1000 : null,
+      players: assigned,
+      roleCounts: counts,
+      votes: {},
+      voteRound: 0,
+      night: {},
+      privateResults: {},
+      witch: { save: true, kill: true },
+      loversChosen: false,
+      pendingHunterId: null,
+      narration: narr("night", "Test rapido avviato con sette bot. Tutti chiudono gli occhi."),
+      hostNote: "Test automatico: usa “Fai giocare i bot” oppure lascia avanzare il timer.",
+      hostLog: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Test rapido con bot avviato." }],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    listenRoom(code);
+    show("roomView");
+    toast("Test rapido avviato.");
+  } catch (err) {
+    showTechnicalError("Errore test rapido", err);
+  }
+}
+
+async function restartLocalSamePlayers() {
+  if (!local?.players?.length) return;
+  const names = local.players.map(p => p.name);
+  const counts = local.roleCounts || recommendedCounts(names.length, "auto");
+  const players = makePlayers(names, counts);
+  local = {
+    players,
+    roleCounts: counts,
+    phase: "reveal",
+    step: 0,
+    revealIndex: 0,
+    night: {},
+    witch: { save: true, kill: true },
+    loversChosen: false,
+    narration: narr("intro", "Nuova partita. Passa il telefono al primo giocatore."),
+    hostNote: "",
+    log: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Nuova partita con gli stessi giocatori." }]
+  };
+  $("#localRevealBox").dataset.visible = "0";
+  $("#localRevealBox").className = "role-card hidden-role";
+  $("#localRevealBox").textContent = "Tocca “Mostra carta”";
+  renderLocal();
+  setStage("reveal");
+}
+
+async function restartOnlineSamePlayers() {
+  if (!room.isHost || !room.data) return;
+  const d = room.data;
+  const players = (d.players || []).map(p => ({
+    ...p,
+    role: null,
+    alive: true,
+    lover: null
+  }));
+  await updateDoc(doc(db, "lupusRooms", room.code), {
+    players,
+    phase: "lobby",
+    step: 0,
+    dayNumber: 0,
+    nightNumber: 0,
+    votes: {},
+    voteRound: 0,
+    night: {},
+    privateResults: {},
+    witch: { save: true, kill: true },
+    loversChosen: false,
+    pendingHunterId: null,
+    winnerText: null,
+    narration: "Nuova lobby pronta con gli stessi giocatori.",
+    hostNote: "Controlla i ruoli e avvia la nuova partita.",
+    phaseDeadline: null,
+    hostLog: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Lobby riaperta con gli stessi giocatori." }],
+    updatedAt: serverTimestamp()
+  });
+  toast("Nuova lobby pronta.");
+}
+
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function phaseProgress(deadline) {
+  if (!deadline) return 0;
+  const total = Math.max(1, Number(room.data?.phaseSeconds || 20) * 1000);
+  const left = Math.max(0, deadline - Date.now());
+  return Math.max(0, Math.min(100, (left / total) * 100));
+}
+
+function localPhaseInfo() {
+  if (!local) return { title: "", desc: "" };
+  const alive = alivePlayers(local.players).length;
+  if (local.phase === "reveal") return {
+    title: `Mostra carte · ${local.revealIndex + 1}/${local.players.length}`,
+    desc: "Passa il telefono a ogni giocatore e mostra il ruolo in privato."
+  };
+  if (local.phase === "night") return {
+    title: local.currentNightKey ? `Notte · ${nightStepLabel(local.currentNightKey)}` : "Notte",
+    desc: "Segna le azioni dei ruoli e poi risolvi la notte."
+  };
+  if (local.phase === "day") return {
+    title: `Giorno · ${alive} vivi`,
+    desc: "Discutete dal vivo e poi scegli se aprire o saltare la votazione."
+  };
+  if (local.phase === "vote") return {
+    title: "Votazione",
+    desc: "Scegli chi eliminare. A meno di ruoli speciali, il ruolo resta segreto."
+  };
+  if (local.phase === "hunter") return {
+    title: "Cacciatore",
+    desc: "Il Cacciatore può sparare una volta prima che il gioco prosegua."
+  };
+  if (local.phase === "gameOver") return {
+    title: "Partita conclusa",
+    desc: "Puoi vedere i ruoli finali e iniziare una nuova partita con gli stessi giocatori."
+  };
+  return { title: local.phase, desc: "" };
+}
+
+function roomPhaseInfo(d, me) {
+  const alive = alivePlayers(d.players || []).length;
+  if (d.phase === "lobby") return {
+    title: "Lobby",
+    desc: room.isHost ? "Invita i giocatori, controlla i ruoli e poi avvia la partita." : "Aspetta che il narratore avvii la partita."
+  };
+  if (d.phase === "night") return {
+    title: `Notte ${d.nightNumber || 1} · ${nightStepLabel(currentNightStep(d, d.players || []))}`,
+    desc: me?.alive ? "Se è il tuo turno, fai la tua azione. Altrimenti aspetta." : "Sei morto: puoi osservare ma non agire."
+  };
+  if (d.phase === "day") return {
+    title: `Giorno ${d.dayNumber || 1} · ${alive} vivi`,
+    desc: "Parlate dal vivo. Il narratore può aprire la votazione quando siete pronti."
+  };
+  if (d.phase === "vote") {
+    const votes = d.votes || {};
+    const voted = alivePlayers(d.players || []).filter(p => votes[p.id]).length;
+    return {
+      title: `Votazione · ${voted}/${alive} voti`,
+      desc: me?.alive ? "Ogni giocatore vivo vota una sola volta per questo giorno." : "Sei morto: puoi solo seguire la votazione."
+    };
+  }
+  if (d.phase === "hunter") return {
+    title: "Azione del Cacciatore",
+    desc: room.isHost ? "Scegli il bersaglio del Cacciatore oppure fai saltare il colpo." : "Aspetta che il narratore risolva l'azione del Cacciatore."
+  };
+  if (d.phase === "gameOver") return {
+    title: "Partita conclusa",
+    desc: "Sono visibili tutti i ruoli finali. Il narratore può riaprire una nuova lobby con gli stessi giocatori."
+  };
+  return { title: d.phase, desc: "" };
+}
+
+function phaseMetaHtml(title, desc, progress = null, extra = "") {
+  return `
+    <div class="phase-head">
+      <div>
+        <b>${title}</b>
+        <small>${desc}</small>
+      </div>
+      ${extra || ""}
+    </div>
+    ${progress !== null ? `<div class="meter"><div class="meter-bar" style="width:${progress}%"></div></div>` : ""}
+  `;
+}
+
 /* -------------------- INIT -------------------- */
 
 function init() {
@@ -589,6 +908,9 @@ function init() {
   makeRolePicker($("#onlineRolePicker"), "online");
 
   document.addEventListener("click", (e) => {
+    const jump = e.target.closest("[data-scroll-target]");
+    if (jump) scrollToSection(jump.dataset.scrollTarget);
+
     const step = e.target.closest("[data-step-role]");
     if (step) {
       const role = step.dataset.stepRole;
@@ -596,6 +918,7 @@ function init() {
       const delta = Number(step.dataset.delta || 0);
       const box = document.querySelector(`[data-${prefix}-role="${role}"]`);
       box.textContent = Math.max(0, Number(box.textContent || 0) + delta);
+      if (prefix === "online") renderOnlineSetupSummary();
     }
 
     const open = e.target.closest("[data-open]");
@@ -653,6 +976,12 @@ function init() {
 
   parseHashRoom();
 
+  setInterval(() => {
+    try {
+      if ($("#roomView")?.classList.contains("active") && room.data) renderRoom();
+    } catch {}
+  }, 1000);
+
   $("#resetAppBtn").onclick = async () => {
     localStorage.removeItem("lupusPlayerId");
     localStorage.removeItem("lupusLastRoom");
@@ -684,6 +1013,10 @@ function init() {
   $("#createRoomBtn").onclick = createRoom;
   $("#joinRoomBtn").onclick = joinRoom;
   $("#rejoinLastRoomBtn").onclick = rejoinLastRoom;
+  $("#quickBotTestBtn").onclick = quickBotTest;
+  $("#diagnosticsBtn").onclick = runDiagnostics;
+  $("#restartLocalSameBtn").onclick = restartLocalSamePlayers;
+  $("#restartOnlineSameBtn").onclick = restartOnlineSamePlayers;
   $("#startOnlineGameBtn").onclick = startOnlineGame;
   $("#toggleMyRoleBtn").onclick = () => { room.revealMine = !room.revealMine; renderRoom(); };
   $("#onlineRevealAllBtn").onclick = () => { room.narratorShowRoles = !room.narratorShowRoles; renderRoom(); };
@@ -706,6 +1039,7 @@ function startLocal() {
 
   local = {
     players: makePlayers(names, counts),
+    roleCounts: counts,
     phase: "reveal",
     step: 0,
     revealIndex: 0,
@@ -730,6 +1064,8 @@ function renderLocal() {
   $("#localAliveCount").textContent = `Vivi: ${alivePlayers(local.players).length}/${local.players.length}`;
   $("#localNarration").textContent = local.narration;
   $("#localStatus").innerHTML = statusHtml(local.players, local.phase, {});
+  const localInfo = localPhaseInfo();
+  $("#localPhaseMeta").innerHTML = phaseMetaHtml(localInfo.title, localInfo.desc);
   $("#localPlayersList").innerHTML = local.players.map((p) => `
     <div class="player-row ${p.alive ? "" : "dead"}">
       <span>${local.phase === "gameOver" ? roleIcon(p.role) + " " : ""}${p.name}${p.lover ? " 💞" : ""}</span>
@@ -1168,8 +1504,8 @@ async function startOnlineGame() {
   if (!room.isHost || !room.data) return;
   const players = [...(room.data.players || [])];
   const counts = getCounts("online");
-  const err = validateSetup(players.map((p) => p.name), counts);
-  if (err) return toast(err);
+  const validation = setupValidation("online", players.length);
+  if (!validation.ok) return toast(validation.message);
 
   const deck = makeDeck(counts, players.length);
   const assigned = players.map((p, i) => ({ ...p, role: deck[i], alive: true, lover: null }));
@@ -1177,6 +1513,7 @@ async function startOnlineGame() {
   const seconds = Number($("#phaseSeconds").value || room.data.phaseSeconds || 20);
   await updateDoc(doc(db, "lupusRooms", room.code), {
     players: assigned,
+    roleCounts: counts,
     phase: "night",
     step: 0,
     nightNumber: 1,
@@ -1210,6 +1547,14 @@ function renderRoom() {
   $("#roomPhaseBadge").textContent = `${phaseLabel(d.phase)}${d.phase === "night" ? ` ${d.nightNumber || 1}` : d.phase === "day" ? ` ${d.dayNumber || 1}` : ""}`;
   $("#roomNarration").textContent = d.narration || "";
   $("#roomStatus").innerHTML = statusHtml(players, d.phase, d.votes || {});
+  const info = roomPhaseInfo(d, me);
+  const timerExtra = d.autoMode && d.phaseDeadline && !["lobby","gameOver"].includes(d.phase)
+    ? `<span class="meta-chip">⏱️ ${Math.max(0, Math.ceil((d.phaseDeadline - Date.now()) / 1000))}s</span>`
+    : "";
+  const progress = d.autoMode && d.phaseDeadline && !["lobby","gameOver"].includes(d.phase)
+    ? phaseProgress(d.phaseDeadline)
+    : null;
+  $("#roomPhaseMeta").innerHTML = phaseMetaHtml(info.title, info.desc, progress, timerExtra);
   $$(".narrator-only").forEach((el) => el.classList.toggle("hidden", !room.isHost));
 
   if (me?.role && room.revealMine) {
@@ -1227,14 +1572,15 @@ function renderRoom() {
   renderFinalList("#finalRevealList", players);
   renderLog("#hostLogList", d.hostLog || []);
 
-  $("#roomPlayersList").innerHTML = players.map((p) => {
+  $("#roomPlayersList").innerHTML = players.length ? players.map((p) => {
     const role = room.isHost && room.narratorShowRoles && p.role ? ` · ${roleName(p.role)}` : "";
     return `<div class="player-row ${p.alive ? "" : "dead"}">
       <span>${room.isHost && room.narratorShowRoles && p.role ? roleIcon(p.role) + " " : ""}${p.name}${p.isBot ? " 🤖" : ""}${p.lover ? " 💞" : ""}${role}</span>
       <span class="chip ${p.alive ? "alive-chip" : "dead-chip"}">${p.alive ? "vivo" : "morto"}</span>
     </div>`;
-  }).join("");
+  }).join("") : "<p class='hint'>Nessun giocatore nella stanza.</p>";
 
+  renderOnlineSetupSummary();
   renderRoomActions(d, players, me);
 }
 
@@ -1349,26 +1695,38 @@ function renderHostControls(d, players) {
     </div>`;
   }
 
+  const buttons = [];
+  if (d.phase === "night") {
+    buttons.push(`<button class="secondary" data-host-action="botsAct">Fai giocare i bot</button>`);
+    buttons.push(`<button class="secondary" data-host-action="next">Continua fase</button>`);
+    buttons.push(`<button class="secondary" data-host-action="resolveNight">Risolvi notte</button>`);
+  }
+  if (d.phase === "day") {
+    buttons.push(`<button class="primary" data-host-action="startVote">Apri votazione</button>`);
+    buttons.push(`<button class="secondary" data-host-action="skipVote">Salta votazione</button>`);
+    buttons.push(`<button class="ghost" data-host-action="newNight">Vai direttamente alla notte</button>`);
+  }
+  if (d.phase === "vote") {
+    buttons.push(`<button class="secondary" data-host-action="botsAct">Fai votare i bot</button>`);
+    buttons.push(`<button class="primary" data-host-action="resolveVote">Conta voti</button>`);
+    buttons.push(`<button class="secondary" data-host-action="skipVote">Annulla voto e vai alla notte</button>`);
+  }
+  if (!["hunter", "gameOver", "lobby"].includes(d.phase)) {
+    buttons.push(`<button class="ghost" data-host-action="toggleAuto">${d.autoMode ? "Disattiva automatico" : "Attiva automatico"}</button>`);
+  }
+
   return `<div class="host-note">
     <b>Pannello narratore</b>
-    <p class="hint">${d.hostNote || "Controlli manuali e bot."}</p>
+    <p class="hint">${d.hostNote || "Controlli disponibili per questa fase."}</p>
     ${timerHtml(d)}
     ${hunterBox}
-    <div class="action-grid">
-      <button class="secondary" data-host-action="botsAct">Fai giocare i bot</button>
-      <button class="secondary" data-host-action="toggleAuto">${d.autoMode ? "Disattiva automatico" : "Attiva automatico"}</button>
-      <button class="secondary" data-host-action="next">Continua fase</button>
-      <button class="secondary" data-host-action="startVote">Apri votazione</button>
-      <button class="secondary" data-host-action="resolveVote">Conta voti</button>
-      <button class="secondary" data-host-action="skipVote">Salta votazione</button>
-      <button class="primary" data-host-action="newNight">Nuova notte</button>
-    </div>
+    <div class="action-grid">${buttons.join("")}</div>
   </div>`;
 }
 
 function targetButtons(title, players, excludeId, action) {
   const targets = alivePlayers(players).filter((p) => p.id !== excludeId);
-  return `<p>${title}</p><div class="action-grid">${targets.map((p) => `<button class="target-btn" data-online-action="${action}" data-target="${p.id}">${p.name}</button>`).join("")}</div>`;
+  return `<p class="action-title">${title}</p><p class="hint">Tocca un nome per confermare l'azione.</p><div class="action-grid">${targets.map((p) => `<button class="target-btn" data-online-action="${action}" data-target="${p.id}">${p.name}</button>`).join("")}</div>`;
 }
 
 function cupidControls(players) {
@@ -1546,6 +1904,7 @@ async function handleHostAction(action) {
   if (action === "botsAct") return botsAct();
   if (action === "toggleAuto") return updateDoc(doc(db, "lupusRooms", room.code), { autoMode: !room.data.autoMode, phaseDeadline: null, updatedAt: serverTimestamp() });
   if (action === "next") return onlineAdvanceManual();
+  if (action === "resolveNight") return confirmAction("Risolvi notte", "Vuoi chiudere subito la notte e calcolare le vittime?", () => resolveOnlineNight(room.data), "Risolvi");
   if (action === "startVote") return confirmAction("Aprire votazione", "Vuoi aprire la votazione per tutti i giocatori vivi?", startOnlineVote, "Apri voto");
   if (action === "resolveVote") return confirmAction("Contare voti", "Vuoi contare i voti ed eliminare il più votato?", resolveOnlineVote, "Conta voti");
   if (action === "skipVote") return confirmAction("Saltare voto", "Vuoi saltare la votazione e passare alla notte?", skipOnlineVote, "Salta voto");
@@ -1590,10 +1949,13 @@ function randomTarget(players, excludeId, predicate = () => true) {
   return list[Math.floor(Math.random() * list.length)] || null;
 }
 
-async function botsAct() {
+async function botsAct(silent = false) {
   const d = room.data, players = d.players || [];
   const bots = alivePlayers(players).filter((p) => p.isBot);
-  if (!bots.length) return toast("Non ci sono bot vivi.");
+  if (!bots.length) {
+    if (!silent) toast("Non ci sono bot vivi.");
+    return;
+  }
   const ref = doc(db, "lupusRooms", room.code);
   const night = { ...(d.night || {}) };
   const votes = { ...(d.votes || {}) };
@@ -1642,14 +2004,14 @@ async function botsAct() {
     return toast("I bot agiscono solo durante notte o votazione.");
   }
   await updateDoc(ref, { ...patch, updatedAt: serverTimestamp() });
-  toast("Bot aggiornati.");
+  if (!silent) toast("Bot aggiornati.");
   scheduleAuto(true);
 }
 
 function scheduleAuto(soon = false) {
   clearTimeout(room.timer);
   const d = room.data;
-  if (!d || !d.autoMode || d.phase === "lobby" || d.phase === "gameOver") return;
+  if (!room.isHost || !d || !d.autoMode || d.phase === "lobby" || d.phase === "gameOver") return;
 
   const delay = soon ? 350 : Math.max(500, (d.phaseDeadline || Date.now()) - Date.now());
   room.timer = setTimeout(async () => {
@@ -1669,7 +2031,7 @@ async function autoAdvance() {
   if (d.phase === "night") {
     const players = d.players || [];
     const step = currentNightStep(d, players);
-    await botsAct();
+    await botsAct(true);
     const latest = (await getDoc(doc(db, "lupusRooms", room.code))).data();
     if (nightStepReady(latest, currentNightStep(latest, latest.players || [])) || Date.now() >= (latest.phaseDeadline || 0)) {
       await advanceNightStep(latest);
@@ -1677,7 +2039,7 @@ async function autoAdvance() {
   } else if (d.phase === "day") {
     if (Date.now() >= (d.phaseDeadline || 0)) await startOnlineVote();
   } else if (d.phase === "vote") {
-    await botsAct();
+    await botsAct(true);
     const latest = (await getDoc(doc(db, "lupusRooms", room.code))).data();
     const alive = alivePlayers(latest.players || []);
     const votes = latest.votes || {};
@@ -1811,7 +2173,7 @@ function mostFrequent(values) {
 
 async function startOnlineVote() {
   const d = room.data;
-  if (!d || d.phase === "gameOver") return;
+  if (!d || d.phase !== "day") return toast("La votazione si può aprire solo durante il giorno.");
   const seconds = Number(d.phaseSeconds || 20);
   const hostLog = [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Votazione aperta." }, ...((d.hostLog || []).slice(0, 29))];
   await updateDoc(doc(db, "lupusRooms", room.code), {
