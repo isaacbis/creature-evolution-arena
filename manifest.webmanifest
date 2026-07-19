@@ -1,5 +1,5 @@
 {
-  "name": "Lupus Online V22",
+  "name": "Lupus Online V23",
   "short_name": "Lupus",
   "start_url": "./",
   "display": "standalone",
@@ -19,7 +19,7 @@
       "purpose": "any maskable"
     }
   ],
-  "description": "Versione online semplice di Lupus in Fabula, ottimizzata per smartphone.",
+  "description": "Lupus Online V23: interfaccia mobile pulita, azioni chiare e gameplay migliorato.",
   "orientation": "portrait",
   "categories": [
     "games",

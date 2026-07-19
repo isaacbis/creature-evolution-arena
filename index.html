@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="stage-home online-only">
+  <div id="networkBanner" class="network-banner hidden">📡 Connessione assente: alcune azioni potrebbero non funzionare.</div>
   <div class="app-shell simple-shell">
     <header class="topbar appbar simple-topbar">
       <div class="brand-lockup">
@@ -24,7 +25,7 @@
         </div>
       </div>
       <div class="top-actions">
-        <span class="version-pill">V22</span>
+        <span class="version-pill">V23</span>
         <button id="settingsBtn" class="icon-btn" aria-label="Impostazioni">⚙️</button>
       </div>
     </header>
@@ -51,8 +52,13 @@
           <span class="rejoin-arrow">›</span>
         </button>
 
+        <div class="entry-switcher" role="tablist" aria-label="Scegli come entrare">
+          <button id="showCreateTabBtn" class="entry-tab active" type="button">Crea stanza</button>
+          <button id="showJoinTabBtn" class="entry-tab" type="button">Entra con codice</button>
+        </div>
+
         <div class="entry-grid">
-          <section class="card entry-card create-card">
+          <section id="createSection" class="card entry-card create-card active-entry">
             <div class="entry-heading">
               <span class="entry-number">1</span>
               <div>
@@ -66,9 +72,9 @@
 
             <label for="phaseSeconds">Velocità della partita</label>
             <select id="phaseSeconds">
-              <option value="40">Tranquilla · 40 secondi</option>
-              <option value="25" selected>Normale · 25 secondi</option>
-              <option value="15">Veloce · 15 secondi</option>
+              <option value="40">Tranquilla · turni 40s / discussione 2 min</option>
+              <option value="25" selected>Normale · turni 25s / discussione 75s</option>
+              <option value="15">Veloce · turni 15s / discussione 45s</option>
               <option value="0">Manuale · decide il narratore</option>
             </select>
 
@@ -125,6 +131,7 @@
               <span id="roomCodeBadge" class="badge room-code-badge">ROOM</span>
               <span id="roomPhaseBadge" class="badge alt">Lobby</span>
             </div>
+            <div id="turnBanner" class="turn-banner hidden"></div>
             <h2 id="roomMainTitle">La partita</h2>
             <p id="roomNarration" aria-live="polite">In attesa dei giocatori.</p>
             <div id="roomStatus"></div>
@@ -212,6 +219,7 @@
               <span class="step-badge">👁️</span>
             </div>
             <div id="myRoleCard" class="role-card hidden-role">Il ruolo apparirà quando la partita inizia.</div>
+            <p id="roleAutoHideHint" class="privacy-hint hidden"></p>
             <button id="toggleMyRoleBtn" class="secondary full">Mostra il mio ruolo</button>
           </section>
 
@@ -244,6 +252,14 @@
       </section>
     </main>
   </div>
+
+
+  <nav id="mobileGameDock" class="mobile-game-dock hidden" aria-label="Navigazione partita">
+    <button data-scroll-target="roomStatusCard"><span>◉</span><small>Stato</small></button>
+    <button data-scroll-target="roomRoleSection"><span>🪪</span><small>Ruolo</small></button>
+    <button data-scroll-target="roomPlayersSection"><span>👥</span><small>Giocatori</small></button>
+    <button id="mobileActionNavBtn" data-scroll-target="roomActionSection"><span>⚡</span><small>Azione</small><i id="actionNavDot"></i></button>
+  </nav>
 
   <div id="settingsModal" class="settings-modal hidden">
     <div class="settings-sheet">

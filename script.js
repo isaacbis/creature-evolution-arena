@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V22";
+const APP_VERSION = "V23";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -376,6 +376,10 @@ let wakeLockHandle = null;
 let actionBusy = false;
 let onlineRolesTouched = false;
 let lastRecommendedPlayerCount = 0;
+let roleHideTimer = null;
+let roleHideInterval = null;
+let lastRenderedPhase = null;
+let lastTurnKey = "";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -640,18 +644,22 @@ function countVotes(players, votes) {
   return { targetId: tied.length === 1 ? entries[0][0] : null, tie: tied.length > 1, counts };
 }
 
-function statusHtml(players, phase, votes = {}) {
+function statusHtml(players, phase, votes = {}, options = {}) {
   const alive = alivePlayers(players);
-  const wolvesAlive = alive.filter((p) => isWolf(p.role)).length;
   const dead = players.length - alive.length;
-  const voteCount = alive.filter((p) => votes[p.id]).length;
+  const voteCount = alive.filter(p => votes[p.id]).length;
+  const wolfCount = alive.filter(p => isWolf(p.role)).length;
+  const phaseText = phaseLabel(phase);
   return `
     <div class="status-grid">
       <div><b>${alive.length}</b><span>Vivi</span></div>
       <div><b>${dead}</b><span>Morti</span></div>
-      <div><b>${wolvesAlive}</b><span>Lupi vivi</span></div>
-      <div><b>${phase}</b><span>Fase</span></div>
-      ${phase === "vote" ? `<div><b>${voteCount}/${alive.length}</b><span>Voti</span></div>` : ""}
+      <div><b>${phaseText}</b><span>Fase</span></div>
+      ${phase === "vote"
+        ? `<div><b>${voteCount}/${alive.length}</b><span>Hanno votato</span></div>`
+        : options.showWolfCount
+          ? `<div><b>${wolfCount}</b><span>Lupi vivi · narratore</span></div>`
+          : `<div><b>${players.length}</b><span>Giocatori</span></div>`}
     </div>
   `;
 }
@@ -873,9 +881,17 @@ function scrollToSection(id) {
   el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function phaseProgress(deadline) {
+function phaseDuration(baseSeconds, phase) {
+  const base = Number(baseSeconds || 0);
+  if (base <= 0) return 0;
+  if (phase === "day") return base * 3;
+  if (phase === "vote") return Math.max(base * 2, 30);
+  return base;
+}
+
+function phaseProgress(deadline, phase = room.data?.phase) {
   if (!deadline) return 0;
-  const total = Math.max(1, Number(room.data?.phaseSeconds || 20) * 1000);
+  const total = Math.max(1, phaseDuration(room.data?.phaseSeconds || 25, phase) * 1000);
   const left = Math.max(0, deadline - Date.now());
   return Math.max(0, Math.min(100, (left / total) * 100));
 }
@@ -937,12 +953,23 @@ function playerRowHtml(p, options = {}) {
   const showRole = Boolean(options.showRole && p.role);
   const isMe = Boolean(options.meId && p.id === options.meId);
   const avatar = showRole ? roleIcon(p.role) : initials(p.name);
-  return `<div class="player-row ${p.alive ? "" : "dead"} ${isMe ? "is-me" : ""}">
+  const hasVoted = options.phase === "vote" && Boolean(options.votes?.[p.id]);
+  const secondary = showRole
+    ? roleName(p.role)
+    : hasVoted
+      ? "Ha votato ✓"
+      : options.phase === "vote" && p.alive
+        ? "Deve ancora votare"
+        : p.alive
+          ? "In gioco"
+          : "Eliminato";
+
+  return `<div class="player-row ${p.alive ? "" : "dead"} ${isMe ? "is-me" : ""} ${hasVoted ? "has-voted" : ""}">
     <div class="player-main">
       <span class="player-avatar">${avatar}</span>
       <span class="player-copy">
         <b>${p.name}${isMe ? " · Tu" : ""}${p.isBot ? " 🤖" : ""}</b>
-        <small>${showRole ? roleName(p.role) : p.lover ? "Innamorato/a 💞" : p.alive ? "In gioco" : "Eliminato"}</small>
+        <small>${secondary}</small>
       </span>
     </div>
     <span class="chip ${p.alive ? "alive-chip" : "dead-chip"}">${p.alive ? "vivo" : "morto"}</span>
@@ -994,6 +1021,171 @@ async function acquirePhaseLock(field, expectedPhase) {
 }
 
 
+
+
+function getTurnState(d, players, me) {
+  if (!me) return { key: "missing", kind: "wait", icon: "⚠️", title: "Dispositivo non registrato", text: "Rientra nella stanza dallo stesso telefono." };
+  if (d.phase === "lobby") return { key: "lobby", kind: "wait", icon: "👥", title: "In attesa", text: room.isHost ? "Invita almeno 5 giocatori e avvia la partita." : "Il narratore sta preparando la partita." };
+  if (d.phase === "gameOver") return { key: "end", kind: "done", icon: "🏆", title: "Partita conclusa", text: "Scopri i ruoli finali." };
+  if (!me.alive) return { key: `dead-${d.phase}`, kind: "dead", icon: "👻", title: "Sei stato eliminato", text: "Puoi seguire la partita, ma non puoi agire o votare." };
+
+  if (d.phase === "night") {
+    const step = currentNightStep(d, players);
+    const roleCanAct =
+      (step === "cupid" && me.role === "cupid") ||
+      (step === "wolves" && isWolf(me.role)) ||
+      (step === "seer" && me.role === "seer") ||
+      (step === "guard" && me.role === "guard") ||
+      (step === "witch" && me.role === "witch") ||
+      (step === "medium" && me.role === "medium");
+    if (roleCanAct) {
+      const acted = hasActed(d, me.id, step);
+      return acted
+        ? { key: `done-${step}`, kind: "done", icon: "✓", title: "Azione registrata", text: "Aspetta il prossimo turno." }
+        : { key: `act-${step}`, kind: "action", icon: roleIcon(me.role), title: "È il tuo turno", text: `Devi agire come ${roleName(me.role)}.` };
+    }
+    return { key: `wait-${step}`, kind: "wait", icon: "🌙", title: `Sta giocando: ${nightStepLabel(step)}`, text: "Aspetta: il tuo ruolo non deve agire ora." };
+  }
+
+  if (d.phase === "day") {
+    return { key: `day-${d.dayNumber}`, kind: "talk", icon: "☀️", title: "È giorno", text: "Discutete dal vivo e cercate di riconoscere i lupi." };
+  }
+
+  if (d.phase === "vote") {
+    const targetId = d.votes?.[me.id];
+    const target = players.find(p => p.id === targetId);
+    return targetId
+      ? { key: `voted-${d.voteRound}`, kind: "done", icon: "🗳️", title: "Voto registrato", text: target ? `Hai votato ${target.name}.` : "Hai già votato." }
+      : { key: `vote-${d.voteRound}`, kind: "action", icon: "🗳️", title: "Devi votare", text: "Scegli un giocatore da eliminare." };
+  }
+
+  if (d.phase === "hunter") {
+    const isHunter = d.pendingHunterId === me.id;
+    return isHunter
+      ? { key: "hunter-act", kind: "action", icon: "🏹", title: "Sei il Cacciatore", text: "Il narratore deve scegliere il tuo bersaglio." }
+      : { key: "hunter-wait", kind: "wait", icon: "🏹", title: "Azione del Cacciatore", text: "Aspetta che il narratore risolva il colpo." };
+  }
+
+  return { key: d.phase, kind: "wait", icon: "…", title: "Attendi", text: "La partita sta proseguendo." };
+}
+
+function renderTurnBanner(d, players, me) {
+  const state = getTurnState(d, players, me);
+  const banner = $("#turnBanner");
+  banner.className = `turn-banner turn-${state.kind}`;
+  banner.innerHTML = `<span class="turn-icon">${state.icon}</span><span><b>${state.title}</b><small>${state.text}</small></span>`;
+
+  const requiresAction = state.kind === "action";
+  $("#mobileActionNavBtn")?.classList.toggle("needs-action", requiresAction);
+  $("#actionNavDot")?.classList.toggle("visible", requiresAction);
+
+  if (requiresAction && lastTurnKey !== state.key && lastTurnKey) {
+    vibrate([35, 30, 65]);
+    blip("phase");
+    toast(state.title);
+  }
+  lastTurnKey = state.key;
+}
+
+function privateIntelHtml(d, players, me) {
+  if (!me?.role) return "";
+  const items = [];
+
+  if (isWolf(me.role)) {
+    const mates = players.filter(p => p.id !== me.id && p.alive && isWolf(p.role)).map(p => p.name);
+    items.push({
+      icon: "🐺",
+      title: "Branco",
+      text: mates.length ? `Gli altri lupi vivi sono: ${mates.join(", ")}.` : "Sei l’unico lupo vivo."
+    });
+  }
+
+  if (me.role === "traitor") {
+    const wolves = players.filter(p => p.alive && isWolf(p.role)).map(p => p.name);
+    items.push({
+      icon: "🗡️",
+      title: "I lupi",
+      text: wolves.length ? `Devi aiutare: ${wolves.join(", ")}.` : "Non ci sono più lupi vivi."
+    });
+  }
+
+  if (me.lover) {
+    const partner = players.find(p => p.id === me.lover);
+    if (partner) items.push({
+      icon: "💞",
+      title: "Innamorati",
+      text: `Sei legato/a a ${partner.name}. Se uno muore, muore anche l’altro.`
+    });
+  }
+
+  if (me.role === "witch") {
+    const witch = d.witch || { save: true, kill: true };
+    items.push({
+      icon: "🧪",
+      title: "Pozioni",
+      text: `Salvezza: ${witch.save ? "disponibile" : "usata"} · Morte: ${witch.kill ? "disponibile" : "usata"}.`
+    });
+  }
+
+  if (me.role === "mayor") {
+    items.push({ icon: "🎖️", title: "Voto doppio", text: "Il tuo voto vale due durante ogni votazione." });
+  }
+
+  if (!items.length) return "";
+  return `<div class="private-intel">${items.map(item => `
+    <div class="intel-row">
+      <span>${item.icon}</span>
+      <div><b>${item.title}</b><small>${item.text}</small></div>
+    </div>`).join("")}</div>`;
+}
+
+function hideRoleNow() {
+  clearTimeout(roleHideTimer);
+  clearInterval(roleHideInterval);
+  roleHideTimer = null;
+  roleHideInterval = null;
+  room.revealMine = false;
+  $("#roleAutoHideHint")?.classList.add("hidden");
+  if (room.data) renderRoom();
+}
+
+function revealRoleTemporarily() {
+  clearTimeout(roleHideTimer);
+  clearInterval(roleHideInterval);
+
+  if (room.revealMine) {
+    hideRoleNow();
+    return;
+  }
+
+  room.revealMine = true;
+  let seconds = 10;
+  const hint = $("#roleAutoHideHint");
+  hint.textContent = `Si nasconde automaticamente tra ${seconds} secondi.`;
+  hint.classList.remove("hidden");
+  renderRoom();
+
+  roleHideInterval = setInterval(() => {
+    seconds -= 1;
+    if (seconds > 0 && hint) hint.textContent = `Si nasconde automaticamente tra ${seconds} secondi.`;
+  }, 1000);
+
+  roleHideTimer = setTimeout(hideRoleNow, 10000);
+}
+
+function setEntryTab(tab) {
+  const create = tab === "create";
+  $("#showCreateTabBtn").classList.toggle("active", create);
+  $("#showJoinTabBtn").classList.toggle("active", !create);
+  $("#createSection").classList.toggle("active-entry", create);
+  $("#joinSection").classList.toggle("active-entry", !create);
+}
+
+function updateNetworkState() {
+  const offline = !navigator.onLine;
+  $("#networkBanner").classList.toggle("hidden", !offline);
+  document.body.classList.toggle("is-offline", offline);
+}
 
 /* -------------------- INIT -------------------- */
 
@@ -1110,6 +1302,8 @@ function init() {
     }
   };
 
+  $("#showCreateTabBtn").onclick = () => setEntryTab("create");
+  $("#showJoinTabBtn").onclick = () => setEntryTab("join");
   $("#createRoomBtn").onclick = createRoom;
   $("#joinRoomBtn").onclick = joinRoom;
   $("#rejoinLastRoomBtn").onclick = rejoinLastRoom;
@@ -1125,10 +1319,7 @@ function init() {
   );
 
   $("#startOnlineGameBtn").onclick = startOnlineGame;
-  $("#toggleMyRoleBtn").onclick = () => {
-    room.revealMine = !room.revealMine;
-    renderRoom();
-  };
+  $("#toggleMyRoleBtn").onclick = revealRoleTemporarily;
   $("#onlineRevealAllBtn").onclick = () => {
     room.narratorShowRoles = !room.narratorShowRoles;
     renderRoom();
@@ -1160,6 +1351,11 @@ function init() {
   $("#createName").value = savedName;
   $("#joinName").value = savedName;
 
+  window.addEventListener("online", updateNetworkState);
+  window.addEventListener("offline", updateNetworkState);
+  updateNetworkState();
+  setEntryTab(location.hash.includes("room=") ? "join" : "create");
+
   parseHashRoom();
 
   setInterval(() => {
@@ -1178,16 +1374,37 @@ init();
 
 async function createRoom() {
   try {
-    const code = roomCode();
-    const hostId = uid();
     const hostName = $("#createName").value.trim().slice(0, 24);
     if (!hostName) {
       $("#createName").focus();
       return toast("Inserisci il tuo nome.");
     }
+    if (!navigator.onLine) return toast("Serve una connessione internet.");
+
     localStorage.setItem("lupusDisplayName", hostName);
     const phaseSeconds = Number($("#phaseSeconds").value || 25);
-    const hostPlayer = { id: hostId, name: hostName, role: null, alive: true, isBot: false, lover: null, joinedAt: Date.now() };
+    const hostId = uid();
+    let code = null;
+
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      const candidate = roomCode();
+      const snap = await getDoc(doc(db, "lupusRooms", candidate));
+      if (!snap.exists()) {
+        code = candidate;
+        break;
+      }
+    }
+    if (!code) throw new Error("Non riesco a generare un codice stanza libero.");
+
+    const hostPlayer = {
+      id: hostId,
+      name: hostName,
+      role: null,
+      alive: true,
+      isBot: false,
+      lover: null,
+      joinedAt: Date.now()
+    };
 
     room.code = code;
     room.playerId = hostId;
@@ -1217,16 +1434,20 @@ async function createRoom() {
       witch: { save: true, kill: true },
       loversChosen: false,
       pendingHunterId: null,
-      narration: "Stanza creata. Fai entrare i giocatori con il codice.",
+      narration: "Stanza creata. Condividi il codice con gli altri giocatori.",
       hostNote: "Chi crea la stanza è anche un giocatore.",
-      hostLog: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Stanza creata." }],
+      hostLog: [{
+        at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }),
+        text: "Stanza creata."
+      }],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
     });
 
+    history.replaceState(null, "", `${location.pathname}${location.search}#room=${code}`);
     listenRoom(code);
     show("roomView");
-    toast(`Codice stanza: ${code}`);
+    toast(`Stanza ${code} creata.`);
   } catch (err) {
     showTechnicalError("Errore creazione stanza", err);
   }
@@ -1237,28 +1458,67 @@ async function joinRoom() {
     const code = $("#joinCode").value.trim().toUpperCase();
     const name = $("#joinName").value.trim().slice(0, 24);
     if (!code || !name) return toast("Inserisci codice e nome.");
+    if (!navigator.onLine) return toast("Serve una connessione internet.");
+
     localStorage.setItem("lupusDisplayName", name);
-
-    const ref = doc(db, "lupusRooms", code);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return toast("Stanza non trovata.");
-
-    const d = snap.data();
-    if (d.phase !== "lobby") return toast("La partita è già iniziata.");
-
     const playerId = localStorage.getItem("lupusPlayerId") || uid();
+    const ref = doc(db, "lupusRooms", code);
+    let joinError = "";
+
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists()) {
+        joinError = "Stanza non trovata.";
+        return;
+      }
+
+      const d = snap.data();
+      if (d.phase !== "lobby") {
+        joinError = "La partita è già iniziata.";
+        return;
+      }
+
+      const players = [...(d.players || [])];
+      const existing = players.find(p => p.id === playerId);
+      const duplicateName = players.find(p =>
+        p.id !== playerId &&
+        p.name.trim().toLowerCase() === name.trim().toLowerCase()
+      );
+
+      if (duplicateName) {
+        joinError = "Questo nome è già usato nella stanza.";
+        return;
+      }
+      if (!existing && players.length >= 24) {
+        joinError = "La stanza è piena.";
+        return;
+      }
+
+      if (existing) {
+        existing.name = name;
+      } else {
+        players.push({
+          id: playerId,
+          name,
+          role: null,
+          alive: true,
+          isBot: false,
+          lover: null,
+          joinedAt: Date.now()
+        });
+      }
+
+      tx.update(ref, { players, updatedAt: serverTimestamp() });
+    });
+
+    if (joinError) return toast(joinError);
+
     localStorage.setItem("lupusPlayerId", playerId);
     localStorage.setItem("lupusLastRoom", JSON.stringify({ code, playerId }));
-
-    const players = [...(d.players || [])];
-    if (!players.some((p) => p.id === playerId)) {
-      players.push({ id: playerId, name, role: null, alive: true, isBot: false, lover: null, joinedAt: Date.now() });
-      await updateDoc(ref, { players, updatedAt: serverTimestamp() });
-    }
-
     room.code = code;
     room.playerId = playerId;
     room.revealMine = false;
+    history.replaceState(null, "", `${location.pathname}${location.search}#room=${code}`);
     listenRoom(code);
     show("roomView");
   } catch (err) {
@@ -1323,7 +1583,7 @@ async function startOnlineGame() {
     dayNumber: 0,
     phaseSeconds: seconds,
     autoMode: seconds > 0,
-    phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+    phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
     votes: {},
     voteRound: 0,
     night: {},
@@ -1349,20 +1609,29 @@ function renderRoom() {
   $("#roomCodeBadge").textContent = d.code || room.code;
   $("#roomPhaseBadge").textContent = `${phaseLabel(d.phase)}${d.phase === "night" ? ` ${d.nightNumber || 1}` : d.phase === "day" ? ` ${d.dayNumber || 1}` : ""}`;
   $("#roomNarration").textContent = d.narration || "";
-  $("#roomStatus").innerHTML = statusHtml(players, d.phase, d.votes || {});
+  $("#roomStatus").innerHTML = statusHtml(players, d.phase, d.votes || {}, { showWolfCount: room.isHost });
+  renderTurnBanner(d, players, me);
+
+  if (lastRenderedPhase && lastRenderedPhase !== d.phase) {
+    blip("phase");
+    vibrate(55);
+  }
+  lastRenderedPhase = d.phase;
+
   const info = roomPhaseInfo(d, me);
   const timerExtra = d.autoMode && d.phaseDeadline && !["lobby","gameOver"].includes(d.phase)
     ? `<span class="meta-chip">⏱️ ${Math.max(0, Math.ceil((d.phaseDeadline - Date.now()) / 1000))}s</span>`
     : "";
   const progress = d.autoMode && d.phaseDeadline && !["lobby","gameOver"].includes(d.phase)
-    ? phaseProgress(d.phaseDeadline)
+    ? phaseProgress(d.phaseDeadline, d.phase)
     : null;
   $("#roomPhaseMeta").innerHTML = phaseMetaHtml(info.title, info.desc, progress, timerExtra);
   $$(".narrator-only").forEach(el => {
     if (!room.isHost) el.classList.add("hidden");
   });
 
-  $("#toggleMyRoleBtn").textContent = room.revealMine ? "Nascondi il mio ruolo" : "Mostra il mio ruolo";
+  $("#toggleMyRoleBtn").textContent = room.revealMine ? "Nascondi subito" : "Mostra il mio ruolo";
+  if (!room.revealMine) $("#roleAutoHideHint").classList.add("hidden");
   if (me?.role && room.revealMine) {
     $("#myRoleCard").className = "role-card";
     $("#myRoleCard").innerHTML = `<span class="role-icon">${roleIcon(me.role)}</span>${me.name}<br><small>${roleName(me.role)}</small><em>${roleDesc(me.role)}</em>`;
@@ -1379,6 +1648,7 @@ function renderRoom() {
   $("#roomRoleSection").classList.toggle("hidden", isLobby);
   $("#roomActionSection").classList.toggle("hidden", isLobby || d.phase === "gameOver");
   $("#gameQuickNav").classList.toggle("hidden", isLobby);
+  $("#mobileGameDock").classList.toggle("hidden", isLobby);
   $("#hostPhaseControls").classList.toggle("hidden", !(room.isHost && !isLobby && d.phase !== "gameOver"));
   $("#narratorToolsSection").classList.toggle("hidden", !room.isHost);
   $("#playerCountBadge").textContent = players.length;
@@ -1399,6 +1669,8 @@ function renderRoom() {
     ? players.map(p => playerRowHtml(p, {
         showRole: room.isHost && room.narratorShowRoles,
         meId: room.playerId
+        phase: d.phase,
+        votes: d.votes || {}
       })).join("")
     : "<p class='hint'>Nessun giocatore nella stanza.</p>";
 
@@ -1426,12 +1698,16 @@ function privateResultHtml(d, me) {
   if (r.type === "medium") {
     return `<div class="private-result"><b>Risultato Medium</b><br>${r.targetName}: <b>${r.result}</b><small>Resta visibile solo a te.</small></div>`;
   }
+  if (r.type === "cupid") {
+    return `<div class="private-result"><b>Scelta di Cupido</b><br>${r.firstName} 💞 ${r.secondName}<small>Resta visibile solo a te.</small></div>`;
+  }
   return "";
 }
 
 function renderRoomActions(d, players, me) {
   const area = $("#roomActionArea");
   const privateBox = privateResultHtml(d, me);
+  const intelBox = privateIntelHtml(d, players, me);
 
   if (d.phase === "lobby") {
     area.innerHTML = room.isHost
@@ -1448,55 +1724,46 @@ function renderRoomActions(d, players, me) {
   const playerControls = renderPlayerControls(d, players, me);
   const hostControls = room.isHost ? renderHostControls(d, players) : "";
 
-  area.innerHTML = `${privateBox}${playerControls}${hostControls}`;
+  area.innerHTML = `${privateBox}${intelBox}${playerControls}${hostControls}`;
 }
 
 function renderPlayerControls(d, players, me) {
-  if (!me) return "<p>Questo dispositivo non è registrato come giocatore.</p>";
-  if (!me.alive) return "<p>Sei morto. Puoi seguire la partita, ma non votare.</p>";
+  if (!me) return `<div class="action-state state-wait"><span>⚠️</span><div><b>Dispositivo non registrato</b><small>Rientra usando lo stesso telefono.</small></div></div>`;
+  if (!me.alive) return `<div class="action-state state-dead"><span>👻</span><div><b>Sei morto</b><small>Puoi seguire la partita, ma non puoi agire o votare.</small></div></div>`;
+
   const step = currentNightStep(d, players);
   const acted = hasActed(d, me.id, step);
+  const done = text => `<div class="action-state state-done"><span>✓</span><div><b>Azione registrata</b><small>${text}</small></div></div>${timerHtml(d)}`;
+  const wait = text => `<div class="action-state state-wait"><span>🌙</span><div><b>Aspetta il tuo turno</b><small>${text}</small></div></div>${timerHtml(d)}`;
 
   if (d.phase === "night") {
-    if (step === "cupid" && me.role === "cupid") {
-      return acted ? `<p>Azione di Cupido registrata.</p>${timerHtml(d)}` : cupidControls(players);
-    }
-    if (step === "wolves" && isWolf(me.role)) {
-      return acted ? `<p>Azione dei lupi registrata.</p>${timerHtml(d)}` : targetButtons("Lupi: scegliete la vittima", players, me.id, "wolf");
-    }
-    if (step === "seer" && me.role === "seer") {
-      return acted ? `<p>Controllo registrato. Leggi il risultato qui sopra.</p>${timerHtml(d)}` : targetButtons("Veggente: chi controlli?", players, me.id, "seer");
-    }
-    if (step === "guard" && me.role === "guard") {
-      return acted ? `<p>Protezione registrata.</p>${timerHtml(d)}` : targetButtons("Guardia: chi proteggi?", players, null, "guard");
-    }
-    if (step === "witch" && me.role === "witch") {
-      return acted ? `<p>Azione della Strega registrata.</p>${timerHtml(d)}` : witchControls(d, players);
-    }
-    if (step === "medium" && me.role === "medium") {
-      return acted ? `<p>Controllo Medium registrato. Leggi il risultato qui sopra.</p>${timerHtml(d)}` : mediumControls(players);
-    }
-    return `<p>È notte: <b>${nightStepLabel(step)}</b>. Aspetta il tuo turno.</p>${timerHtml(d)}`;
+    if (step === "cupid" && me.role === "cupid") return acted ? done("I due innamorati sono stati scelti.") : cupidControls(players);
+    if (step === "wolves" && isWolf(me.role)) return acted ? done("La scelta del branco è stata registrata.") : targetButtons("Scegli la vittima", players, me.id, "wolf", "🐺");
+    if (step === "seer" && me.role === "seer") return acted ? done("Leggi il risultato privato qui sopra.") : targetButtons("Chi vuoi controllare?", players, me.id, "seer", "🔮");
+    if (step === "guard" && me.role === "guard") return acted ? done("La protezione è stata registrata.") : targetButtons("Chi vuoi proteggere?", players, null, "guard", "🛡️");
+    if (step === "witch" && me.role === "witch") return acted ? done("La scelta della Strega è stata registrata.") : witchControls(d, players);
+    if (step === "medium" && me.role === "medium") return acted ? done("Leggi il risultato privato qui sopra.") : mediumControls(players);
+    return wait(`Ora sta giocando: ${nightStepLabel(step)}.`);
   }
 
   if (d.phase === "day") {
-    return `<p>È giorno. Discutete dal vivo. Poi si vota.</p>${timerHtml(d)}`;
+    return `<div class="action-state state-talk"><span>☀️</span><div><b>Parlate e discutete</b><small>Accusate, difendetevi e cercate di trovare i lupi.</small></div></div>${timerHtml(d)}`;
   }
 
   if (d.phase === "vote") {
     const votes = d.votes || {};
     if (votes[me.id]) {
-      const voted = players.find((p) => p.id === votes[me.id]);
-      return `<p>Hai già votato${voted ? `: <b>${voted.name}</b>` : ""}. Potrai rivotare al prossimo giorno.</p>${voteProgress(d, players)}${timerHtml(d)}`;
+      const voted = players.find(p => p.id === votes[me.id]);
+      return `<div class="action-state state-done"><span>🗳️</span><div><b>Voto registrato</b><small>${voted ? `Hai votato ${voted.name}.` : "Hai già votato."}</small></div></div>${voteProgress(d, players)}${timerHtml(d)}`;
     }
-    return `${targetButtons("Vota chi eliminare", players, me.id, "vote")}${voteProgress(d, players)}${timerHtml(d)}`;
+    return `${targetButtons("Chi vuoi eliminare?", players, me.id, "vote", "🗳️")}${voteProgress(d, players)}${timerHtml(d)}`;
   }
 
   if (d.phase === "hunter") {
-    return "<p>Il narratore sta gestendo il Cacciatore. Attendi.</p>";
+    return `<div class="action-state state-wait"><span>🏹</span><div><b>Azione del Cacciatore</b><small>Il narratore sta scegliendo il bersaglio.</small></div></div>`;
   }
 
-  return "<p>Attendi.</p>";
+  return `<div class="action-state state-wait"><span>…</span><div><b>Attendi</b><small>La partita sta proseguendo.</small></div></div>`;
 }
 
 function renderHostControls(d, players) {
@@ -1523,9 +1790,11 @@ function renderHostControls(d, players) {
     buttons.push(`<button class="ghost" data-host-action="newNight">Vai direttamente alla notte</button>`);
   }
   if (d.phase === "vote") {
+    const missing = alivePlayers(players).filter(p => !(d.votes || {})[p.id]).map(p => p.name);
     buttons.push(`<button class="secondary" data-host-action="botsAct">Fai votare i bot</button>`);
-    buttons.push(`<button class="primary" data-host-action="resolveVote">Conta voti</button>`);
-    buttons.push(`<button class="secondary" data-host-action="skipVote">Annulla voto e vai alla notte</button>`);
+    buttons.push(`<button class="primary" data-host-action="resolveVote">Conta i voti ora</button>`);
+    buttons.push(`<button class="secondary" data-host-action="skipVote">Annulla votazione</button>`);
+    if (missing.length) hunterBox += `<div class="missing-voters"><b>Mancano ${missing.length} voti</b><small>${missing.join(", ")}</small></div>`;
   }
   if (!["hunter", "gameOver", "lobby"].includes(d.phase)) {
     buttons.push(`<button class="ghost" data-host-action="toggleAuto">${d.autoMode ? "Disattiva automatico" : "Attiva automatico"}</button>`);
@@ -1540,15 +1809,32 @@ function renderHostControls(d, players) {
   </div>`;
 }
 
-function targetButtons(title, players, excludeId, action) {
-  const targets = alivePlayers(players).filter((p) => p.id !== excludeId);
-  return `<p class="action-title">${title}</p><p class="hint">Tocca un nome per confermare l'azione.</p><div class="action-grid">${targets.map((p) => `<button class="target-btn" data-online-action="${action}" data-target="${p.id}">${p.name}</button>`).join("")}</div>`;
+function targetButtons(title, players, excludeId, action, icon = "🎯") {
+  const targets = alivePlayers(players).filter(p => p.id !== excludeId);
+  return `<div class="action-prompt">
+      <span>${icon}</span>
+      <div><b>${title}</b><small>Tocca una persona. La scelta viene registrata subito.</small></div>
+    </div>
+    <div class="target-grid">
+      ${targets.map(p => `<button class="target-card" data-online-action="${action}" data-target="${p.id}">
+        <span class="target-avatar">${initials(p.name)}</span>
+        <span>${p.name}</span>
+        <i>›</i>
+      </button>`).join("")}
+    </div>`;
 }
 
 function cupidControls(players) {
   const alive = alivePlayers(players);
-  return `<p>Cupido: scegli due innamorati.</p>
-    <div class="cupid-grid">${alive.map((p) => `<button class="target-btn" data-online-action="cupidPick" data-target="${p.id}">${p.name}</button>`).join("")}</div>
+  return `<div class="action-prompt">
+      <span>💘</span>
+      <div><b>Scegli due innamorati</b><small>Devono essere due persone diverse.</small></div>
+    </div>
+    <div class="target-grid cupid-grid">
+      ${alive.map(p => `<button class="target-card" data-online-action="cupidPick" data-target="${p.id}">
+        <span class="target-avatar">${initials(p.name)}</span><span>${p.name}</span><i>›</i>
+      </button>`).join("")}
+    </div>
     <p id="cupidHint" class="hint">Scegli il primo giocatore.</p>`;
 }
 
@@ -1567,12 +1853,30 @@ async function handleCupidPick(targetId) {
 
 function witchControls(d, players) {
   const w = d.witch || { save: true, kill: true };
-  return `<p>Strega: scegli cosa fare.</p>
-    <div class="action-grid">
-      ${w.save ? `<button class="secondary" data-online-action="witchSave" data-target="save">Usa pozione salvezza</button>` : "<p>Pozione salvezza già usata.</p>"}
-      ${w.kill ? targetButtons("Pozione morte: scegli chi colpire", players, null, "witchKill") : "<p>Pozione morte già usata.</p>"}
-      <button class="ghost full" data-online-action="witchSkip" data-target="skip">Non usare pozioni</button>
-    </div>`;
+  const wolfTargets = Object.entries(d.night || {})
+    .filter(([key]) => key.startsWith("wolf_"))
+    .map(([, value]) => value);
+  const victimId = mostFrequent(wolfTargets);
+  const victim = players.find(p => p.id === victimId);
+
+  return `<div class="action-prompt">
+      <span>🧪</span>
+      <div>
+        <b>Decidi se usare una pozione</b>
+        <small>${victim ? `I lupi hanno scelto ${victim.name}.` : "Non c’è una vittima certa dei lupi."}</small>
+      </div>
+    </div>
+    <div class="potion-grid">
+      ${w.save
+        ? `<button class="potion-card save-potion" data-online-action="witchSave" data-target="save" ${victim ? "" : "disabled"}>
+            <span>💚</span><b>Salva${victim ? ` ${victim.name}` : ""}</b><small>Una sola volta</small>
+          </button>`
+        : `<div class="potion-card used-potion"><span>💚</span><b>Salvezza usata</b></div>`}
+      ${w.kill
+        ? `<div class="potion-kill">${targetButtons("Usa la pozione morte", players, null, "witchKill", "☠️")}</div>`
+        : `<div class="potion-card used-potion"><span>☠️</span><b>Pozione morte usata</b></div>`}
+    </div>
+    <button class="ghost full" data-online-action="witchSkip" data-target="skip">Non usare pozioni</button>`;
 }
 
 function mediumControls(players) {
@@ -1584,8 +1888,12 @@ function mediumControls(players) {
 function voteProgress(d, players) {
   const alive = alivePlayers(players);
   const votes = d.votes || {};
-  const count = alive.filter((p) => votes[p.id]).length;
-  return `<div class="vote-progress"><b>${count}/${alive.length}</b> hanno votato</div>`;
+  const count = alive.filter(p => votes[p.id]).length;
+  const percent = alive.length ? Math.round((count / alive.length) * 100) : 0;
+  return `<div class="vote-progress">
+    <div><b>${count}/${alive.length}</b><span>hanno votato</span></div>
+    <div class="vote-meter"><i style="width:${percent}%"></i></div>
+  </div>`;
 }
 
 function nightStepLabel(step) {
@@ -1644,7 +1952,16 @@ async function submitNightAction(action, target) {
       const [a, b] = target || [];
       if (!a || !b || a === b) { msg = "Scegli due giocatori diversi."; return; }
       night[`cupid_${me.id}`] = [a, b];
-      patch.players = players.map((p) => p.id === a ? { ...p, lover: b } : p.id === b ? { ...p, lover: a } : p);
+      patch.players = players.map(p => p.id === a ? { ...p, lover: b } : p.id === b ? { ...p, lover: a } : p);
+      const first = players.find(p => p.id === a);
+      const second = players.find(p => p.id === b);
+      privateResults[me.id] = {
+        type: "cupid",
+        firstName: first?.name || "Primo giocatore",
+        secondName: second?.name || "Secondo giocatore",
+        at: Date.now()
+      };
+      patch.privateResults = privateResults;
       patch.loversChosen = true;
       patch.hostNote = "Cupido ha scelto gli innamorati.";
     } else if (action === "wolf" && step === "wolves" && isWolf(me.role)) {
@@ -1928,7 +2245,7 @@ async function advanceNightStep(d = room.data) {
     tx.update(ref, {
       step: nextStep,
       narration: texts[nextKey] || "Notte.",
-      phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+      phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
       updatedAt: serverTimestamp()
     });
   });
@@ -2017,7 +2334,7 @@ async function resolveOnlineNight(d = room.data) {
         hostLog,
         votes: {},
         resolvingNight: false,
-        phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+        phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "day") * 1000 : null,
         updatedAt: serverTimestamp()
       });
     }
@@ -2049,7 +2366,7 @@ async function startOnlineVote() {
     voteRound: (d.voteRound || 0) + 1,
     narration: narr("vote", "Ogni giocatore vivo può votare una sola volta."),
     hostLog,
-    phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+    phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "vote") * 1000 : null,
     updatedAt: serverTimestamp()
   });
 }
@@ -2078,7 +2395,7 @@ async function startOnlineNight(customText = null) {
     hostNote: "",
     narration: customText || narr("night", "Tutti chiudono gli occhi. Ricomincia la notte."),
     hostLog,
-    phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+    phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
     updatedAt: serverTimestamp()
   });
 }
@@ -2110,7 +2427,7 @@ async function resolveOnlineVote() {
         hostNote: "",
         narration: narr("tie", "Nessuno viene eliminato. Tutti chiudono gli occhi."),
         hostLog,
-        phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+        phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
         updatedAt: serverTimestamp()
       });
       return;
@@ -2181,7 +2498,7 @@ async function resolveOnlineVote() {
         hostNote: "",
         narration: `${target.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`,
         hostLog: voteLog,
-        phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+        phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
         updatedAt: serverTimestamp()
       });
     }
@@ -2230,7 +2547,7 @@ async function resolveHunterShot(targetId) {
       hostNote: "",
       narration: `${shotText} La discussione può continuare.`,
       hostLog,
-      phaseDeadline: seconds > 0 ? Date.now() + seconds * 1000 : null,
+      phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "day") * 1000 : null,
       updatedAt: serverTimestamp()
     });
   }

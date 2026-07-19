@@ -1,44 +1,43 @@
-LUPUS ONLINE V22 — VERSIONE SEMPLICE
+LUPUS ONLINE V23 — MOBILE CLEAN
 
-Questa versione contiene soltanto la modalità online.
+MIGLIORIE PRINCIPALI
+- Home mobile con selettore Crea / Entra: viene mostrata una sola scheda alla volta.
+- Barra fissa in basso durante la partita.
+- Pulsante Azione evidenziato quando è il turno del giocatore.
+- Banner chiaro: è il tuo turno / aspetta / hai votato / sei morto.
+- Ruolo nascosto automaticamente dopo 10 secondi.
+- Card bersaglio più grandi e facili da toccare.
+- Votazione con barra di avanzamento.
+- Il narratore vede chi deve ancora votare.
+- Giocatori che hanno votato indicati senza rivelare il bersaglio.
+- Durata più realistica:
+  * turni notturni = tempo scelto
+  * discussione giorno = 3 volte il tempo scelto
+  * votazione = almeno 30 secondi / circa 2 volte il tempo scelto
+- Stato connessione online/offline.
+- Creazione stanza con controllo collisione codice.
+- Entrata con transazione Firestore.
+- Nomi duplicati bloccati.
+- Limite di 24 giocatori.
 
-COSA CAMBIA
-- Eliminata la modalità Narratore unico.
-- Eliminata la scelta iniziale tra più modalità.
-- Home con soltanto:
-  1. Crea stanza
-  2. Entra in stanza
-  3. Rientra nell'ultima stanza
-- Il nome viene ricordato sul telefono.
-- Nessuna finestra prompt per creare la stanza.
-- Timer semplificato: tranquillo, normale, veloce o manuale.
-- QR code nascosto in una sezione apribile.
-- Ruoli consigliati applicati automaticamente quando entrano almeno 5 giocatori.
-- Personalizzazione ruoli spostata nelle opzioni avanzate.
-- Bot e diagnostica spostati in “Strumenti e prova”.
-- Durante la lobby vengono mostrate soltanto le sezioni utili.
-- Durante la partita compaiono Ruolo e Azione corrente.
-- Grafica mobile più pulita e meno affollata.
-
-FILE
-- index.html
-- style.css
-- script.js
-- manifest.webmanifest
-- sw.js
-- firestore-rules.txt
-- icon-192.png
-- icon-512.png
+CORREZIONI DI SEGRETEZZA
+- Il numero dei lupi non viene più mostrato ai giocatori normali.
+- Gli innamorati non sono più indicati pubblicamente nella lista.
+- Ogni innamorato vede privatamente il proprio partner.
+- I lupi vedono privatamente il branco.
+- Il Traditore vede privatamente i lupi.
+- La Strega vede la vittima scelta dai lupi.
+- Cupido conserva privatamente i nomi degli innamorati scelti.
 
 COME CARICARLA
-Copia tutti i file nella cartella collegata a GitHub, poi:
+Copia tutti i file nella cartella GitHub, poi:
 
 git add .
-git commit -m "Aggiorno Lupus Online V22"
+git commit -m "Aggiorno Lupus Online V23 Mobile Clean"
 git push origin main
 
 DOPO IL DEPLOY
-1. Controlla che appaia V22 in alto.
+1. Controlla che appaia V23.
 2. Apri Impostazioni.
-3. Premi “Aggiorna app e svuota cache” una volta.
-4. Riapri il sito.
+3. Premi “Aggiorna app e svuota cache”.
+4. Riapri il sito e prova prima con i bot.
