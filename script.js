@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V24";
+const APP_VERSION = "V24.1";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -381,8 +381,11 @@ let roleHideInterval = null;
 let lastRenderedPhase = null;
 let lastTurnKey = "";
 let playersPage = 0;
-let targetPage = 0;
-let targetContext = "";
+let playerTargetPage = 0;
+let playerTargetContext = "";
+let hostTargetPage = 0;
+let hostTargetContext = "";
+let witchView = "choices";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -501,8 +504,11 @@ async function leaveCurrentRoom() {
   room.isHost = false;
   room.revealMine = false;
   playersPage = 0;
-  targetPage = 0;
-  targetContext = "";
+  playerTargetPage = 0;
+  playerTargetContext = "";
+  hostTargetPage = 0;
+  hostTargetContext = "";
+  witchView = "choices";
   history.replaceState(null, "", location.pathname + location.search);
   show("homeView");
   toast("Sei uscito dalla stanza.");
@@ -1200,9 +1206,13 @@ function paginateList(items, page, size) {
   const safePage = Math.max(0, Math.min(page, pages - 1));
   return { pages, page: safePage, items: items.slice(safePage * size, safePage * size + size) };
 }
-function targetPagerHtml(pages, page) {
+function targetPagerHtml(pages, page, scope = "player") {
   if (pages <= 1) return "";
-  return `<div class="target-pager"><button class="ghost" data-target-page="${Math.max(0, page - 1)}" ${page <= 0 ? "disabled" : ""}>‹</button><span>${page + 1}/${pages}</span><button class="ghost" data-target-page="${Math.min(pages - 1, page + 1)}" ${page >= pages - 1 ? "disabled" : ""}>›</button></div>`;
+  return `<div class="target-pager">
+    <button class="ghost" data-target-scope="${scope}" data-target-page="${Math.max(0, page - 1)}" ${page <= 0 ? "disabled" : ""}>‹</button>
+    <span>${page + 1}/${pages}</span>
+    <button class="ghost" data-target-scope="${scope}" data-target-page="${Math.min(pages - 1, page + 1)}" ${page >= pages - 1 ? "disabled" : ""}>›</button>
+  </div>`;
 }
 function compactPlayerRowHtml(p, options = {}) {
   const showRole = Boolean(options.showRole && p.role);
@@ -1214,7 +1224,7 @@ function compactPlayerRowHtml(p, options = {}) {
 function renderPlayerPages(d, players) {
   const paged = paginateList(players, playersPage, playerPageSize());
   playersPage = paged.page;
-  $("#roomPlayersList").innerHTML = paged.items.map(p => compactPlayerRowHtml(p, { showRole: d.phase === "gameOver" || (room.isHost && room.narratorShowRoles), meId: room.playerId, phase: d.phase, votes: d.votes || {} })).join("");
+  $("#roomPlayersList").innerHTML = paged.items.map(p => compactPlayerRowHtml(p, { showRole: d.phase === "gameOver", meId: room.playerId, phase: d.phase, votes: d.votes || {} })).join("");
   $("#playersPager").classList.toggle("hidden", paged.pages <= 1);
   $("#playersPageLabel").textContent = `${paged.page + 1}/${paged.pages}`;
   $("#playersPrevBtn").disabled = paged.page <= 0;
@@ -1273,7 +1283,22 @@ function init() {
     }
 
     const targetPager = e.target.closest("[data-target-page]");
-    if (targetPager) { targetPage = Number(targetPager.dataset.targetPage || 0); renderRoom(); return; }
+    if (targetPager) {
+      const page = Number(targetPager.dataset.targetPage || 0);
+      if (targetPager.dataset.targetScope === "host") hostTargetPage = page;
+      else playerTargetPage = page;
+      renderRoom();
+      return;
+    }
+    const uiAction = e.target.closest("[data-ui-action]");
+    if (uiAction) {
+      if (uiAction.dataset.uiAction === "witchKill") witchView = "kill";
+      if (uiAction.dataset.uiAction === "witchBack") witchView = "choices";
+      playerTargetPage = 0;
+      playerTargetContext = "";
+      renderRoom();
+      return;
+    }
     const closeDetails = e.target.closest(".close-details-btn");
     if (closeDetails) { closeDetails.closest("details")?.removeAttribute("open"); return; }
     const onlineAction = e.target.closest("[data-online-action]");
@@ -1368,8 +1393,7 @@ function init() {
   $("#startOnlineGameBtn").onclick = startOnlineGame;
   $("#toggleMyRoleBtn").onclick = revealRoleTemporarily;
   $("#onlineRevealAllBtn").onclick = () => {
-    room.narratorShowRoles = !room.narratorShowRoles;
-    renderRoom();
+    toast("I ruoli restano segreti fino alla fine della partita.");
   };
   $("#roomSpeakBtn").onclick = () => speak($("#roomNarration").textContent);
   $("#roomNextBtn").onclick = onlineAdvanceManual;
@@ -1680,20 +1704,22 @@ function renderRoom() {
   $("#toggleMyRoleBtn").textContent = room.revealMine ? "Nascondi subito" : "Mostra il mio ruolo";
   if (!room.revealMine) $("#roleAutoHideHint").classList.add("hidden");
   if (me?.role && room.revealMine) {
-    $("#myRoleCard").className = "role-card";
+    $("#myRoleCard").className = "mini-role-card";
     $("#myRoleCard").innerHTML = `<span class="mini-role-icon">${roleIcon(me.role)}</span><span><b>${roleName(me.role)}</b><small>${me.name}</small></span>`;
     $("#myRoleCard").onclick = () => openRoleOverlay(me.role, me.name);
   } else {
-    $("#myRoleCard").className = "role-card hidden-role";
+    $("#myRoleCard").className = "mini-role-card hidden-role";
     $("#myRoleCard").innerHTML = me?.role ? "Carta nascosta" : "Ruolo non ancora assegnato";
     $("#myRoleCard").onclick = null;
   }
 
-  $("#roomPrivateInfo").innerHTML = room.revealMine ? privateIntelHtml(d, players, me) : "";
+  $("#roomPrivateInfo").innerHTML = "";
 
   const isLobby = d.phase === "lobby";
   const isGameOver = d.phase === "gameOver";
   $("#oneScreenDashboard").classList.toggle("lobby-mode", isLobby);
+  $("#oneScreenDashboard").classList.toggle("host-lobby", isLobby && room.isHost);
+  $("#oneScreenDashboard").classList.toggle("guest-lobby", isLobby && !room.isHost);
   $("#oneScreenDashboard").classList.toggle("game-mode", !isLobby && !isGameOver);
   $("#oneScreenDashboard").classList.toggle("end-mode", isGameOver);
   $("#inviteSection").classList.toggle("hidden", !(room.isHost && isLobby));
@@ -1701,6 +1727,7 @@ function renderRoom() {
   $("#roomRoleSection").classList.toggle("hidden", isLobby || isGameOver);
   $("#roomActionSection").classList.toggle("hidden", isLobby || isGameOver);
   $("#hostControlBar").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
+  $("#roomSpeakBtn").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
   $("#hostPhaseControls").classList.add("hidden");
   $("#gameQuickNav").classList.add("hidden");
   $("#mobileGameDock").classList.add("hidden");
@@ -1754,11 +1781,31 @@ function privateResultHtml(d, me) {
   return "";
 }
 
+function compactPrivateIntelHtml(d, players, me) {
+  if (!me?.role) return "";
+  const lines = [];
+  if (isWolf(me.role)) {
+    const mates = players.filter(p => p.id !== me.id && p.alive && isWolf(p.role)).map(p => p.name);
+    lines.push(`🐺 ${mates.length ? `Branco: ${mates.join(", ")}` : "Sei l’unico lupo vivo"}`);
+  }
+  if (me.role === "traitor") {
+    const wolves = players.filter(p => p.alive && isWolf(p.role)).map(p => p.name);
+    lines.push(`🗡️ Lupi: ${wolves.length ? wolves.join(", ") : "nessuno vivo"}`);
+  }
+  if (me.lover) {
+    const partner = players.find(p => p.id === me.lover);
+    if (partner) lines.push(`💞 Innamorato/a di ${partner.name}`);
+  }
+  if (me.role === "mayor") lines.push("🎖️ Il tuo voto vale doppio");
+  if (!lines.length) return "";
+  return `<div class="compact-intel-strip">${lines.map(line => `<span>${line}</span>`).join("")}</div>`;
+}
+
 function renderRoomActions(d, players, me) {
   const area = $("#roomActionArea");
   const hostArea = $("#hostControlsArea");
   if (d.phase === "lobby" || d.phase === "gameOver") { area.innerHTML = ""; hostArea.innerHTML = ""; return; }
-  area.innerHTML = `${privateResultHtml(d, me)}${renderPlayerControls(d, players, me)}`;
+  area.innerHTML = `${privateResultHtml(d, me)}${compactPrivateIntelHtml(d, players, me)}${renderPlayerControls(d, players, me)}`;
   hostArea.innerHTML = room.isHost ? renderHostControls(d, players) : "";
 }
 
@@ -1805,9 +1852,9 @@ function renderHostControls(d, players) {
   if (d.phase === "hunter") {
     const hunter = players.find(p => p.id === d.pendingHunterId);
     const targets = alivePlayers(players).filter(p => p.id !== hunter?.id);
-    if (targetContext !== "host-hunter") { targetContext = "host-hunter"; targetPage = 0; }
-    const paged = paginateList(targets, targetPage, 4); targetPage = paged.page;
-    return `<div class="host-hunter-line"><span><b>🏹 ${hunter?.name || "Cacciatore"}</b><small>Scegli bersaglio</small></span><div class="host-targets">${paged.items.map(p => `<button class="secondary" data-host-action="hunter:${p.id}">${p.name}</button>`).join("")}<button class="ghost" data-host-action="hunter:skip">Passa</button></div>${targetPagerHtml(paged.pages, paged.page)}</div>`;
+    if (hostTargetContext !== "host-hunter") { hostTargetContext = "host-hunter"; hostTargetPage = 0; }
+    const paged = paginateList(targets, hostTargetPage, 4); hostTargetPage = paged.page;
+    return `<div class="host-hunter-line"><span><b>🏹 ${hunter?.name || "Cacciatore"}</b><small>Scegli bersaglio</small></span><div class="host-targets">${paged.items.map(p => `<button class="secondary" data-host-action="hunter:${p.id}">${p.name}</button>`).join("")}<button class="ghost" data-host-action="hunter:skip">Passa</button></div>${targetPagerHtml(paged.pages, paged.page, "host")}</div>`;
   }
   const buttons = [];
   if (d.phase === "night") { buttons.push(`<button class="secondary" data-host-action="botsAct">🤖 Bot</button>`,`<button class="primary" data-host-action="next">Avanti</button>`,`<button class="secondary" data-host-action="resolveNight">Alba</button>`); }
@@ -1818,11 +1865,12 @@ function renderHostControls(d, players) {
 }
 
 function targetButtons(title, players, excludeId, action, icon = "🎯") {
-  const targets = alivePlayers(players).filter(p => p.id !== excludeId);
+  let targets = alivePlayers(players).filter(p => p.id !== excludeId);
+  if (action === "wolf") targets = targets.filter(p => !winsWithWolves(p.role));
   const context = `online-${action}`;
-  if (targetContext !== context) { targetContext = context; targetPage = 0; }
-  const paged = paginateList(targets, targetPage, 6); targetPage = paged.page;
-  return `<div class="mini-action-title"><span>${icon}</span><b>${title}</b></div><div class="compact-target-grid">${paged.items.map(p => `<button class="compact-target" data-online-action="${action}" data-target="${p.id}"><span>${initials(p.name)}</span><b>${p.name}</b></button>`).join("")}</div>${targetPagerHtml(paged.pages, paged.page)}`;
+  if (playerTargetContext !== context) { playerTargetContext = context; playerTargetPage = 0; }
+  const paged = paginateList(targets, playerTargetPage, 6); playerTargetPage = paged.page;
+  return `<div class="mini-action-title"><span>${icon}</span><b>${title}</b></div><div class="compact-target-grid">${paged.items.map(p => `<button class="compact-target" data-online-action="${action}" data-target="${p.id}"><span>${initials(p.name)}</span><b>${p.name}</b></button>`).join("")}</div>${targetPagerHtml(paged.pages, paged.page, "player")}`;
 }
 
 function cupidControls(players) { return `${targetButtons("Scegli due innamorati", players, null, "cupidPick", "💘")}<p id="cupidHint" class="compact-hint">${cupidBuffer.length ? "Ora scegli il secondo." : "Scegli il primo."}</p>`; }
@@ -1842,38 +1890,21 @@ async function handleCupidPick(targetId) {
 
 function witchControls(d, players) {
   const w = d.witch || { save: true, kill: true };
-  const wolfTargets = Object.entries(d.night || {})
-    .filter(([key]) => key.startsWith("wolf_"))
-    .map(([, value]) => value);
+  const wolfTargets = Object.entries(d.night || {}).filter(([key]) => key.startsWith("wolf_")).map(([, value]) => value);
   const victimId = mostFrequent(wolfTargets);
   const victim = players.find(p => p.id === victimId);
-
-  return `<div class="action-prompt">
-      <span>🧪</span>
-      <div>
-        <b>Decidi se usare una pozione</b>
-        <small>${victim ? `I lupi hanno scelto ${victim.name}.` : "Non c’è una vittima certa dei lupi."}</small>
-      </div>
-    </div>
-    <div class="potion-grid">
-      ${w.save
-        ? `<button class="potion-card save-potion" data-online-action="witchSave" data-target="save" ${victim ? "" : "disabled"}>
-            <span>💚</span><b>Salva${victim ? ` ${victim.name}` : ""}</b><small>Una sola volta</small>
-          </button>`
-        : `<div class="potion-card used-potion"><span>💚</span><b>Salvezza usata</b></div>`}
-      ${w.kill
-        ? `<div class="potion-kill">${targetButtons("Usa la pozione morte", players, null, "witchKill", "☠️")}</div>`
-        : `<div class="potion-card used-potion"><span>☠️</span><b>Pozione morte usata</b></div>`}
-    </div>
-    <button class="ghost full" data-online-action="witchSkip" data-target="skip">Non usare pozioni</button>`;
+  if (witchView === "kill" && w.kill) {
+    return `<div class="witch-back-row"><button class="ghost" data-ui-action="witchBack">‹ Indietro</button><span>☠️ Scegli chi avvelenare</span></div>${targetButtons("Pozione morte", players, null, "witchKill", "☠️")}`;
+  }
+  return `<div class="mini-action-title"><span>🧪</span><b>${victim ? `Vittima: ${victim.name}` : "Nessuna vittima certa"}</b></div><div class="witch-choice-grid"><button class="witch-choice save-choice" data-online-action="witchSave" data-target="save" ${w.save && victim ? "" : "disabled"}><span>💚</span><b>${w.save ? "Salva" : "Usata"}</b></button><button class="witch-choice kill-choice" data-ui-action="witchKill" ${w.kill ? "" : "disabled"}><span>☠️</span><b>${w.kill ? "Avvelena" : "Usata"}</b></button><button class="witch-choice skip-choice" data-online-action="witchSkip" data-target="skip"><span>⏭️</span><b>Passa</b></button></div>`;
 }
 
 function mediumControls(players) {
   const dead = (players || []).filter(p => !p.alive);
   if (!dead.length) return `<div class="compact-state"><span>🕯️</span><b>Nessun morto</b></div><button class="secondary compact-skip" data-online-action="mediumSkip" data-target="skip">Passa</button>`;
-  if (targetContext !== "online-medium") { targetContext = "online-medium"; targetPage = 0; }
-  const paged = paginateList(dead, targetPage, 6); targetPage = paged.page;
-  return `<div class="mini-action-title"><span>🕯️</span><b>Scegli un morto</b></div><div class="compact-target-grid">${paged.items.map(p => `<button class="compact-target" data-online-action="medium" data-target="${p.id}"><span>${initials(p.name)}</span><b>${p.name}</b></button>`).join("")}</div>${targetPagerHtml(paged.pages, paged.page)}`;
+  if (playerTargetContext !== "online-medium") { playerTargetContext = "online-medium"; playerTargetPage = 0; }
+  const paged = paginateList(dead, playerTargetPage, 6); playerTargetPage = paged.page;
+  return `<div class="mini-action-title"><span>🕯️</span><b>Scegli un morto</b></div><div class="compact-target-grid">${paged.items.map(p => `<button class="compact-target" data-online-action="medium" data-target="${p.id}"><span>${initials(p.name)}</span><b>${p.name}</b></button>`).join("")}</div>${targetPagerHtml(paged.pages, paged.page, "player")}`;
 }
 
 function voteProgress(d, players) { const alive = alivePlayers(players); const count = alive.filter(p => (d.votes || {})[p.id]).length; const percent = alive.length ? Math.round((count / alive.length) * 100) : 0; return `<div class="compact-vote-progress"><span>${count}/${alive.length}</span><i><b style="width:${percent}%"></b></i></div>`; }
@@ -1911,8 +1942,9 @@ async function handleOnlinePlayerAction(action, target) {
       return await submitNightAction(action, target);
     }
   } finally {
-    targetPage = 0;
-    targetContext = "";
+    playerTargetPage = 0;
+    playerTargetContext = "";
+    witchView = "choices";
     setTimeout(() => {
       actionBusy = false;
       document.body.classList.remove("action-busy");

@@ -1,17 +1,15 @@
-LUPUS ONLINE V24 — ONE SCREEN
+LUPUS ONLINE V24.1 — CORREZIONI ONE SCREEN
 
-Durante lobby e partita tutto rimane nella schermata del telefono, senza scorrere la pagina.
+- Corretto il riquadro ruolo compatto.
+- Il narratore-giocatore non può più rivelare ruoli segreti.
+- Informazioni di branco e innamorati mostrate solo al giocatore interessato.
+- I lupi non possono colpire la propria squadra.
+- Paginazione giocatore separata da quella del narratore.
+- Strega: Salva / Avvelena / Passa senza pulsanti tagliati.
+- Lobby ospite usa tutta la schermata.
+- Pulsante voce visibile al narratore durante la partita.
 
-- Stato, ruolo, azione, giocatori e comandi narratore nella stessa dashboard.
-- Fino a 8 giocatori visibili insieme; oltre si usano frecce pagina.
-- Bersagli delle azioni divisi in pagine da 6.
-- Comandi narratore sempre visibili in basso.
-- QR e personalizzazione ruoli si aprono sopra la dashboard.
-- Il narratore continua a essere anche giocatore.
-
-DEPLOY
+Deploy:
 git add .
-git commit -m "Aggiorno Lupus Online V24 One Screen"
+git commit -m "Correggo Lupus Online V24.1"
 git push origin main
-
-Dopo il deploy controlla V24, poi svuota la cache dalle impostazioni.

@@ -2390,3 +2390,23 @@ body.in-game .settings-sheet,body.in-game .confirm-card,body.in-game .role-overl
 @media(min-width:761px){.one-screen-dashboard{max-width:1180px;margin:0 auto}.game-mode .one-screen-main{grid-template-columns:minmax(180px,.72fr) minmax(360px,1.45fr) minmax(220px,.85fr);grid-template-rows:minmax(0,1fr) 72px;grid-template-areas:"role action players" "host host host"}.one-screen-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr))}.mini-player-copy b{font-size:.7rem}.mini-player-copy small{font-size:.57rem}}
 @media(max-height:700px){.one-screen-dashboard{grid-template-rows:42px 50px minmax(0,1fr);gap:4px}.game-mode .one-screen-main{grid-template-rows:108px minmax(0,1fr) 58px}.one-screen-turn{min-height:50px;max-height:50px;padding:5px 8px}.compact-host-panel{padding:3px 5px}.compact-host-buttons button{min-height:39px!important}}
 @media(max-width:360px){.game-mode .one-screen-main{grid-template-columns:105px minmax(0,1fr)}.game-header{padding-left:4px;padding-right:4px}.room-code-button,.phase-compact,.timer-compact{padding-left:7px;padding-right:7px;font-size:.68rem}.compact-host-buttons button{font-size:.54rem!important}}
+
+/* ===== V24.1 CORREZIONI ===== */
+.reveal-all-compact{display:none!important}
+.one-screen-dashboard.guest-lobby .one-screen-main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr);grid-template-areas:"players"}
+.one-screen-dashboard.guest-lobby .compact-players-panel{grid-area:players}
+.one-screen-dashboard.guest-lobby .one-screen-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr))}
+.compact-intel-strip{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;max-height:43px;overflow:hidden}
+.compact-intel-strip span{display:block;max-width:100%;padding:4px 6px;border-radius:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:rgba(99,102,241,.12);border:1px solid rgba(129,140,248,.18);font-size:.56rem;font-weight:850}
+.witch-choice-grid{min-height:0;flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.witch-choice{min-width:0;display:grid;place-items:center;align-content:center;gap:5px;padding:6px 3px;border-radius:12px;color:#fff;border:1px solid rgba(255,255,255,.1)}
+.witch-choice span{font-size:1.25rem}.witch-choice b{font-size:.66rem}
+.save-choice{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.22)}
+.kill-choice{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.22)}
+.skip-choice{background:rgba(100,116,139,.1)}
+.witch-back-row{min-height:32px;display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.witch-back-row button{min-height:29px!important;padding:3px 7px!important;border-radius:8px!important;font-size:.58rem!important}
+.witch-back-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.64rem;font-weight:900}
+.mini-role-card{width:100%}
+body.action-busy .compact-target,body.action-busy .witch-choice{pointer-events:none}
+@media(max-height:620px){.compact-intel-strip{max-height:21px}.compact-intel-strip span{padding-top:2px;padding-bottom:2px}}
