@@ -1,19 +1,22 @@
-LUPUS ONLINE V26 IMMERSIVE EDITION
+LUPUS ONLINE V27 MOBILE EDITION
 
 NOVITÀ
-- Narratore vocale corretto: parla soltanto il telefono che gestisce la stanza.
-- Frasi sincronizzate con il vero turno notturno.
-- Scene cinematografiche per Lupi, Veggente, Guardia, Strega, Medium, alba, voto e finale.
-- Cinque temi: Castello, Horror, Vampiri, Zombie e Far West.
-- Tema e transizioni configurabili dalle impostazioni.
-- Sezione Ruolo più chiara, con pulsante MOSTRA RUOLO ben visibile.
-- Vibrazioni differenti quando è il proprio turno, al voto e al finale.
-- Layout ulteriormente compattato per iPhone e Android piccoli.
-- Auto Mode già disponibile nei controlli del gestore della stanza.
+- Narratore automatico con oltre 150 frasi ironiche e cinematografiche.
+- Frasi mescolate senza ripetizioni ravvicinate: ogni partita risulta diversa.
+- La voce del telefono legge la vera frase mostrata nella stanza, comprese eliminazioni e risultati.
+- Coda vocale più stabile su iPhone e Android, con frasi lunghe divise correttamente.
+- Layout corretto per la viewport reale del telefono: niente salti con le barre di Safari/Chrome.
+- Safe area migliorate per Dynamic Island, notch e barra Home.
+- Interfaccia adattata a telefoni stretti, schermi bassi e modalità orizzontale.
+- Ospiti senza spazio vuoto riservato ai comandi del gestore.
+- Impostazioni corrette e più comode da usare su smartphone.
+- Rimossi gli ID HTML duplicati che potevano causare comandi mobili errati.
+- Timer più evidente negli ultimi cinque secondi.
+- Nessun nuovo ruolo e nessuna modifica alle regole di gioco.
 
 DEPLOY
 git add .
-git commit -m "Aggiorno Lupus Online V26 Immersive"
+git commit -m "Aggiorno Lupus Online V27 Mobile Edition"
 git push origin main
 
-Dopo il deploy usa Aggiorna app e svuota cache, quindi attiva una volta la voce sul telefono che gestisce la stanza.
+Dopo il deploy apri Impostazioni e premi “Aggiorna app e svuota cache”. Sul telefono che gestisce la stanza attiva una volta il narratore vocale.

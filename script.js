@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V26";
+const APP_VERSION = "V27";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -293,67 +293,228 @@ const BOT_NAMES = ["Bot Marco", "Bot Giulia", "Bot Luca", "Bot Sara", "Bot Matte
 
 const LINES = {
   intro: [
-    "Il villaggio sembra tranquillo, ma qualcuno sta già mentendo.",
-    "Le lanterne si spengono. Da questo momento fidarsi è un lusso.",
-    "Occhi chiusi e facce innocenti: la combinazione perfetta per un disastro."
+    "Il villaggio sembra tranquillo. È sempre così, poco prima che qualcuno inizi a mentire.",
+    "Le lanterne si spengono e la fiducia va a dormire per prima.",
+    "Facce innocenti, sorrisi sospetti e almeno una persona che ha già capito tutto. Forse.",
+    "Benvenuti nel villaggio, dove tutti dicono la verità. Questa era la prima bugia.",
+    "La partita comincia. Da ora in poi anche chiedere l’ora può sembrare sospetto.",
+    "Mettetevi comodi. Tra poco qualcuno accuserà il suo migliore amico senza alcuna prova.",
+    "Il villaggio è pronto. Il buon senso, invece, non ha confermato la presenza.",
+    "Si parte. Ricordate: sembrare tranquilli non vi rende innocenti, ma aiuta parecchio.",
+    "Tutto tace. È il momento perfetto per iniziare a dubitare di chiunque.",
+    "La luna sale e con lei il numero di accuse completamente inventate."
   ],
   night: [
-    "La notte cala sul villaggio. Chi russa è probabilmente innocente... o molto bravo a fingere.",
-    "Silenzio. I lupi hanno fame e il villaggio fa finta di dormire.",
-    "Tutti chiudono gli occhi. Anche quelli che pensano di essere furbi."
+    "Scende la notte. Chiudete gli occhi e cercate di non ridere proprio adesso.",
+    "Tutti dormono. O almeno fingono con una serietà sorprendente.",
+    "Il villaggio spegne le luci. Le cattive intenzioni, invece, restano ben sveglie.",
+    "Occhi chiusi. Chi sbircia verrà accusato anche nella prossima partita.",
+    "È notte. Respirate piano e non fate rumori da lupo dilettante.",
+    "Le case si chiudono, le ombre si allungano e qualcuno ha già scelto una pessima strategia.",
+    "Tutti a dormire. Sì, anche chi sostiene di non fidarsi del narratore.",
+    "La notte avvolge il villaggio. Le scuse per domani sono già in preparazione.",
+    "Silenzio assoluto. Il minimo colpo di tosse verrà usato come prova.",
+    "Chiudete gli occhi. Da questo momento ogni fruscio sembra un complotto.",
+    "La luna è alta. Le probabilità di una decisione discutibile anche.",
+    "Il villaggio dorme. I sospetti, come sempre, non ne hanno alcuna intenzione."
+  ],
+  cupid: [
+    "Cupido, apri gli occhi. È il momento di creare una coppia che potrebbe rimpiangerti.",
+    "Cupido si sveglia. Due cuori stanno per ricevere una notifica non richiesta.",
+    "Cupido, scegli due innamorati. L’amore è cieco, ma tu puoi guardare.",
+    "È il turno di Cupido: unisci due destini e lascia il caos fare il resto.",
+    "Cupido prende la mira. Romanticismo e pessime conseguenze sono pronti.",
+    "Cupido, scegli la coppia. Nessuno ha chiesto il tuo intervento, quindi è perfetto.",
+    "Due giocatori stanno per diventare inseparabili. Cupido, decidi chi.",
+    "Cupido si alza in silenzio. Il villaggio non sa ancora che sta nascendo un problema sentimentale."
   ],
   wolves: [
-    "Lupi, aprite gli occhi. Scegliete con calma: il menù del villaggio è ricco.",
-    "I lupi si svegliano. Niente ululati, siamo persone educate.",
-    "Lupi, è il vostro momento. Indicate chi non arriverà sereno al mattino."
+    "Lupi, aprite gli occhi. Il menù del villaggio è aperto, ma niente discussioni infinite.",
+    "Il branco si sveglia. Scegliete una vittima e cercate almeno di sembrare organizzati.",
+    "Lupi, è il vostro momento. Niente ululati: i vicini si lamentano.",
+    "Le ombre si muovono. I lupi scelgono chi avrà una mattinata molto breve.",
+    "Lupi, indicate la vostra preda. Le recensioni del villaggio sono tutte sospette.",
+    "Il branco apre gli occhi. Una decisione rapida vale più di cinque minuti di mimica confusa.",
+    "Lupi, fate la vostra scelta. Il silenzio è elegante, ma mettetevi d’accordo.",
+    "La caccia comincia. Scegliete con cura: ogni errore sarà discusso rumorosamente domani.",
+    "I lupi si svegliano e controllano chi sembra troppo sereno.",
+    "Branco, tocca a voi. Una vittima, zero ululati e possibilmente nessun teatrino.",
+    "Lupi, scegliete chi non vedrà l’alba. Almeno non in questa partita.",
+    "La luna illumina il branco. È tempo di prendere una decisione terribilmente importante."
   ],
   seer: [
-    "Veggente, apri gli occhi. Vediamo se oggi l’intuito batte le bugie.",
-    "Veggente, scegli qualcuno da controllare. Non fare quella faccia, potresti avere ragione.",
-    "Il Veggente indaga. Il villaggio spera che non stia guardando la persona sbagliata."
+    "Veggente, apri gli occhi. Vediamo se l’intuito oggi lavora o è ancora in pausa.",
+    "Il Veggente si sveglia. Scegli qualcuno e scopri se quella faccia innocente è in garanzia.",
+    "Veggente, indica un giocatore. La verità è vicina, ma potrebbe essere molto scomoda.",
+    "È il turno del Veggente. Una sola domanda, nessuna possibilità di chiamare un amico.",
+    "Veggente, controlla chi ti insospettisce. Sì, anche se è la persona più simpatica.",
+    "La sfera si accende. Speriamo non mostri proprio la persona che difendevi da dieci minuti.",
+    "Veggente, scegli con calma. Domani dovrai convincere gli altri senza sembrare troppo informato.",
+    "Il Veggente osserva il villaggio. Qualcuno sta per perdere la copertura.",
+    "Veggente, cerca un lupo. Evita di controllare sempre la stessa persona solo perché ti sta antipatica.",
+    "La verità bussa alla porta. Veggente, decidi a quale.",
+    "Veggente, apri gli occhi. Il tuo intuito è ufficialmente sotto esame.",
+    "Scegli un giocatore, Veggente. Potresti trovare un lupo oppure un’altra persona che non ti crederà."
   ],
   guard: [
-    "Guardia, apri gli occhi. Scegli chi merita una notte tranquilla.",
-    "La Guardia fa il suo giro. Con un po’ di fortuna protegge la persona giusta.",
-    "Guardia, indica chi vuoi proteggere. Niente pressioni, solo la vita di qualcuno."
+    "Guardia, apri gli occhi. Scegli chi merita una notte senza drammi.",
+    "La Guardia inizia il giro. Proteggi qualcuno e spera che i lupi abbiano avuto la stessa idea.",
+    "Guardia, indica chi vuoi salvare. Nessuna pressione: c’è solo una vita in gioco.",
+    "È il turno della Guardia. Scudo pronto, intuito possibilmente acceso.",
+    "Guardia, scegli una persona. Proteggere te stesso è legale, ma poco eroico.",
+    "La Guardia si sveglia. Qualcuno sta per ricevere una sicurezza notturna completamente gratuita.",
+    "Proteggi un giocatore, Guardia. Domani potrai prenderti il merito anche senza prove.",
+    "La Guardia pattuglia il villaggio. Speriamo non stia difendendo proprio un lupo.",
+    "Guardia, fai la tua scelta. Il servizio clienti non accetta reclami dopo l’alba.",
+    "Uno scudo, molti sospetti. Guardia, decidi chi coprire.",
+    "Guardia, scegli chi deve superare la notte. Poi torna a dormire come se niente fosse.",
+    "La Guardia apre gli occhi. Il villaggio confida nel tuo istinto, forse troppo."
   ],
   witch: [
-    "Strega, apri gli occhi. È il momento delle pozioni e delle decisioni discutibili.",
-    "La Strega controlla la sua borsa. Salvezza, veleno e un pizzico di caos.",
-    "Strega, scegli bene: una pozione può salvare la partita o rovinarla con stile."
+    "Strega, apri gli occhi. Pozioni pronte e responsabilità discutibili.",
+    "La Strega controlla la borsa: salvezza, veleno e zero istruzioni per l’uso.",
+    "Strega, scegli bene. Una pozione può cambiare tutto o creare un magnifico disastro.",
+    "È il turno della Strega. Il villaggio spera che tu abbia letto le etichette.",
+    "Strega, puoi salvare, avvelenare o fare finta di non aver sentito nulla.",
+    "La Strega si sveglia. Farmacia aperta, rimborsi esclusi.",
+    "Pozioni sul tavolo. Strega, decidi se essere eroina, minaccia o entrambe.",
+    "Strega, la notte ti presenta il conto. Scegli quale bottiglia aprire.",
+    "La Strega osserva la situazione e probabilmente pensa: perché sempre io?",
+    "Strega, agisci con calma. Il veleno non accetta il tasto annulla.",
+    "È il momento delle pozioni. Leggere attentamente le controindicazioni sarebbe utile, ma è tardi.",
+    "Strega, fai la tua scelta. Domani tutti commenteranno, senza sapere che eri tu."
+  ],
+  medium: [
+    "Medium, apri gli occhi. I morti hanno finalmente qualcosa di utile da dire.",
+    "Il Medium si sveglia e consulta chi non può più interrompere la discussione.",
+    "Medium, scegli un morto. Almeno lui non potrà mentirti in faccia.",
+    "È il turno del Medium. Il confine con l’aldilà ha un’assistenza sorprendentemente rapida.",
+    "Medium, interroga il passato. Il villaggio ne avrà bisogno, anche se non lo ammetterà.",
+    "Le candele si accendono. Medium, scegli chi ascoltare dall’altra parte.",
+    "Il Medium apre gli occhi. I vivi sono confusi, proviamo con i morti.",
+    "Medium, consulta uno spirito. Le risposte potrebbero essere più chiare della discussione diurna.",
+    "È ora di parlare con l’aldilà. Là almeno nessuno cambia versione ogni trenta secondi.",
+    "Medium, scegli un morto e scopri quale ruolo si è portato nella tomba."
+  ],
+  dawn: [
+    "La notte si ritira. Tutti possono riaprire gli occhi, con moderato ottimismo.",
+    "Arriva l’alba. Contatevi bene prima di iniziare a sorridere.",
+    "Il sole sorge sul villaggio. Non è detto che sia una buona notizia per tutti.",
+    "La notte è finita. Aprite gli occhi e preparate le vostre migliori facce sorprese.",
+    "Il gallo canta. Qualcuno lo trova rassicurante, qualcun altro decisamente prematuro.",
+    "Torna la luce. Vediamo chi ha ancora qualcosa da dire.",
+    "Il villaggio si sveglia. Prima regola del mattino: controllare chi manca.",
+    "È giorno. Le ombre spariscono, le bugie invece restano."
   ],
   day: [
-    "Il sole sorge. Qualcuno ha dormito male, qualcuno non ha dormito affatto.",
-    "È giorno. Sorridete pure, tanto qualcuno sta mentendo.",
-    "Il villaggio si sveglia. Le accuse possono iniziare tra tre, due, uno..."
+    "Il sole sorge. Qualcuno ha dormito male e qualcuno non ha dormito affatto.",
+    "È giorno. Sorridete pure: tanto qualcuno sta mentendo.",
+    "Il villaggio si sveglia. Le accuse possono iniziare tra tre, due, uno.",
+    "La piazza si riempie. Portate prove, sospetti o almeno una storia convincente.",
+    "Inizia il giorno. Chi parla troppo è sospetto, chi tace anche. Buona fortuna.",
+    "Il villaggio apre gli occhi e chiude temporaneamente il buon senso.",
+    "È arrivato il momento di discutere. Le amicizie sono ufficialmente sospese.",
+    "La luce del giorno rivela tutto, tranne chi sta dicendo la verità.",
+    "Il villaggio è sveglio. Preparate accuse precise o completamente creative.",
+    "Si discute. Ricordate che dire ‘fidatevi di me’ non è una prova."
+  ],
+  discussion: [
+    "Ora discutete. Cercate il lupo, non il volume più alto della stanza.",
+    "La parola passa al villaggio. Le prove sono gradite, le sceneggiate inevitabili.",
+    "Inizia la discussione. Difendetevi bene e accusate con almeno un minimo di fantasia.",
+    "Avete qualche minuto per capire tutto. Nessuno si aspetta davvero che succeda.",
+    "Parlate, osservate e ricordate chi cambia versione ogni dodici secondi.",
+    "Il villaggio può discutere. Le alleanze dureranno probabilmente meno del timer.",
+    "È tempo di indagini. Anche fissare qualcuno in silenzio sembra una strategia, a quanto pare.",
+    "Confrontate le storie. Una di queste potrebbe perfino essere vera.",
+    "La discussione è aperta. Chi dice ‘io sono sicuramente buono’ parte già malissimo.",
+    "Cercate le contraddizioni. Oppure accusate a caso, come da tradizione."
   ],
   vote: [
     "È ora di votare. Ricordate: urlare più forte non rende più innocenti.",
     "Si vota. Le amicizie finiscono qui, almeno fino alla prossima partita.",
-    "Il villaggio deve decidere. Accuse, difese e pessime intuizioni sono benvenute."
+    "Il villaggio deve decidere. Accuse, difese e pessime intuizioni sono benvenute.",
+    "Tempo scaduto per le parole. Ora servono voti e un po’ di coraggio.",
+    "La votazione è aperta. Scegliete con la testa, oppure con il rancore: nessuno può controllare.",
+    "È il momento della verità. O almeno di una decisione collettiva molto rumorosa.",
+    "Votate chi ritenete un lupo. Non chi vi ha rubato l’ultima patatina.",
+    "Il villaggio sceglie un nome. Pensateci bene: il tasto indietro non salva nessuno.",
+    "Si passa ai voti. Ogni scelta pesa, quella del Sindaco un po’ di più.",
+    "È ora di eliminare un sospetto. La certezza non è richiesta, purtroppo.",
+    "Votate. Qualcuno sta per scoprire quanto vale davvero la fiducia del gruppo.",
+    "La piazza vuole un verdetto. Fate la vostra scelta e assumetevi almeno metà della colpa."
   ],
   tie: [
-    "Parità. Il villaggio non decide e nessuno viene eliminato.",
-    "I voti si annullano. La confusione vince il turno.",
-    "Nessuna maggioranza. Ottimo lavoro, oppure pessimo: lo scoprirete più tardi."
+    "Parità. Il villaggio non decide e la confusione si prende il punto.",
+    "I voti si annullano. Nessuno esce, ma tutti diventano ancora più sospetti.",
+    "Nessuna maggioranza. Ottimo lavoro, oppure pessimo: lo scoprirete più tardi.",
+    "Pareggio perfetto. Il villaggio rimanda la decisione e i lupi ringraziano educatamente.",
+    "La votazione finisce in parità. Nessun colpevole, nessun innocente, solo caos.",
+    "Nessuno viene eliminato. Le accuse restano in circolo, come un brutto pettegolezzo.",
+    "Il villaggio non trova un accordo. La notte, invece, arriverà puntualissima.",
+    "Parità. Tutti salvi per ora e tutti pronti a dire ‘io l’avevo detto’."
+  ],
+  elimination: [
+    "Il villaggio ha deciso. Speriamo almeno che abbia deciso bene.",
+    "Il verdetto è arrivato. La sicurezza mostrata fino a un secondo fa è improvvisamente sparita.",
+    "La piazza indica un colpevole. O un innocente molto sfortunato.",
+    "La votazione è conclusa. Qualcuno deve salutare il villaggio.",
+    "Decisione presa. Da questo momento ogni errore verrà ricordato per tutta la serata.",
+    "Il villaggio emette la sentenza. Le prove restano discutibili, il risultato no.",
+    "Un nome ha raccolto più sospetti degli altri. È il momento del verdetto.",
+    "La maggioranza ha parlato. Non è detto che abbia ragione, ma ha parlato."
   ],
   death: [
     "Brutte notizie al mattino.",
-    "Il villaggio conta i presenti... e manca qualcuno.",
-    "La notte ha lasciato il segno."
+    "Il villaggio conta i presenti e i conti non tornano.",
+    "La notte ha lasciato il segno.",
+    "Qualcuno non risponde all’appello.",
+    "Il risveglio porta una notizia che nessuno voleva sentire.",
+    "La notte non è passata senza conseguenze.",
+    "Manca una voce nella piazza del villaggio.",
+    "Il sole è sorto, ma per qualcuno decisamente troppo tardi."
   ],
   safe: [
     "Colpo di scena: nessuno è morto. Per una volta il villaggio ha avuto fortuna.",
     "Questa notte non è morto nessuno. I lupi dovranno rivedere la strategia.",
-    "Nessuna vittima stanotte. Qualcuno si prende il merito, anche se magari non c’entra niente."
+    "Nessuna vittima stanotte. Qualcuno si prende il merito, anche se magari non c’entra niente.",
+    "Tutti presenti. Il villaggio festeggia, i lupi fingono entusiasmo.",
+    "La notte finisce senza vittime. Un raro momento di pace, non abituatevi.",
+    "Nessuno è stato eliminato. La Guardia sorride, la Strega pure, forse senza motivo.",
+    "Il villaggio è ancora al completo. Le accuse, purtroppo, anche.",
+    "Nessun morto. Ottima notizia per tutti, tranne per chi aveva preparato un discorso commovente."
   ],
   skip: [
-    "Il villaggio decide di non votare. Scelta prudente... o codarda, dipende dai punti di vista.",
-    "Nessuna eliminazione oggi. I sospetti restano vivi, purtroppo anche i lupi forse.",
-    "Votazione saltata. Tutti salvi per ora, ma la notte non fa sconti."
+    "Il villaggio decide di non votare. Scelta prudente o codarda, dipende da chi racconta la storia.",
+    "Nessuna eliminazione oggi. I sospetti restano vivi e forse anche i lupi.",
+    "Votazione saltata. Tutti salvi per ora, ma la notte non fa sconti.",
+    "Il villaggio rimanda il verdetto. I lupi apprezzano la gentilezza.",
+    "Nessun voto. Le accuse vengono conservate per domani, insieme ai rancori.",
+    "La piazza non decide. La notte prende nota e prosegue.",
+    "Oggi nessuno viene eliminato. È una tregua, non un’assoluzione.",
+    "Il voto viene saltato. Qualcuno tira un sospiro di sollievo un po’ troppo evidente."
+  ],
+  hunter: [
+    "Il Cacciatore ha ancora un ultimo colpo. Anche da eliminato non sa stare tranquillo.",
+    "Cacciatore, scegli chi portare con te. L’uscita di scena può ancora diventare memorabile.",
+    "Il Cacciatore prepara l’ultimo colpo. Qualcuno farebbe bene a smettere di sorridere.",
+    "Ultima azione del Cacciatore. Una freccia, molti rimpianti possibili.",
+    "Il Cacciatore non ha finito. Scegli il bersaglio e chiudi la faccenda con stile.",
+    "Cacciatore, tocca a te. Il villaggio pensava fosse finita, ingenuamente.",
+    "Un ultimo colpo risuona nel villaggio. Decidi verso chi.",
+    "Il Cacciatore può reagire. È il momento perfetto per una scelta impulsiva, oppure no."
+  ],
+  gameOver: [
+    "La partita è finita. Ora tutti possono finalmente dire che avevano capito tutto dall’inizio.",
+    "Sipario. Le bugie sono terminate e iniziano le giustificazioni.",
+    "Il villaggio scopre la verità. Alcuni saranno fieri, altri molto meno.",
+    "Fine della partita. È il momento di rivelare ruoli, strategie e pessime decisioni.",
+    "La storia si chiude. Le amicizie possono essere riattivate, con cautela.",
+    "Il verdetto finale è arrivato. Adesso potete discutere su chi ha rovinato tutto.",
+    "Partita conclusa. Il mistero è risolto, il dibattito post-partita appena iniziato.",
+    "Tutto è finito. Tranne la persona che continuerà a dire ‘ve l’avevo detto’."
   ]
 };
-
 const NIGHT_STEPS = ["cupid", "wolves", "seer", "guard", "witch", "medium", "dawn"];
 let local = null;
 let room = {
@@ -386,6 +547,10 @@ let voiceUnlocked = sessionStorage.getItem("lupusVoiceUnlocked") === "true";
 let lastSpokenKey = "";
 let lastSpokenText = "";
 let availableVoices = [];
+let speechQueue = [];
+let speechToken = 0;
+const narrationBags = new Map();
+const lastNarrationLine = new Map();
 let selectedTheme = localStorage.getItem("lupusTheme") || "castle";
 let cinematicEnabled = localStorage.getItem("lupusCinematic") !== "false";
 let lastCinematicKey = "";
@@ -407,14 +572,41 @@ function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-function randomLine(type) {
-  const arr = LINES[type] || [];
-  return arr[Math.floor(Math.random() * arr.length)] || "";
+function shuffled(items) {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }
 
-function narr(type, text) {
-  const prefix = randomLine(type);
-  return prefix ? `${prefix} ${text}` : text;
+function resetNarrationBags() {
+  narrationBags.clear();
+  lastNarrationLine.clear();
+}
+
+function randomLine(type) {
+  const source = LINES[type] || [];
+  if (!source.length) return "";
+  let bag = narrationBags.get(type) || [];
+  if (!bag.length) {
+    bag = shuffled(source);
+    const previous = lastNarrationLine.get(type);
+    if (bag.length > 1 && bag[0] === previous) [bag[0], bag[1]] = [bag[1], bag[0]];
+  }
+  const line = bag.shift() || "";
+  narrationBags.set(type, bag);
+  lastNarrationLine.set(type, line);
+  return line;
+}
+
+function narr(type, text = "") {
+  const prefix = randomLine(type).trim();
+  const suffix = String(text || "").trim();
+  if (!prefix) return suffix;
+  if (!suffix) return prefix;
+  return `${prefix} ${suffix}`.replace(/\s+/g, " ").trim();
 }
 
 function toast(msg) {
@@ -450,24 +642,36 @@ function show(viewId) {
   document.body.classList.toggle("in-game", ["localGameView", "roomView"].includes(viewId));
   if (viewId === "homeView") setStage("home");
   if (viewId === "onlineChoiceView" || viewId === "joinRoomView") setStage("lobby");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function speak(text) {
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(String(text || ""));
-    u.lang = "it-IT";
-    u.rate = 0.93;
-    const italianVoice = speechSynthesis.getVoices().find(v => /^it(-|_)/i.test(v.lang));
-    if (italianVoice) u.voice = italianVoice;
-    speechSynthesis.speak(u);
-  } catch {}
+  speakNarration(text, { force: true });
 }
 
 function vibrate(ms = 80) {
   if (!settings.vibration) return;
   try { navigator.vibrate?.(ms); } catch {}
+}
+
+function syncViewportMetrics() {
+  const viewport = window.visualViewport;
+  const height = Math.max(320, Math.round(viewport?.height || window.innerHeight));
+  const width = Math.max(280, Math.round(viewport?.width || window.innerWidth));
+  document.documentElement.style.setProperty("--app-height", `${height}px`);
+  document.documentElement.style.setProperty("--app-width", `${width}px`);
+  const keyboardOpen = Boolean(viewport && window.innerHeight - viewport.height > 140);
+  document.body.classList.toggle("keyboard-open", keyboardOpen);
+  document.body.classList.toggle("very-short-screen", height < 590);
+  document.body.classList.toggle("very-narrow-screen", width < 350);
+}
+
+function setupMobileViewport() {
+  syncViewportMetrics();
+  window.addEventListener("resize", syncViewportMetrics, { passive: true });
+  window.addEventListener("orientationchange", () => setTimeout(syncViewportMetrics, 120), { passive: true });
+  window.visualViewport?.addEventListener("resize", syncViewportMetrics, { passive: true });
+  window.visualViewport?.addEventListener("scroll", syncViewportMetrics, { passive: true });
 }
 
 async function updateWakeLock() {
@@ -800,6 +1004,7 @@ async function runDiagnostics() {
 
 async function quickBotTest() {
   try {
+    resetNarrationBags();
     const code = roomCode();
     const hostId = uid();
     const hostName = ($("#createName")?.value.trim().slice(0, 24) || "Tu");
@@ -848,7 +1053,7 @@ async function quickBotTest() {
       witch: { save: true, kill: true },
       loversChosen: false,
       pendingHunterId: null,
-      narration: narr("night", "Test rapido avviato con sette bot. Tutti chiudono gli occhi."),
+      narration: `${randomLine("intro")} Test rapido avviato con sette bot. ${randomLine("night")}`.replace(/\s+/g, " ").trim(),
       hostNote: "Test automatico: usa “Fai giocare i bot” oppure lascia avanzare il timer.",
       hostLog: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Test rapido con bot avviato." }],
       createdAt: serverTimestamp(),
@@ -867,6 +1072,8 @@ async function quickBotTest() {
 
 async function restartOnlineSamePlayers() {
   if (!room.isHost || !room.data) return;
+  resetNarrationBags();
+  lastSpokenKey = "";
   const d = room.data;
   const players = (d.players || []).map(p => ({
     ...p,
@@ -1250,48 +1457,147 @@ function compactTimerText(d) {
 }
 
 
-function loadVoices(){ if("speechSynthesis" in window) availableVoices=speechSynthesis.getVoices()||[]; }
-function italianVoice(){ return availableVoices.find(v=>/^it(-|_)/i.test(v.lang))||availableVoices.find(v=>/ital/i.test(v.name))||availableVoices[0]||null; }
-function setVoiceEnabled(v){ voiceEnabled=!!v; localStorage.setItem("lupusVoiceEnabled",String(voiceEnabled)); if($("#voiceEnabledInput")) $("#voiceEnabledInput").checked=voiceEnabled; updateVoiceButtons(); if(!voiceEnabled&&"speechSynthesis" in window) speechSynthesis.cancel(); }
-function setVoiceRate(v){ voiceRate=Math.max(.75,Math.min(1.35,Number(v)||1)); localStorage.setItem("lupusVoiceRate",String(voiceRate)); if($("#voiceRateInput")) $("#voiceRateInput").value=voiceRate; if($("#voiceRateValue")) $("#voiceRateValue").textContent=`${voiceRate.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}×`; }
-function requestVoiceUnlock(){ if(voiceEnabled&&!voiceUnlocked&&"speechSynthesis" in window) $("#audioUnlockOverlay")?.classList.remove("hidden"); }
-function unlockVoice(){ voiceUnlocked=true; sessionStorage.setItem("lupusVoiceUnlocked","true"); $("#audioUnlockOverlay")?.classList.add("hidden"); speakNarration("Narratore vocale attivato.",{force:true}); }
-function speakNarration(text,opt={}){ if(!text||!("speechSynthesis" in window)) return; if(!voiceEnabled&&!opt.force) return; if(!voiceUnlocked&&!opt.force){ requestVoiceUnlock(); return; } const clean=String(text).replace(/\s+/g," ").trim(); if(!clean)return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(clean); u.lang="it-IT"; u.rate=voiceRate; u.pitch=1; u.volume=1; const v=italianVoice(); if(v)u.voice=v; speechSynthesis.speak(u); lastSpokenText=clean; }
-function narrationForState(d, players){
-  if(!d)return null;
-  const p=d.phase||"lobby", r=d.round||d.nightNumber||0;
-  if(p==="lobby")return null;
-  if(p==="gameOver"){
-    const w=d.winner;
-    return {key:`end:${w}`,text:w==="wolves"?"La partita è terminata. Hanno vinto i lupi.":w==="village"?"La partita è terminata. Ha vinto il villaggio.":"La partita è terminata."};
-  }
-  if(p==="day")return{key:`day:${r}:${d.phaseStartedAt||''}`,text:"La notte è terminata. Tutti possono riaprire gli occhi. Inizia la discussione."};
-  if(p==="vote")return{key:`vote:${r}:${d.phaseStartedAt||''}`,text:"È il momento della votazione. Ogni giocatore scelga chi eliminare."};
-  if(p==="hunter")return{key:`hunter:${d.pendingHunterId||''}`,text:"Il Cacciatore è stato eliminato e deve scegliere chi portare con sé."};
-  if(p==="night"){
-    const s=currentNightStep(d, players||[]);
-    const messages={
-      cupid:"Cupido si sveglia e sceglie due innamorati.",
-      wolves:"I lupi si svegliano e scelgono una vittima.",
-      seer:"Il Veggente si sveglia e osserva un giocatore.",
-      guard:"La Guardia si sveglia e sceglie chi proteggere.",
-      witch:"La Strega si sveglia. Può salvare la vittima oppure usare la pozione di morte.",
-      medium:"Il Medium si sveglia e consulta uno dei morti.",
-      dawn:"La notte è terminata. Tutti possono riaprire gli occhi."
-    };
-    return{key:`night:${r}:${s}`,text:messages[s]||"Scende la notte. Tutti chiudono gli occhi."};
-  }
-  return null;
+function loadVoices() {
+  if ("speechSynthesis" in window) availableVoices = speechSynthesis.getVoices() || [];
 }
-function maybeSpeakGameState(d, players){
-  if (!room.isHost) return;
-  const n=narrationForState(d, players);
-  if(!n||n.key===lastSpokenKey)return;
-  lastSpokenKey=n.key;
-  speakNarration(n.text);
-}
-function updateVoiceButtons(){ if($("#voiceToggleBtn")){ $("#voiceToggleBtn").textContent=voiceEnabled?"🔊":"🔇"; $("#voiceToggleBtn").classList.toggle("voice-on",voiceEnabled); $("#voiceToggleBtn").classList.toggle("voice-off",!voiceEnabled);} if($("#voiceEnabledInput")) $("#voiceEnabledInput").checked=voiceEnabled; setVoiceRate(voiceRate); }
 
+function italianVoice() {
+  const italian = availableVoices.filter(v => /^it(-|_)/i.test(v.lang) || /ital/i.test(v.name));
+  return italian.find(v => v.localService) || italian[0] || availableVoices.find(v => v.localService) || availableVoices[0] || null;
+}
+
+function setVoiceEnabled(v) {
+  voiceEnabled = Boolean(v);
+  if (voiceEnabled) lastSpokenKey = "";
+  localStorage.setItem("lupusVoiceEnabled", String(voiceEnabled));
+  if ($("#voiceEnabledInput")) $("#voiceEnabledInput").checked = voiceEnabled;
+  updateVoiceButtons();
+  if (!voiceEnabled && "speechSynthesis" in window) {
+    speechToken += 1;
+    speechQueue = [];
+    speechSynthesis.cancel();
+  }
+}
+
+function setVoiceRate(v) {
+  voiceRate = Math.max(.75, Math.min(1.35, Number(v) || 1));
+  localStorage.setItem("lupusVoiceRate", String(voiceRate));
+  if ($("#voiceRateInput")) $("#voiceRateInput").value = voiceRate;
+  if ($("#voiceRateValue")) $("#voiceRateValue").textContent = `${voiceRate.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")}×`;
+}
+
+function requestVoiceUnlock() {
+  if (voiceEnabled && !voiceUnlocked && "speechSynthesis" in window) $("#audioUnlockOverlay")?.classList.remove("hidden");
+}
+
+function unlockVoice() {
+  voiceUnlocked = true;
+  sessionStorage.setItem("lupusVoiceUnlocked", "true");
+  $("#audioUnlockOverlay")?.classList.add("hidden");
+  const current = narrationForState(room.data, room.data?.players || []);
+  lastSpokenKey = current?.key || "";
+  const activation = "Narratore vocale attivato. Prometto di non ululare troppo forte.";
+  speakNarration(current ? `${activation} ${current.text}` : activation, { force: true });
+}
+
+function splitSpeechText(text) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return [];
+  const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
+  const chunks = [];
+  let current = "";
+  for (const sentence of sentences) {
+    const candidate = `${current} ${sentence}`.trim();
+    if (candidate.length > 190 && current) {
+      chunks.push(current);
+      current = sentence.trim();
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+function playSpeechQueue(token, options = {}) {
+  if (token !== speechToken || !speechQueue.length || !("speechSynthesis" in window)) return;
+  const text = speechQueue.shift();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "it-IT";
+  utterance.rate = voiceRate;
+  utterance.pitch = options.pitch || 1;
+  utterance.volume = 1;
+  const voice = italianVoice();
+  if (voice) utterance.voice = voice;
+  utterance.onend = () => playSpeechQueue(token, options);
+  utterance.onerror = event => {
+    if (event.error !== "canceled" && event.error !== "interrupted") console.warn("Voce narratore:", event.error);
+    playSpeechQueue(token, options);
+  };
+  speechSynthesis.speak(utterance);
+}
+
+function speakNarration(text, options = {}) {
+  if (!text || !("speechSynthesis" in window)) return;
+  if (!voiceEnabled && !options.force) return;
+  if (!voiceUnlocked && !options.force) {
+    requestVoiceUnlock();
+    return;
+  }
+  const chunks = splitSpeechText(text);
+  if (!chunks.length) return;
+  speechToken += 1;
+  const token = speechToken;
+  speechQueue = chunks;
+  speechSynthesis.cancel();
+  lastSpokenText = chunks.join(" ");
+  setTimeout(() => playSpeechQueue(token, options), 40);
+}
+
+function textHash(value = "") {
+  let hash = 2166136261;
+  for (const char of String(value)) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function narrationForState(d, players) {
+  if (!d || d.phase === "lobby") return null;
+  const phase = d.phase || "lobby";
+  const round = d.nightNumber || d.dayNumber || d.voteRound || 0;
+  const step = phase === "night" ? currentNightStep(d, players || []) : "";
+  const fallbacks = {
+    night: "Scende la notte. Tutti chiudono gli occhi.",
+    day: "La notte è terminata. Tutti possono riaprire gli occhi.",
+    vote: "È il momento della votazione. Ogni giocatore scelga chi eliminare.",
+    hunter: "Il Cacciatore deve scegliere chi portare con sé.",
+    gameOver: d.winnerText || "La partita è terminata."
+  };
+  const text = String(d.narration || fallbacks[phase] || "").trim();
+  if (!text) return null;
+  return { key: `${phase}:${round}:${step}:${textHash(text)}`, text };
+}
+
+function maybeSpeakGameState(d, players) {
+  if (!room.isHost) return;
+  const narration = narrationForState(d, players);
+  if (!narration || narration.key === lastSpokenKey) return;
+  lastSpokenKey = narration.key;
+  const pitch = d.phase === "night" ? .94 : d.phase === "gameOver" ? 1.05 : 1;
+  speakNarration(narration.text, { pitch });
+}
+
+function updateVoiceButtons() {
+  if ($("#voiceToggleBtn")) {
+    $("#voiceToggleBtn").textContent = voiceEnabled ? "🔊" : "🔇";
+    $("#voiceToggleBtn").classList.toggle("voice-on", voiceEnabled);
+    $("#voiceToggleBtn").classList.toggle("voice-off", !voiceEnabled);
+  }
+  if ($("#voiceEnabledInput")) $("#voiceEnabledInput").checked = voiceEnabled;
+  setVoiceRate(voiceRate);
+}
 
 function applyTheme(theme) {
   const allowed = ["castle","horror","vampire","zombie","western"];
@@ -1364,6 +1670,7 @@ function immersiveHaptic(d, players, me) {
 /* -------------------- INIT -------------------- */
 
 function init() {
+  setupMobileViewport();
   makeRolePicker($("#onlineRolePicker"), "online");
 
   applyTheme(selectedTheme);
@@ -1375,10 +1682,9 @@ function init() {
   if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=loadVoices;
   updateVoiceButtons();
   $("#voiceToggleBtn").onclick=()=>{setVoiceEnabled(!voiceEnabled); if(voiceEnabled)requestVoiceUnlock(); toast(voiceEnabled?"Narratore vocale attivo.":"Narratore vocale disattivato.");};
-  $("#roomSpeakBtn").onclick=()=>{if(lastSpokenText)speakNarration(lastSpokenText,{force:true});};
   $("#voiceEnabledInput").onchange=e=>{setVoiceEnabled(e.target.checked); if(voiceEnabled)requestVoiceUnlock();};
   $("#voiceRateInput").oninput=e=>setVoiceRate(e.target.value);
-  $("#testVoiceBtn").onclick=()=>{if(!voiceUnlocked){requestVoiceUnlock();return;} speakNarration("Questa è la voce del narratore automatico.",{force:true});};
+  $("#testVoiceBtn").onclick=()=>{if(!voiceUnlocked){requestVoiceUnlock();return;} speakNarration("Questa è la voce del narratore automatico. Ogni partita userà frasi diverse e un po’ meno prevedibili.", { force: true });};
   $("#audioUnlockBtn").onclick=unlockVoice;
   $("#settingsBtn").onclick = openSettings;
   $("#roomSettingsBtn").onclick = openSettings;
@@ -1535,7 +1841,7 @@ function init() {
   $("#onlineRevealAllBtn").onclick = () => {
     toast("I ruoli restano segreti fino alla fine della partita.");
   };
-  $("#roomSpeakBtn").onclick = () => speak($("#roomNarration").textContent);
+  $("#roomSpeakBtn").onclick = () => speakNarration(lastSpokenText || room.data?.narration || $("#roomNarration").textContent, { force: true });
   $("#roomNextBtn").onclick = onlineAdvanceManual;
 
   $("#joinCode").addEventListener("input", e => {
@@ -1773,6 +2079,8 @@ function listenRoom(code) {
 
 async function startOnlineGame() {
   if (!room.isHost || !room.data) return;
+  resetNarrationBags();
+  lastSpokenKey = "";
   const players = [...(room.data.players || [])];
   const counts = getCounts("online");
   const validation = setupValidation("online", players.length);
@@ -1802,7 +2110,7 @@ async function startOnlineGame() {
     witch: { save: true, kill: true },
     loversChosen: false,
     pendingHunterId: null,
-    narration: narr("night", "Partita iniziata. Tutti guardano la propria carta. Poi parla il turno della notte."),
+    narration: `${randomLine("intro")} ${randomLine("night")} Guardate il vostro ruolo, poi chiudete gli occhi.`.replace(/\s+/g, " ").trim(),
     hostNote: "Automatico attivo se il timer non è su manuale.",
     hostLog: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Partita online iniziata." }, ...((room.data.hostLog || []).slice(0, 29))],
     updatedAt: serverTimestamp()
@@ -1861,6 +2169,8 @@ function renderRoom() {
   $("#oneScreenDashboard").classList.toggle("host-lobby", isLobby && room.isHost);
   $("#oneScreenDashboard").classList.toggle("guest-lobby", isLobby && !room.isHost);
   $("#oneScreenDashboard").classList.toggle("game-mode", !isLobby && !isGameOver);
+  $("#oneScreenDashboard").classList.toggle("host-game", !isLobby && !isGameOver && room.isHost);
+  $("#oneScreenDashboard").classList.toggle("guest-game", !isLobby && !isGameOver && !room.isHost);
   $("#oneScreenDashboard").classList.toggle("end-mode", isGameOver);
   $("#inviteSection").classList.toggle("hidden", !(room.isHost && isLobby));
   $("#hostSetupSection").classList.toggle("hidden", !(room.isHost && isLobby));
@@ -1868,15 +2178,17 @@ function renderRoom() {
   $("#roomActionSection").classList.toggle("hidden", isLobby || isGameOver);
   $("#hostControlBar").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
   $("#roomSpeakBtn").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
-  $("#voiceToggleBtn").classList.toggle("hidden", !room.isHost && !isLobby);
+  $("#voiceToggleBtn").classList.toggle("hidden", !room.isHost);
   document.documentElement.dataset.gamePhase = d.phase;
   $("#hostPhaseControls").classList.add("hidden");
   $("#gameQuickNav").classList.add("hidden");
   $("#mobileGameDock").classList.add("hidden");
   $("#narratorToolsSection").classList.add("hidden");
   const compactTimer = compactTimerText(d);
+  const timerSeconds = compactTimer ? Number(compactTimer.replace(/\D/g, "")) : 0;
   $("#gameTimerCompact").textContent = compactTimer;
   $("#gameTimerCompact").classList.toggle("hidden", !compactTimer);
+  $("#gameTimerCompact").classList.toggle("timer-urgent", Boolean(compactTimer && timerSeconds <= 5));
   $("#playerCountBadge").textContent = players.length;
   $("#roomMainTitle").textContent = isLobby ? "Prepara la stanza" : phaseLabel(d.phase);
 
@@ -2410,13 +2722,13 @@ async function advanceNightStep(d = room.data) {
     const seconds = Number(current.phaseSeconds || 20);
     const nextKey = currentNightStep({ ...current, step: nextStep }, players);
     const texts = {
-      cupid: narr("intro", "Cupido sceglie due innamorati."),
-      wolves: narr("wolves", "I lupi scelgono una vittima."),
-      seer: narr("seer", "Il Veggente sceglie chi controllare."),
-      guard: narr("guard", "La Guardia sceglie chi proteggere."),
-      witch: narr("witch", "La Strega decide se usare le pozioni."),
-      medium: "Il Medium può controllare un morto.",
-      dawn: narr("day", "La notte si chiude. Si scopre cosa è successo.")
+      cupid: narr("cupid", "Scegli due giocatori."),
+      wolves: narr("wolves", "Scegliete una vittima."),
+      seer: narr("seer", "Scegli chi controllare."),
+      guard: narr("guard", "Scegli chi proteggere."),
+      witch: narr("witch", "Decidi se usare una pozione."),
+      medium: narr("medium", "Scegli un morto da consultare."),
+      dawn: narr("dawn")
     };
 
     tx.update(ref, {
@@ -2473,7 +2785,7 @@ async function resolveOnlineNight(d = room.data) {
         players: updatedPlayers,
         phase: "hunter",
         pendingHunterId: hunter.id,
-        narration: baseText,
+        narration: `${baseText} ${randomLine("hunter")}`.replace(/\s+/g, " ").trim(),
         hostNote: `${hunter.name} era il Cacciatore: può sparare.`,
         night: {},
         nightOrder: [],
@@ -2491,7 +2803,7 @@ async function resolveOnlineNight(d = room.data) {
         players: updatedPlayers,
         phase: "gameOver",
         winnerText: win,
-        narration: `${baseText} ${win}`,
+        narration: `${baseText} ${randomLine("gameOver")} ${win}`.replace(/\s+/g, " ").trim(),
         night: {},
         nightOrder: [],
         hostLog,
@@ -2505,7 +2817,7 @@ async function resolveOnlineNight(d = room.data) {
         phase: "day",
         step: 0,
         dayNumber: (d.dayNumber || 0) + 1,
-        narration: `${baseText} Ora discutete.`,
+        narration: `${baseText} ${randomLine("discussion")}`.replace(/\s+/g, " ").trim(),
         night: {},
         nightOrder: [],
         hostLog,
@@ -2602,7 +2914,7 @@ async function resolveOnlineVote() {
         votes: {},
         night: {},
         hostNote: "",
-        narration: narr("tie", "Nessuno viene eliminato. Tutti chiudono gli occhi."),
+        narration: `${randomLine("tie")} ${randomLine("night")}`.replace(/\s+/g, " ").trim(),
         hostLog,
         phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
         updatedAt: serverTimestamp()
@@ -2624,7 +2936,7 @@ async function resolveOnlineVote() {
         players: updatedPlayers,
         phase: "gameOver",
         winnerText,
-        narration: `${target.name} è stato eliminato. ${winnerText}`,
+        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. ${randomLine("gameOver")} ${winnerText}`.replace(/\s+/g, " ").trim(),
         hostLog: voteLog,
         resolvingVote: false,
         phaseDeadline: null,
@@ -2639,7 +2951,7 @@ async function resolveOnlineVote() {
         players: updatedPlayers,
         phase: "hunter",
         pendingHunterId: hunter.id,
-        narration: `${target.name} è stato eliminato. Il ruolo resta segreto.`,
+        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. Il ruolo resta segreto. ${randomLine("hunter")}`.replace(/\s+/g, " ").trim(),
         hostNote: `${hunter.name} era il Cacciatore: può sparare.`,
         hostLog: voteLog,
         resolvingVote: false,
@@ -2655,7 +2967,7 @@ async function resolveOnlineVote() {
         players: updatedPlayers,
         phase: "gameOver",
         winnerText: win,
-        narration: `${target.name} è stato eliminato. Il ruolo resta segreto. ${win}`,
+        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. Il ruolo resta segreto. ${randomLine("gameOver")} ${win}`.replace(/\s+/g, " ").trim(),
         hostLog: voteLog,
         resolvingVote: false,
         phaseDeadline: null,
@@ -2673,7 +2985,7 @@ async function resolveOnlineVote() {
         votes: {},
         night: {},
         hostNote: "",
-        narration: `${target.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`,
+        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. Il ruolo resta segreto. ${randomLine("night")}`.replace(/\s+/g, " ").trim(),
         hostLog: voteLog,
         phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
         updatedAt: serverTimestamp()
@@ -2709,7 +3021,7 @@ async function resolveHunterShot(targetId) {
       players,
       phase: "gameOver",
       winnerText: win,
-      narration: `${shotText} ${win}`,
+      narration: `${shotText} ${randomLine("gameOver")} ${win}`.replace(/\s+/g, " ").trim(),
       hostLog,
       pendingHunterId: null,
       phaseDeadline: null,
@@ -2722,7 +3034,7 @@ async function resolveHunterShot(targetId) {
       phase: "day",
       pendingHunterId: null,
       hostNote: "",
-      narration: `${shotText} La discussione può continuare.`,
+      narration: `${shotText} ${randomLine("discussion")}`.replace(/\s+/g, " ").trim(),
       hostLog,
       phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "day") * 1000 : null,
       updatedAt: serverTimestamp()

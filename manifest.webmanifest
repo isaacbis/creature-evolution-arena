@@ -1,5 +1,5 @@
 {
-  "name": "Lupus Online V26 Immersive Edition",
+  "name": "Lupus Online V27 Mobile Edition",
   "short_name": "Lupus",
   "start_url": "./",
   "display": "standalone",
@@ -19,8 +19,8 @@
       "purpose": "any maskable"
     }
   ],
-  "description": "Lupus V26 con narratore esterno, temi, scene cinematografiche e interfaccia mobile.",
-  "orientation": "portrait",
+  "description": "Lupus V27 con narratore più divertente e variabile, voce automatica e interfaccia ottimizzata per smartphone.",
+  "orientation": "any",
   "categories": [
     "games",
     "entertainment"

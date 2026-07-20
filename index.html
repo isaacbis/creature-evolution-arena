@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#080b16" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Lupus Online" />
   <meta name="description" content="Lupus Online: crea una stanza, invita gli amici e gioca da ogni telefono." />
@@ -25,7 +27,7 @@
         </div>
       </div>
       <div class="top-actions">
-        <span class="version-pill">V26</span>
+        <span class="version-pill">V27</span>
         <button id="settingsBtn" class="icon-btn" aria-label="Impostazioni">⚙️</button>
       </div>
     </header>
@@ -68,7 +70,7 @@
             </div>
 
             <label for="createName">Il tuo nome</label>
-            <input id="createName" maxlength="24" placeholder="Es. Isaac" autocomplete="name" />
+            <input id="createName" maxlength="24" placeholder="Es. Isaac" autocomplete="name" autocapitalize="words" enterkeyhint="done" />
 
             <label for="phaseSeconds">Velocità della partita</label>
             <select id="phaseSeconds">
@@ -92,10 +94,10 @@
             </div>
 
             <label for="joinCode">Codice stanza</label>
-            <input id="joinCode" class="code-input" maxlength="6" placeholder="ABC123" autocomplete="off" inputmode="text" />
+            <input id="joinCode" class="code-input" maxlength="6" placeholder="ABC123" autocomplete="off" inputmode="text" autocapitalize="characters" enterkeyhint="next" />
 
             <label for="joinName">Il tuo nome</label>
-            <input id="joinName" maxlength="24" placeholder="Es. Marco" autocomplete="name" />
+            <input id="joinName" maxlength="24" placeholder="Es. Marco" autocomplete="name" autocapitalize="words" enterkeyhint="done" />
 
             <button id="joinRoomBtn" class="secondary full main-cta">Entra nella stanza</button>
           </section>
@@ -210,7 +212,6 @@
 
           <details id="narratorToolsSection" class="hidden narrator-only"><summary>Strumenti</summary><div id="hostLogList" class="log-list"></div></details>
           <div id="gameQuickNav" class="hidden"></div>
-          <div id="mobileGameDock" class="hidden"><button id="mobileActionNavBtn" type="button"><i id="actionNavDot"></i></button></div>
         </div>
       </section>
     </main>
@@ -232,14 +233,15 @@
           <p class="eyebrow">Preferenze</p>
           <h3>Impostazioni</h3>
         </div>
-        <section class="settings-group voice-settings-group">
-              <h3>Narratore vocale</h3>
-              <label class="setting-row"><span><b>Voce automatica</b><small>Legge le fasi della partita</small></span><input id="voiceEnabledInput" type="checkbox" checked></label>
-              <label class="setting-row voice-rate-row"><span><b>Velocità</b><small id="voiceRateValue">1×</small></span><input id="voiceRateInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label>
-              <button id="testVoiceBtn" class="secondary full" type="button">Prova la voce</button>
-            </section>
-            <button id="closeSettingsBtn" class="icon-btn" aria-label="Chiudi">×</button>
+        <button id="closeSettingsBtn" class="icon-btn" aria-label="Chiudi">×</button>
       </div>
+
+      <section class="settings-group voice-settings-group">
+        <h3>Narratore vocale</h3>
+        <label class="setting-row"><span><b>Voce automatica</b><small>Legge frasi diverse a ogni partita</small></span><input id="voiceEnabledInput" type="checkbox" checked></label>
+        <label class="setting-row voice-rate-row"><span><b>Velocità</b><small id="voiceRateValue">1×</small></span><input id="voiceRateInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label>
+        <button id="testVoiceBtn" class="secondary full" type="button">Prova la voce</button>
+      </section>
 
       <section class="settings-group atmosphere-settings-group">
         <h3>Atmosfera</h3>
