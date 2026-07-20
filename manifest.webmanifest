@@ -1,5 +1,5 @@
 {
-  "name": "Lupus Online V27 Mobile Edition",
+  "name": "Lupus Online V27.1 Mobile Stable",
   "short_name": "Lupus",
   "start_url": "./",
   "display": "standalone",
@@ -19,8 +19,8 @@
       "purpose": "any maskable"
     }
   ],
-  "description": "Lupus V27 con narratore più divertente e variabile, voce automatica e interfaccia ottimizzata per smartphone.",
-  "orientation": "any",
+  "description": "Versione stabile con narratore più divertente e interfaccia ottimizzata per smartphone.",
+  "orientation": "portrait",
   "categories": [
     "games",
     "entertainment"

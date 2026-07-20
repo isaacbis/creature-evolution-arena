@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V27";
+const APP_VERSION = "V27.1";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -547,8 +547,6 @@ let voiceUnlocked = sessionStorage.getItem("lupusVoiceUnlocked") === "true";
 let lastSpokenKey = "";
 let lastSpokenText = "";
 let availableVoices = [];
-let speechQueue = [];
-let speechToken = 0;
 const narrationBags = new Map();
 const lastNarrationLine = new Map();
 let selectedTheme = localStorage.getItem("lupusTheme") || "castle";
@@ -642,36 +640,24 @@ function show(viewId) {
   document.body.classList.toggle("in-game", ["localGameView", "roomView"].includes(viewId));
   if (viewId === "homeView") setStage("home");
   if (viewId === "onlineChoiceView" || viewId === "joinRoomView") setStage("lobby");
-  window.scrollTo({ top: 0, behavior: "auto" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function speak(text) {
-  speakNarration(text, { force: true });
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(String(text || ""));
+    u.lang = "it-IT";
+    u.rate = 0.93;
+    const italianVoice = speechSynthesis.getVoices().find(v => /^it(-|_)/i.test(v.lang));
+    if (italianVoice) u.voice = italianVoice;
+    speechSynthesis.speak(u);
+  } catch {}
 }
 
 function vibrate(ms = 80) {
   if (!settings.vibration) return;
   try { navigator.vibrate?.(ms); } catch {}
-}
-
-function syncViewportMetrics() {
-  const viewport = window.visualViewport;
-  const height = Math.max(320, Math.round(viewport?.height || window.innerHeight));
-  const width = Math.max(280, Math.round(viewport?.width || window.innerWidth));
-  document.documentElement.style.setProperty("--app-height", `${height}px`);
-  document.documentElement.style.setProperty("--app-width", `${width}px`);
-  const keyboardOpen = Boolean(viewport && window.innerHeight - viewport.height > 140);
-  document.body.classList.toggle("keyboard-open", keyboardOpen);
-  document.body.classList.toggle("very-short-screen", height < 590);
-  document.body.classList.toggle("very-narrow-screen", width < 350);
-}
-
-function setupMobileViewport() {
-  syncViewportMetrics();
-  window.addEventListener("resize", syncViewportMetrics, { passive: true });
-  window.addEventListener("orientationchange", () => setTimeout(syncViewportMetrics, 120), { passive: true });
-  window.visualViewport?.addEventListener("resize", syncViewportMetrics, { passive: true });
-  window.visualViewport?.addEventListener("scroll", syncViewportMetrics, { passive: true });
 }
 
 async function updateWakeLock() {
@@ -1053,7 +1039,7 @@ async function quickBotTest() {
       witch: { save: true, kill: true },
       loversChosen: false,
       pendingHunterId: null,
-      narration: `${randomLine("intro")} Test rapido avviato con sette bot. ${randomLine("night")}`.replace(/\s+/g, " ").trim(),
+      narration: narr("night", "Test rapido avviato con sette bot. Tutti chiudono gli occhi."),
       hostNote: "Test automatico: usa “Fai giocare i bot” oppure lascia avanzare il timer.",
       hostLog: [{ at: new Date().toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }), text: "Test rapido con bot avviato." }],
       createdAt: serverTimestamp(),
@@ -1457,147 +1443,38 @@ function compactTimerText(d) {
 }
 
 
-function loadVoices() {
-  if ("speechSynthesis" in window) availableVoices = speechSynthesis.getVoices() || [];
-}
-
-function italianVoice() {
-  const italian = availableVoices.filter(v => /^it(-|_)/i.test(v.lang) || /ital/i.test(v.name));
-  return italian.find(v => v.localService) || italian[0] || availableVoices.find(v => v.localService) || availableVoices[0] || null;
-}
-
-function setVoiceEnabled(v) {
-  voiceEnabled = Boolean(v);
-  if (voiceEnabled) lastSpokenKey = "";
-  localStorage.setItem("lupusVoiceEnabled", String(voiceEnabled));
-  if ($("#voiceEnabledInput")) $("#voiceEnabledInput").checked = voiceEnabled;
-  updateVoiceButtons();
-  if (!voiceEnabled && "speechSynthesis" in window) {
-    speechToken += 1;
-    speechQueue = [];
-    speechSynthesis.cancel();
-  }
-}
-
-function setVoiceRate(v) {
-  voiceRate = Math.max(.75, Math.min(1.35, Number(v) || 1));
-  localStorage.setItem("lupusVoiceRate", String(voiceRate));
-  if ($("#voiceRateInput")) $("#voiceRateInput").value = voiceRate;
-  if ($("#voiceRateValue")) $("#voiceRateValue").textContent = `${voiceRate.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")}×`;
-}
-
-function requestVoiceUnlock() {
-  if (voiceEnabled && !voiceUnlocked && "speechSynthesis" in window) $("#audioUnlockOverlay")?.classList.remove("hidden");
-}
-
-function unlockVoice() {
-  voiceUnlocked = true;
-  sessionStorage.setItem("lupusVoiceUnlocked", "true");
-  $("#audioUnlockOverlay")?.classList.add("hidden");
-  const current = narrationForState(room.data, room.data?.players || []);
-  lastSpokenKey = current?.key || "";
-  const activation = "Narratore vocale attivato. Prometto di non ululare troppo forte.";
-  speakNarration(current ? `${activation} ${current.text}` : activation, { force: true });
-}
-
-function splitSpeechText(text) {
-  const clean = String(text || "").replace(/\s+/g, " ").trim();
-  if (!clean) return [];
-  const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
-  const chunks = [];
-  let current = "";
-  for (const sentence of sentences) {
-    const candidate = `${current} ${sentence}`.trim();
-    if (candidate.length > 190 && current) {
-      chunks.push(current);
-      current = sentence.trim();
-    } else {
-      current = candidate;
-    }
-  }
-  if (current) chunks.push(current);
-  return chunks;
-}
-
-function playSpeechQueue(token, options = {}) {
-  if (token !== speechToken || !speechQueue.length || !("speechSynthesis" in window)) return;
-  const text = speechQueue.shift();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "it-IT";
-  utterance.rate = voiceRate;
-  utterance.pitch = options.pitch || 1;
-  utterance.volume = 1;
-  const voice = italianVoice();
-  if (voice) utterance.voice = voice;
-  utterance.onend = () => playSpeechQueue(token, options);
-  utterance.onerror = event => {
-    if (event.error !== "canceled" && event.error !== "interrupted") console.warn("Voce narratore:", event.error);
-    playSpeechQueue(token, options);
-  };
-  speechSynthesis.speak(utterance);
-}
-
-function speakNarration(text, options = {}) {
-  if (!text || !("speechSynthesis" in window)) return;
-  if (!voiceEnabled && !options.force) return;
-  if (!voiceUnlocked && !options.force) {
-    requestVoiceUnlock();
-    return;
-  }
-  const chunks = splitSpeechText(text);
-  if (!chunks.length) return;
-  speechToken += 1;
-  const token = speechToken;
-  speechQueue = chunks;
-  speechSynthesis.cancel();
-  lastSpokenText = chunks.join(" ");
-  setTimeout(() => playSpeechQueue(token, options), 40);
-}
-
-function textHash(value = "") {
-  let hash = 2166136261;
-  for (const char of String(value)) {
-    hash ^= char.charCodeAt(0);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(36);
-}
-
-function narrationForState(d, players) {
+function loadVoices(){ if("speechSynthesis" in window) availableVoices=speechSynthesis.getVoices()||[]; }
+function italianVoice(){ return availableVoices.find(v=>/^it(-|_)/i.test(v.lang))||availableVoices.find(v=>/ital/i.test(v.name))||availableVoices[0]||null; }
+function setVoiceEnabled(v){ voiceEnabled=!!v; localStorage.setItem("lupusVoiceEnabled",String(voiceEnabled)); if($("#voiceEnabledInput")) $("#voiceEnabledInput").checked=voiceEnabled; updateVoiceButtons(); if(!voiceEnabled&&"speechSynthesis" in window) speechSynthesis.cancel(); }
+function setVoiceRate(v){ voiceRate=Math.max(.75,Math.min(1.35,Number(v)||1)); localStorage.setItem("lupusVoiceRate",String(voiceRate)); if($("#voiceRateInput")) $("#voiceRateInput").value=voiceRate; if($("#voiceRateValue")) $("#voiceRateValue").textContent=`${voiceRate.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}×`; }
+function requestVoiceUnlock(){ if(voiceEnabled&&!voiceUnlocked&&"speechSynthesis" in window) $("#audioUnlockOverlay")?.classList.remove("hidden"); }
+function unlockVoice(){ voiceUnlocked=true; sessionStorage.setItem("lupusVoiceUnlocked","true"); $("#audioUnlockOverlay")?.classList.add("hidden"); speakNarration("Narratore vocale attivato.",{force:true}); }
+function speakNarration(text,opt={}){ if(!text||!("speechSynthesis" in window)) return; if(!voiceEnabled&&!opt.force) return; if(!voiceUnlocked&&!opt.force){ requestVoiceUnlock(); return; } const clean=String(text).replace(/\s+/g," ").trim(); if(!clean)return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(clean); u.lang="it-IT"; u.rate=voiceRate; u.pitch=1; u.volume=1; const v=italianVoice(); if(v)u.voice=v; speechSynthesis.speak(u); lastSpokenText=clean; }
+function narrationForState(d, players){
   if (!d || d.phase === "lobby") return null;
   const phase = d.phase || "lobby";
-  const round = d.nightNumber || d.dayNumber || d.voteRound || 0;
   const step = phase === "night" ? currentNightStep(d, players || []) : "";
-  const fallbacks = {
+  const round = d.nightNumber || d.dayNumber || d.voteRound || 0;
+  const fallback = {
     night: "Scende la notte. Tutti chiudono gli occhi.",
     day: "La notte è terminata. Tutti possono riaprire gli occhi.",
-    vote: "È il momento della votazione. Ogni giocatore scelga chi eliminare.",
+    vote: "È il momento della votazione.",
     hunter: "Il Cacciatore deve scegliere chi portare con sé.",
     gameOver: d.winnerText || "La partita è terminata."
-  };
-  const text = String(d.narration || fallbacks[phase] || "").trim();
+  }[phase] || "";
+  const text = String(d.narration || fallback).trim();
   if (!text) return null;
-  return { key: `${phase}:${round}:${step}:${textHash(text)}`, text };
+  return { key: `${phase}:${round}:${step}:${text}`, text };
 }
-
-function maybeSpeakGameState(d, players) {
+function maybeSpeakGameState(d, players){
   if (!room.isHost) return;
-  const narration = narrationForState(d, players);
-  if (!narration || narration.key === lastSpokenKey) return;
-  lastSpokenKey = narration.key;
-  const pitch = d.phase === "night" ? .94 : d.phase === "gameOver" ? 1.05 : 1;
-  speakNarration(narration.text, { pitch });
+  const n=narrationForState(d, players);
+  if(!n||n.key===lastSpokenKey)return;
+  lastSpokenKey=n.key;
+  speakNarration(n.text);
 }
+function updateVoiceButtons(){ if($("#voiceToggleBtn")){ $("#voiceToggleBtn").textContent=voiceEnabled?"🔊":"🔇"; $("#voiceToggleBtn").classList.toggle("voice-on",voiceEnabled); $("#voiceToggleBtn").classList.toggle("voice-off",!voiceEnabled);} if($("#voiceEnabledInput")) $("#voiceEnabledInput").checked=voiceEnabled; setVoiceRate(voiceRate); }
 
-function updateVoiceButtons() {
-  if ($("#voiceToggleBtn")) {
-    $("#voiceToggleBtn").textContent = voiceEnabled ? "🔊" : "🔇";
-    $("#voiceToggleBtn").classList.toggle("voice-on", voiceEnabled);
-    $("#voiceToggleBtn").classList.toggle("voice-off", !voiceEnabled);
-  }
-  if ($("#voiceEnabledInput")) $("#voiceEnabledInput").checked = voiceEnabled;
-  setVoiceRate(voiceRate);
-}
 
 function applyTheme(theme) {
   const allowed = ["castle","horror","vampire","zombie","western"];
@@ -1670,7 +1547,6 @@ function immersiveHaptic(d, players, me) {
 /* -------------------- INIT -------------------- */
 
 function init() {
-  setupMobileViewport();
   makeRolePicker($("#onlineRolePicker"), "online");
 
   applyTheme(selectedTheme);
@@ -1682,9 +1558,10 @@ function init() {
   if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=loadVoices;
   updateVoiceButtons();
   $("#voiceToggleBtn").onclick=()=>{setVoiceEnabled(!voiceEnabled); if(voiceEnabled)requestVoiceUnlock(); toast(voiceEnabled?"Narratore vocale attivo.":"Narratore vocale disattivato.");};
+  $("#roomSpeakBtn").onclick=()=>{if(lastSpokenText)speakNarration(lastSpokenText,{force:true});};
   $("#voiceEnabledInput").onchange=e=>{setVoiceEnabled(e.target.checked); if(voiceEnabled)requestVoiceUnlock();};
   $("#voiceRateInput").oninput=e=>setVoiceRate(e.target.value);
-  $("#testVoiceBtn").onclick=()=>{if(!voiceUnlocked){requestVoiceUnlock();return;} speakNarration("Questa è la voce del narratore automatico. Ogni partita userà frasi diverse e un po’ meno prevedibili.", { force: true });};
+  $("#testVoiceBtn").onclick=()=>{if(!voiceUnlocked){requestVoiceUnlock();return;} speakNarration("Questa è la voce del narratore automatico.",{force:true});};
   $("#audioUnlockBtn").onclick=unlockVoice;
   $("#settingsBtn").onclick = openSettings;
   $("#roomSettingsBtn").onclick = openSettings;
@@ -1841,7 +1718,7 @@ function init() {
   $("#onlineRevealAllBtn").onclick = () => {
     toast("I ruoli restano segreti fino alla fine della partita.");
   };
-  $("#roomSpeakBtn").onclick = () => speakNarration(lastSpokenText || room.data?.narration || $("#roomNarration").textContent, { force: true });
+  $("#roomSpeakBtn").onclick = () => speak($("#roomNarration").textContent);
   $("#roomNextBtn").onclick = onlineAdvanceManual;
 
   $("#joinCode").addEventListener("input", e => {
@@ -2169,8 +2046,6 @@ function renderRoom() {
   $("#oneScreenDashboard").classList.toggle("host-lobby", isLobby && room.isHost);
   $("#oneScreenDashboard").classList.toggle("guest-lobby", isLobby && !room.isHost);
   $("#oneScreenDashboard").classList.toggle("game-mode", !isLobby && !isGameOver);
-  $("#oneScreenDashboard").classList.toggle("host-game", !isLobby && !isGameOver && room.isHost);
-  $("#oneScreenDashboard").classList.toggle("guest-game", !isLobby && !isGameOver && !room.isHost);
   $("#oneScreenDashboard").classList.toggle("end-mode", isGameOver);
   $("#inviteSection").classList.toggle("hidden", !(room.isHost && isLobby));
   $("#hostSetupSection").classList.toggle("hidden", !(room.isHost && isLobby));
@@ -2178,17 +2053,15 @@ function renderRoom() {
   $("#roomActionSection").classList.toggle("hidden", isLobby || isGameOver);
   $("#hostControlBar").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
   $("#roomSpeakBtn").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
-  $("#voiceToggleBtn").classList.toggle("hidden", !room.isHost);
+  $("#voiceToggleBtn").classList.toggle("hidden", !room.isHost && !isLobby);
   document.documentElement.dataset.gamePhase = d.phase;
   $("#hostPhaseControls").classList.add("hidden");
   $("#gameQuickNav").classList.add("hidden");
   $("#mobileGameDock").classList.add("hidden");
   $("#narratorToolsSection").classList.add("hidden");
   const compactTimer = compactTimerText(d);
-  const timerSeconds = compactTimer ? Number(compactTimer.replace(/\D/g, "")) : 0;
   $("#gameTimerCompact").textContent = compactTimer;
   $("#gameTimerCompact").classList.toggle("hidden", !compactTimer);
-  $("#gameTimerCompact").classList.toggle("timer-urgent", Boolean(compactTimer && timerSeconds <= 5));
   $("#playerCountBadge").textContent = players.length;
   $("#roomMainTitle").textContent = isLobby ? "Prepara la stanza" : phaseLabel(d.phase);
 
@@ -2785,7 +2658,7 @@ async function resolveOnlineNight(d = room.data) {
         players: updatedPlayers,
         phase: "hunter",
         pendingHunterId: hunter.id,
-        narration: `${baseText} ${randomLine("hunter")}`.replace(/\s+/g, " ").trim(),
+        narration: baseText,
         hostNote: `${hunter.name} era il Cacciatore: può sparare.`,
         night: {},
         nightOrder: [],
@@ -2803,7 +2676,7 @@ async function resolveOnlineNight(d = room.data) {
         players: updatedPlayers,
         phase: "gameOver",
         winnerText: win,
-        narration: `${baseText} ${randomLine("gameOver")} ${win}`.replace(/\s+/g, " ").trim(),
+        narration: `${baseText} ${win}`,
         night: {},
         nightOrder: [],
         hostLog,
@@ -2817,7 +2690,7 @@ async function resolveOnlineNight(d = room.data) {
         phase: "day",
         step: 0,
         dayNumber: (d.dayNumber || 0) + 1,
-        narration: `${baseText} ${randomLine("discussion")}`.replace(/\s+/g, " ").trim(),
+        narration: `${baseText} Ora discutete.`,
         night: {},
         nightOrder: [],
         hostLog,
@@ -2914,7 +2787,7 @@ async function resolveOnlineVote() {
         votes: {},
         night: {},
         hostNote: "",
-        narration: `${randomLine("tie")} ${randomLine("night")}`.replace(/\s+/g, " ").trim(),
+        narration: narr("tie", "Nessuno viene eliminato. Tutti chiudono gli occhi."),
         hostLog,
         phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
         updatedAt: serverTimestamp()
@@ -2936,7 +2809,7 @@ async function resolveOnlineVote() {
         players: updatedPlayers,
         phase: "gameOver",
         winnerText,
-        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. ${randomLine("gameOver")} ${winnerText}`.replace(/\s+/g, " ").trim(),
+        narration: `${target.name} è stato eliminato. ${winnerText}`,
         hostLog: voteLog,
         resolvingVote: false,
         phaseDeadline: null,
@@ -2951,7 +2824,7 @@ async function resolveOnlineVote() {
         players: updatedPlayers,
         phase: "hunter",
         pendingHunterId: hunter.id,
-        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. Il ruolo resta segreto. ${randomLine("hunter")}`.replace(/\s+/g, " ").trim(),
+        narration: `${target.name} è stato eliminato. Il ruolo resta segreto.`,
         hostNote: `${hunter.name} era il Cacciatore: può sparare.`,
         hostLog: voteLog,
         resolvingVote: false,
@@ -2967,7 +2840,7 @@ async function resolveOnlineVote() {
         players: updatedPlayers,
         phase: "gameOver",
         winnerText: win,
-        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. Il ruolo resta segreto. ${randomLine("gameOver")} ${win}`.replace(/\s+/g, " ").trim(),
+        narration: `${target.name} è stato eliminato. Il ruolo resta segreto. ${win}`,
         hostLog: voteLog,
         resolvingVote: false,
         phaseDeadline: null,
@@ -2985,7 +2858,7 @@ async function resolveOnlineVote() {
         votes: {},
         night: {},
         hostNote: "",
-        narration: `${randomLine("elimination")} ${target.name} è stato eliminato. Il ruolo resta segreto. ${randomLine("night")}`.replace(/\s+/g, " ").trim(),
+        narration: `${target.name} è stato eliminato. Il ruolo resta segreto. Tutti chiudono gli occhi.`,
         hostLog: voteLog,
         phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "night") * 1000 : null,
         updatedAt: serverTimestamp()
@@ -3021,7 +2894,7 @@ async function resolveHunterShot(targetId) {
       players,
       phase: "gameOver",
       winnerText: win,
-      narration: `${shotText} ${randomLine("gameOver")} ${win}`.replace(/\s+/g, " ").trim(),
+      narration: `${shotText} ${win}`,
       hostLog,
       pendingHunterId: null,
       phaseDeadline: null,
@@ -3034,7 +2907,7 @@ async function resolveHunterShot(targetId) {
       phase: "day",
       pendingHunterId: null,
       hostNote: "",
-      narration: `${shotText} ${randomLine("discussion")}`.replace(/\s+/g, " ").trim(),
+      narration: `${shotText} La discussione può continuare.`,
       hostLog,
       phaseDeadline: seconds > 0 ? Date.now() + phaseDuration(seconds, "day") * 1000 : null,
       updatedAt: serverTimestamp()

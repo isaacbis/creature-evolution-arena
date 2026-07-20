@@ -1,4 +1,4 @@
-const CACHE_NAME = "lupus-online-v27";
+const CACHE_NAME = "lupus-online-v27-1";
 const ASSETS = [
   "./",
   "./index.html",

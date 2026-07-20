@@ -2434,234 +2434,49 @@ body.in-game{background:radial-gradient(circle at 50% -20%,var(--theme-accent-so
 @media(prefers-reduced-motion:reduce){.phase-cinematic,.phase-cinematic-content{animation:none!important;transition:none!important}}
 
 
-/* ===== V27 MOBILE PERFECT + NARRATORE VARIABILE ===== */
-:root{
-  --app-height:100dvh;
-  --app-width:100vw;
-  --safe-top:max(6px,env(safe-area-inset-top));
-  --safe-right:max(6px,env(safe-area-inset-right));
-  --safe-bottom:max(6px,env(safe-area-inset-bottom));
-  --safe-left:max(6px,env(safe-area-inset-left));
-}
-html{
-  width:100%;
-  min-width:280px;
-  min-height:100%;
-  overflow-x:hidden;
-  overscroll-behavior:none;
-  -webkit-text-size-adjust:100%;
-  text-size-adjust:100%;
-}
-body{
-  width:100%;
-  min-width:280px;
-  min-height:100%;
-  overflow-x:hidden;
-  overscroll-behavior-y:none;
-  -webkit-tap-highlight-color:transparent;
-}
-button,input,select,textarea{font:inherit}
+/* ===== V27.1 MOBILE STABLE ===== */
+html,body{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{min-height:100dvh;min-height:-webkit-fill-available;overscroll-behavior-x:none}
 button,[role="button"],summary{touch-action:manipulation}
-button{user-select:none;-webkit-user-select:none}
-input,select,textarea{font-size:16px!important}
-.hidden{display:none!important}
-
-/* The real visual viewport is injected by script.js: no jumps when browser bars move. */
-body.in-game,
-body.in-game .app-shell,
-body.in-game main,
-body.in-game #roomView.active,
-.one-screen-dashboard{
-  height:var(--app-height)!important;
-  min-height:var(--app-height)!important;
-  max-height:var(--app-height)!important;
-}
-body.in-game{
-  position:fixed;
-  inset:0;
-  overflow:hidden!important;
-}
-.one-screen-dashboard{
-  width:min(100%,var(--app-width));
-  padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
-  contain:layout paint;
-}
-.game-header,.one-screen-turn,.dashboard-panel{min-width:0}
-.game-room-info{overflow:hidden}
-.room-code-button,.phase-compact,.timer-compact{flex:0 1 auto;max-width:38vw;overflow:hidden;text-overflow:ellipsis}
-.game-header-actions{flex:0 0 auto}
-.mini-icon-btn{min-width:36px;min-height:36px}
-.timer-compact.timer-urgent{
-  color:#fff;
-  background:rgba(220,38,38,.88)!important;
-  border-color:rgba(254,202,202,.45)!important;
-  animation:v27TimerPulse .72s ease-in-out infinite alternate;
-}
-@keyframes v27TimerPulse{to{transform:scale(1.06);box-shadow:0 0 0 5px rgba(239,68,68,.13)}}
-
-.one-screen-turn b,.one-screen-turn small,
-.panel-title,.compact-state b,.compact-state small,
-.role-copy b,.role-copy small,.mini-player-copy b,.mini-player-copy small{
-  overflow-wrap:anywhere;
-}
-.compact-target,.witch-choice,.compact-host-buttons button,.compact-bot-row button,.compact-invite-buttons button{
-  touch-action:manipulation;
-}
-.compact-target:active,.witch-choice:active,.mini-icon-btn:active,.role-toggle-button:active{
-  transform:scale(.97);
-}
-.compact-target,.witch-choice,.mini-icon-btn,.role-toggle-button{transition:transform .12s ease,filter .12s ease,background .16s ease}
-
-/* Guests do not waste an empty row reserved for host controls. */
-.one-screen-dashboard.guest-game .one-screen-main{
-  grid-template-rows:128px minmax(0,1fr)!important;
-  grid-template-areas:"role action" "players action"!important;
-}
-.one-screen-dashboard.guest-game .compact-host-panel{display:none!important}
-
-/* Settings: correct DOM, safe areas, usable with one hand and with the keyboard open. */
-.settings-modal,.confirm-modal,.role-overlay,.audio-unlock-overlay,.phase-cinematic{
-  width:100vw;
-  height:var(--app-height);
-  max-height:var(--app-height);
-  overscroll-behavior:contain;
-}
-.settings-modal{
-  align-items:flex-end;
-  padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)!important;
-}
-.settings-sheet{
-  width:min(100%,480px)!important;
-  max-height:calc(var(--app-height) - var(--safe-top) - var(--safe-bottom))!important;
-  margin:0 auto!important;
-  padding:10px 14px calc(14px + env(safe-area-inset-bottom))!important;
-  overflow-y:auto!important;
-  overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;
-}
-.sheet-title{
-  position:sticky;
-  top:-10px;
-  z-index:3;
-  min-height:54px;
-  margin:-10px -14px 8px!important;
-  padding:10px 14px 7px;
-  background:linear-gradient(180deg,#101827 76%,rgba(16,24,39,0));
-}
-.sheet-title .icon-btn{flex:0 0 42px}
-.voice-settings-group,.atmosphere-settings-group{margin:8px 0!important;padding:11px!important}
-.setting-row{min-height:46px;margin:5px 0!important}
-.setting-row input[type="checkbox"]{width:24px;height:24px;flex:0 0 24px}
-.voice-rate-row input{min-height:34px}
-
-/* Home and lobby: no clipped cards and no iOS input zoom. */
-.app-shell{width:100%;overflow-x:hidden}
-.entry-card,.welcome-card,.rejoin-card,.tools-details{min-width:0}
-.entry-card input,.entry-card select{width:100%;min-width:0;min-height:50px}
-.entry-card button,.entry-tab,.rejoin-card{min-height:48px}
-.code-input{letter-spacing:.16em}
-
+input,select,textarea{font-size:16px!important;max-width:100%}
+.app-shell,.screen,.entry-grid,.entry-card,.dashboard-panel,.one-screen-main{min-width:0;max-width:100%}
+.simple-shell{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.simple-topbar{padding-top:max(8px,env(safe-area-inset-top))}
+.one-screen-dashboard{padding-top:max(4px,env(safe-area-inset-top));padding-right:max(4px,env(safe-area-inset-right));padding-bottom:max(4px,env(safe-area-inset-bottom));padding-left:max(4px,env(safe-area-inset-left))}
+.game-header,.game-room-info,.game-header-actions,.one-screen-turn,.dashboard-panel{min-width:0}
+.room-code-button,.phase-compact,.timer-compact{max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.settings-modal,.confirm-modal,.role-overlay,.audio-unlock-overlay,.phase-cinematic{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.settings-sheet{max-height:calc(100dvh - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)))!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch}
+.timer-compact.timer-urgent{background:rgba(220,38,38,.88)!important;color:#fff!important}
 @media(max-width:760px){
-  body:not(.in-game){padding-bottom:env(safe-area-inset-bottom)}
-  .simple-shell{width:100%;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
-  .simple-topbar{padding-top:max(8px,env(safe-area-inset-top))}
   .entry-grid{grid-template-columns:minmax(0,1fr)!important}
-  .entry-card{width:100%}
-  .settings-sheet{border-radius:22px 22px 0 0!important}
-  .confirm-card,.role-overlay-card,.audio-unlock-card{width:min(100%,390px)!important;max-height:calc(var(--app-height) - 24px);overflow:auto}
+  .entry-card,.welcome-card,.rejoin-card,.tools-details{width:100%;min-width:0}
+  .entry-card input,.entry-card select,.entry-card button{width:100%;min-width:0;min-height:48px}
+  .settings-sheet{width:100%!important;border-radius:22px 22px 0 0!important}
 }
-
-/* Phone portrait tuning: controls stay readable without scrolling the game. */
 @media(max-width:430px){
-  .one-screen-dashboard{--g:4px;grid-template-rows:42px 52px minmax(0,1fr)!important}
-  .game-header{padding:3px 5px;border-radius:13px}
-  .room-code-button,.phase-compact,.timer-compact{min-height:32px;padding:0 8px;font-size:.69rem}
-  .mini-icon-btn{width:34px;height:34px;min-width:34px;min-height:34px;border-radius:10px}
-  .one-screen-turn{min-height:52px;max-height:52px;padding:6px 8px;border-radius:13px}
-  .one-screen-turn .turn-icon{width:36px;height:36px;flex-basis:36px}
-  .one-screen-turn b{font-size:.8rem}
-  .one-screen-turn small{font-size:.66rem;line-height:1.18}
-  .game-mode .one-screen-main{
-    grid-template-columns:minmax(106px,36%) minmax(0,64%)!important;
-    grid-template-rows:116px minmax(0,1fr) 60px!important;
-  }
-  .guest-game .one-screen-main{
-    grid-template-rows:116px minmax(0,1fr)!important;
-  }
+  .one-screen-dashboard{--g:4px}
+  .game-header{padding:4px 5px}
+  .mini-icon-btn{width:34px;height:34px;min-width:34px;min-height:34px}
+  .game-mode .one-screen-main{grid-template-columns:minmax(104px,36%) minmax(0,64%);grid-template-rows:114px minmax(0,1fr) 58px}
   .dashboard-panel{padding:6px;border-radius:12px}
-  .panel-title{height:20px;margin-bottom:4px;font-size:.58rem}
-  .panel-title>b{width:20px;height:20px}
-  .mini-role-card{min-height:56px!important;padding:6px!important;border-radius:10px!important}
-  .mini-role-icon{font-size:1.25rem}
-  .role-copy b{font-size:.72rem!important}
-  .role-copy small{font-size:.53rem!important;line-height:1.15}
-  .role-toggle-button{min-height:34px!important;padding:4px 5px!important;font-size:.59rem!important}
-  .compact-action-area{height:calc(100% - 24px)}
-  .mini-action-title{min-height:29px;margin-bottom:4px;padding:4px 6px}
-  .mini-action-title b{font-size:.68rem}
-  .compact-target-grid{gap:4px}
-  .compact-target{grid-template-columns:27px minmax(0,1fr);gap:4px;padding:3px 4px;border-radius:9px}
-  .compact-target>span{width:25px;height:25px;border-radius:7px}
-  .compact-target>b{font-size:.6rem}
-  .one-screen-player-grid{gap:3px}
-  .mini-player{padding:3px;border-radius:8px}
-  .mini-player-avatar{width:24px;height:24px;flex-basis:24px;font-size:.51rem}
-  .mini-player-copy b{font-size:.59rem}
-  .mini-player-copy small{font-size:.49rem}
-  .compact-host-panel{padding:3px 5px}
-  .compact-host-buttons{gap:3px}
-  .compact-host-buttons button{min-height:38px!important;font-size:.52rem!important}
+  .mini-role-card{min-height:54px!important}
+  .role-toggle-button{min-height:34px!important}
+  .compact-target{min-width:0}
+  .compact-target>b,.mini-player-copy b,.mini-player-copy small,.role-copy b,.role-copy small{overflow-wrap:anywhere}
 }
-
 @media(max-width:349px){
-  .game-header-actions{gap:3px!important}
-  .mini-icon-btn{width:31px;height:31px;min-width:31px;min-height:31px;font-size:.78rem}
-  .room-code-button,.phase-compact,.timer-compact{padding:0 6px;font-size:.62rem}
-  .game-mode .one-screen-main{grid-template-columns:99px minmax(0,1fr)!important;grid-template-rows:106px minmax(0,1fr) 56px!important}
-  .guest-game .one-screen-main{grid-template-rows:106px minmax(0,1fr)!important}
+  .game-mode .one-screen-main{grid-template-columns:98px minmax(0,1fr);grid-template-rows:104px minmax(0,1fr) 54px}
   .role-copy small{display:none!important}
-  .mini-role-card{min-height:46px!important}
-  .role-toggle-button{min-height:30px!important;font-size:.54rem!important}
-  .compact-target>b{font-size:.55rem}
-  .panel-title{font-size:.53rem}
+  .mini-role-card{min-height:45px!important}
+  .role-toggle-button{min-height:30px!important;font-size:.55rem!important}
 }
-
 @media(max-height:590px){
-  .one-screen-dashboard{grid-template-rows:39px 46px minmax(0,1fr)!important}
-  .one-screen-turn{min-height:46px;max-height:46px;padding:4px 6px}
-  .one-screen-turn .turn-icon{width:32px;height:32px;flex-basis:32px}
-  .one-screen-turn small{max-height:1.2em}
-  .game-mode .one-screen-main{grid-template-rows:94px minmax(0,1fr) 52px!important}
-  .guest-game .one-screen-main{grid-template-rows:94px minmax(0,1fr)!important}
-  .mini-role-card{min-height:42px!important;padding:4px!important}
+  .game-mode .one-screen-main{grid-template-rows:92px minmax(0,1fr) 50px}
+  .mini-role-card{min-height:42px!important}
   .role-copy small,.compact-intel-strip{display:none!important}
   .role-toggle-button{min-height:28px!important;margin-top:3px!important}
-  .compact-host-buttons button{min-height:32px!important}
-  .panel-title{height:18px;margin-bottom:2px}
 }
-
-/* Landscape phones: exploit width instead of crushing height. */
 @media(orientation:landscape) and (max-height:520px) and (max-width:950px){
-  .one-screen-dashboard{grid-template-rows:38px 44px minmax(0,1fr)!important}
-  .one-screen-turn{min-height:44px;max-height:44px}
-  .game-mode .one-screen-main{
-    grid-template-columns:minmax(125px,.72fr) minmax(260px,1.45fr) minmax(145px,.83fr)!important;
-    grid-template-rows:minmax(0,1fr) 48px!important;
-    grid-template-areas:"role action players" "host host host"!important;
-  }
-  .guest-game .one-screen-main{
-    grid-template-rows:minmax(0,1fr)!important;
-    grid-template-areas:"role action players"!important;
-  }
-  .compact-host-buttons button{min-height:30px!important}
-  .mini-role-card{min-height:48px!important}
-}
-
-body.keyboard-open:not(.in-game) .simple-topbar,
-body.keyboard-open:not(.in-game) .welcome-card,
-body.keyboard-open:not(.in-game) .tools-details{display:none!important}
-body.keyboard-open .settings-sheet{max-height:var(--app-height)!important;border-radius:18px 18px 0 0!important}
-
-@media(prefers-reduced-motion:reduce){
-  .timer-compact.timer-urgent,.compact-target,.witch-choice,.mini-icon-btn,.role-toggle-button{animation:none!important;transition:none!important}
+  .game-mode .one-screen-main{grid-template-columns:minmax(120px,.72fr) minmax(250px,1.45fr) minmax(140px,.83fr);grid-template-rows:minmax(0,1fr) 46px;grid-template-areas:"role action players" "host host host"}
 }

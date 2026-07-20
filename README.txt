@@ -1,22 +1,20 @@
-LUPUS ONLINE V27 MOBILE EDITION
+LUPUS ONLINE V27.1 MOBILE STABLE
 
-NOVITÀ
-- Narratore automatico con oltre 150 frasi ironiche e cinematografiche.
-- Frasi mescolate senza ripetizioni ravvicinate: ogni partita risulta diversa.
-- La voce del telefono legge la vera frase mostrata nella stanza, comprese eliminazioni e risultati.
-- Coda vocale più stabile su iPhone e Android, con frasi lunghe divise correttamente.
-- Layout corretto per la viewport reale del telefono: niente salti con le barre di Safari/Chrome.
-- Safe area migliorate per Dynamic Island, notch e barra Home.
-- Interfaccia adattata a telefoni stretti, schermi bassi e modalità orizzontale.
-- Ospiti senza spazio vuoto riservato ai comandi del gestore.
-- Impostazioni corrette e più comode da usare su smartphone.
-- Rimossi gli ID HTML duplicati che potevano causare comandi mobili errati.
-- Timer più evidente negli ultimi cinque secondi.
-- Nessun nuovo ruolo e nessuna modifica alle regole di gioco.
+Questa versione riparte dal motore stabile della V26.
+
+MODIFICHE
+- Frasi del narratore molto più numerose, ironiche e variabili.
+- Nessuna ripetizione ravvicinata della stessa frase.
+- La voce del telefono legge la frase realmente mostrata nella stanza.
+- Correzioni mobile conservative per iPhone e Android.
+- Safe area per notch, Dynamic Island e barra Home.
+- Input a 16 px per evitare lo zoom automatico su iPhone.
+- Nessuna modifica a Firebase, ruoli, regole, timer o struttura della stanza.
+- Rimosse le modifiche sperimentali della V27 che potevano bloccare l’app.
 
 DEPLOY
 git add .
-git commit -m "Aggiorno Lupus Online V27 Mobile Edition"
+git commit -m "Correggo Lupus Online V27.1 Mobile Stable"
 git push origin main
 
-Dopo il deploy apri Impostazioni e premi “Aggiorna app e svuota cache”. Sul telefono che gestisce la stanza attiva una volta il narratore vocale.
+Dopo il deploy, apri Impostazioni e premi “Aggiorna app e svuota cache”.
