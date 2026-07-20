@@ -1,329 +1,168 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#080b16" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Lupus Online" />
-  <meta name="description" content="Lupus Online: crea una stanza, invita gli amici e gioca da ogni telefono." />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>Lupus Online V27.1</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#100f1b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lupus">
+  <meta name="description" content="Lupus in Fabula multiplayer, progettato per giocare da telefono con narratore vocale automatico.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="stylesheet" href="/style.css">
+  <title>Lupus — Il villaggio dorme</title>
 </head>
-<body class="stage-home online-only">
-  <div id="networkBanner" class="network-banner hidden">📡 Connessione assente: alcune azioni potrebbero non funzionare.</div>
-  <div class="app-shell simple-shell">
-    <header class="topbar appbar simple-topbar">
-      <div class="brand-lockup">
-        <img class="app-logo" src="icon-192.png" alt="" />
-        <div>
-          <p class="eyebrow">Lupus in Fabula</p>
-          <h1>Lupus Online</h1>
-        </div>
-      </div>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Lupus, home">
+        <span class="brand-mark" aria-hidden="true">☾</span>
+        <span><strong>LUPUS</strong><small>Il villaggio dorme</small></span>
+      </a>
       <div class="top-actions">
-        <span class="version-pill">V27.1</span>
-        <button id="settingsBtn" class="icon-btn" aria-label="Impostazioni">⚙️</button>
+        <button id="voiceBtn" class="icon-btn hidden" type="button" aria-label="Attiva o disattiva narratore">🔇</button>
+        <button id="rulesBtn" class="icon-btn" type="button" aria-label="Apri le regole">?</button>
       </div>
     </header>
 
     <main>
-      <section id="homeView" class="screen active">
-        <div class="welcome-card card">
-          <div class="welcome-icon">
-            <img src="icon-512.png" alt="" />
-          </div>
-          <div>
-            <p class="eyebrow">Una stanza, un telefono a testa</p>
-            <h2>Gioca subito</h2>
-            <p>Crea una stanza oppure inserisci il codice ricevuto da un amico.</p>
-          </div>
+      <section id="landingScreen" class="screen landing-screen">
+        <div class="hero-card">
+          <div class="moon" aria-hidden="true"><span>🐺</span></div>
+          <p class="eyebrow">MULTIPLAYER DAL TELEFONO</p>
+          <h1>Nessun narratore deve conoscere i ruoli.</h1>
+          <p>Un dispositivo guida la partita con la voce e può anche giocare. Ogni ruolo resta visibile soltanto sul telefono del proprietario.</p>
         </div>
 
-        <button id="rejoinLastRoomBtn" class="rejoin-card card hidden">
-          <span class="rejoin-icon">↩️</span>
-          <span>
-            <b>Rientra nell’ultima stanza</b>
-            <small>Riprendi la partita sullo stesso telefono.</small>
-          </span>
-          <span class="rejoin-arrow">›</span>
-        </button>
+        <div class="card entry-card">
+          <div class="segmented" role="tablist" aria-label="Crea o entra">
+            <button id="createTab" class="segment active" role="tab" aria-selected="true">Crea stanza</button>
+            <button id="joinTab" class="segment" role="tab" aria-selected="false">Entra</button>
+          </div>
 
-        <div class="entry-switcher" role="tablist" aria-label="Scegli come entrare">
-          <button id="showCreateTabBtn" class="entry-tab active" type="button">Crea stanza</button>
-          <button id="showJoinTabBtn" class="entry-tab" type="button">Entra con codice</button>
-        </div>
+          <form id="createForm" class="form-stack">
+            <label class="field">
+              <span>Il tuo nome</span>
+              <input id="createName" maxlength="24" autocomplete="nickname" placeholder="Es. Isaac" required>
+            </label>
 
-        <div class="entry-grid">
-          <section id="createSection" class="card entry-card create-card active-entry">
-            <div class="entry-heading">
-              <span class="entry-number">1</span>
-              <div>
-                <p class="eyebrow">Nuova partita</p>
-                <h2>Crea stanza</h2>
+            <label class="toggle-row">
+              <span><strong>Il dispositivo base gioca</strong><small>Riceverà un ruolo, ma non vedrà quelli degli altri.</small></span>
+              <input id="hostPlays" type="checkbox" checked>
+              <i aria-hidden="true"></i>
+            </label>
+
+            <details class="settings-details">
+              <summary>Impostazioni della partita <span>⌄</span></summary>
+              <div class="settings-body">
+                <label class="check-row"><input id="enableSeer" type="checkbox" checked><span>Veggente</span></label>
+                <label class="check-row"><input id="enableGuard" type="checkbox" checked><span>Guardia</span></label>
+                <label class="check-row"><input id="enableWitch" type="checkbox" checked><span>Strega</span></label>
+                <label class="check-row"><input id="enableMedium" type="checkbox" checked><span>Medium</span></label>
+                <label class="check-row"><input id="revealRole" type="checkbox"><span>Rivela il ruolo alla morte</span></label>
               </div>
-            </div>
+            </details>
 
-            <label for="createName">Il tuo nome</label>
-            <input id="createName" maxlength="24" placeholder="Es. Isaac" autocomplete="name" autocapitalize="words" enterkeyhint="done" />
+            <button class="primary-btn" type="submit">Crea la stanza</button>
+          </form>
 
-            <label for="phaseSeconds">Velocità della partita</label>
-            <select id="phaseSeconds">
-              <option value="40">Tranquilla · turni 40s / discussione 2 min</option>
-              <option value="25" selected>Normale · turni 25s / discussione 75s</option>
-              <option value="15">Veloce · turni 15s / discussione 45s</option>
-              <option value="0">Manuale · decide il narratore</option>
-            </select>
-
-            <button id="createRoomBtn" class="primary full main-cta">Crea la stanza</button>
-            <p class="hint centered-hint">Diventerai il narratore e riceverai anche un ruolo.</p>
-          </section>
-
-          <section id="joinSection" class="card entry-card join-card">
-            <div class="entry-heading">
-              <span class="entry-number">2</span>
-              <div>
-                <p class="eyebrow">Hai già un codice?</p>
-                <h2>Entra in stanza</h2>
-              </div>
-            </div>
-
-            <label for="joinCode">Codice stanza</label>
-            <input id="joinCode" class="code-input" maxlength="6" placeholder="ABC123" autocomplete="off" inputmode="text" autocapitalize="characters" enterkeyhint="next" />
-
-            <label for="joinName">Il tuo nome</label>
-            <input id="joinName" maxlength="24" placeholder="Es. Marco" autocomplete="name" autocapitalize="words" enterkeyhint="done" />
-
-            <button id="joinRoomBtn" class="secondary full main-cta">Entra nella stanza</button>
-          </section>
+          <form id="joinForm" class="form-stack hidden">
+            <label class="field">
+              <span>Codice stanza</span>
+              <input id="joinCode" class="room-code-input" maxlength="5" autocapitalize="characters" autocomplete="off" placeholder="ABCDE" required>
+            </label>
+            <label class="field">
+              <span>Il tuo nome</span>
+              <input id="joinName" maxlength="24" autocomplete="nickname" placeholder="Es. Marco" required>
+            </label>
+            <button class="primary-btn" type="submit">Entra nel villaggio</button>
+          </form>
+          <p id="entryError" class="error-text" role="alert"></p>
         </div>
 
-        <details class="card tools-details">
-          <summary>
-            <span>Strumenti e prova</span>
-            <small>Controllo Firestore e partita con bot</small>
-          </summary>
-          <div class="tools-body">
-            <div class="utility-grid">
-              <button id="quickBotTestBtn" class="secondary">🤖 Prova con 7 bot</button>
-              <button id="diagnosticsBtn" class="ghost">🩺 Controlla l’app</button>
-            </div>
-            <div id="diagnosticsPanel" class="diagnostics-panel hidden"></div>
-          </div>
-        </details>
+        <div class="trust-grid">
+          <article><span>🔒</span><strong>Ruoli privati</strong><small>Nessuna lista completa sul telefono base.</small></article>
+          <article><span>🔊</span><strong>Voce automatica</strong><small>Guida notte, alba e votazioni.</small></article>
+          <article><span>📱</span><strong>Mobile first</strong><small>Pulsanti grandi e schermate anti-sbirciata.</small></article>
+        </div>
       </section>
 
-      <section id="roomView" class="screen room-screen">
-        <div id="oneScreenDashboard" class="one-screen-dashboard">
-          <header class="game-header">
-            <div class="game-room-info">
-              <button id="roomCodeBadge" class="room-code-button" type="button">ROOM</button>
-              <span id="roomPhaseBadge" class="phase-compact">Lobby</span>
-              <span id="gameTimerCompact" class="timer-compact hidden">--</span>
-            </div>
-            <div class="game-header-actions">
-              <button id="voiceToggleBtn" class="mini-icon-btn voice-on" type="button" aria-label="Voce automatica">🔊</button>
-              <button id="roomSpeakBtn" class="mini-icon-btn narrator-only hidden" type="button" aria-label="Ripeti frase">↻</button>
-              <button id="roomSettingsBtn" class="mini-icon-btn" type="button" aria-label="Impostazioni">⚙️</button>
-              <button id="leaveRoomBtn" class="mini-icon-btn danger-mini" type="button" aria-label="Esci">×</button>
-            </div>
-          </header>
-
-          <div id="turnBanner" class="turn-banner one-screen-turn"></div>
-
-          <div class="one-screen-main">
-            <section id="roomStatusCard" class="dashboard-panel compact-status-panel">
-              <h2 id="roomMainTitle">Prepara la stanza</h2>
-              <p id="roomNarration" aria-live="polite">In attesa dei giocatori.</p>
-              <div id="roomStatus"></div>
-              <div id="roomPhaseMeta" class="phase-meta compact-phase-meta"></div>
-              <div id="hostPhaseControls" class="hidden"><button id="roomNextBtn" type="button">Continua</button></div>
-            </section>
-
-            <section id="inviteSection" class="dashboard-panel lobby-invite narrator-only hidden">
-              <div class="panel-title"><span>Invita</span><b>1</b></div>
-              <div id="roomJoinLink" class="compact-room-code"></div>
-              <div class="compact-invite-buttons">
-                <button id="shareRoomBtn" class="primary">Condividi</button>
-                <button id="copyRoomCodeBtn" class="secondary">Copia codice</button>
-                <button id="copyRoomLinkBtn" class="ghost">Copia link</button>
-              </div>
-              <details class="qr-details one-screen-qr">
-                <summary>QR</summary>
-                <div class="qr-wrap"><canvas id="roomQrCanvas" class="qr-canvas"></canvas><img id="roomQrImage" class="qr-image hidden" alt="QR stanza" /></div>
-              </details>
-            </section>
-
-            <section id="hostSetupSection" class="dashboard-panel lobby-setup narrator-only hidden">
-              <div class="panel-title"><span>Prepara</span><b>2</b></div>
-              <button class="primary compact-recommend" data-preset="online:auto">Ruoli consigliati</button>
-              <div id="onlineSetupSummary" class="setup-summary compact-setup-summary"></div>
-              <div class="compact-bot-row">
-                <button class="secondary" data-host-action="bot3">+3 bot</button>
-                <button class="secondary" data-host-action="bot6">+6 bot</button>
-                <button class="ghost" data-host-action="clearBots">Togli bot</button>
-              </div>
-              <button id="startOnlineGameBtn" class="primary start-one-screen">Inizia partita</button>
-              <details class="advanced-details one-screen-advanced">
-                <summary>Personalizza ruoli</summary>
-                <div class="advanced-overlay-card">
-                  <div class="preset-row compact-presets"><button class="ghost small" data-preset="online:simple">Semplice</button><button class="ghost small" data-preset="online:advanced">Avanzata</button></div>
-                  <div id="onlineRolePicker" class="role-picker"></div>
-                  <button class="primary full close-details-btn" type="button">Chiudi</button>
-                </div>
-              </details>
-            </section>
-
-            <section id="roomRoleSection" class="dashboard-panel compact-role-panel hidden">
-              <div class="panel-title"><span>Ruolo</span><b>👁</b></div>
-              <div id="myRoleCard" class="mini-role-card hidden-role"><span class="role-hidden-label">Ruolo nascosto</span></div>
-              <div id="roomPrivateInfo" class="room-private-info"></div>
-              <p id="roleAutoHideHint" class="privacy-hint hidden"></p>
-              <button id="toggleMyRoleBtn" class="secondary role-toggle-button">👁 Mostra ruolo</button>
-            </section>
-
-            <section id="roomActionSection" class="dashboard-panel compact-action-panel hidden">
-              <div class="panel-title"><span>Azione</span><b>⚡</b></div>
-              <div id="roomActionArea" class="compact-action-area"></div>
-            </section>
-
-            <section id="roomPlayersSection" class="dashboard-panel compact-players-panel">
-              <div class="panel-title"><span>Giocatori</span><b id="playerCountBadge">0</b></div>
-              <div id="roomPlayersList" class="one-screen-player-grid"></div>
-              <div id="playersPager" class="compact-pager hidden"><button id="playersPrevBtn" class="ghost" type="button">‹</button><span id="playersPageLabel">1/1</span><button id="playersNextBtn" class="ghost" type="button">›</button></div>
-            </section>
-
-            <section id="hostControlBar" class="dashboard-panel compact-host-panel narrator-only hidden">
-              <div class="panel-title host-title"><span>Narratore</span><button id="onlineRevealAllBtn" class="ghost reveal-all-compact hidden" type="button" aria-hidden="true" tabindex="-1">Ruoli</button></div>
-              <div id="hostControlsArea" class="host-controls-area"></div>
-            </section>
-
-            <section id="finalRevealCard" class="dashboard-panel one-screen-final hidden">
-              <div id="roomWinnerBanner" class="winner-banner"></div>
-              <div id="finalRevealList" class="hidden"></div>
-              <button id="restartOnlineSameBtn" class="primary narrator-only hidden">Rigioca</button>
-            </section>
+      <section id="gameScreen" class="screen game-screen hidden">
+        <div class="room-strip">
+          <div>
+            <small>STANZA</small>
+            <strong id="roomCodeLabel">-----</strong>
           </div>
-
-          <details id="narratorToolsSection" class="hidden narrator-only"><summary>Strumenti</summary><div id="hostLogList" class="log-list"></div></details>
-          <div id="gameQuickNav" class="hidden"></div>
+          <div class="room-strip-actions">
+            <button id="shareBtn" class="small-btn" type="button">Condividi</button>
+            <button id="leaveBtn" class="small-btn ghost" type="button">Esci</button>
+          </div>
         </div>
+
+        <section id="phaseHero" class="phase-hero">
+          <p id="phaseEyebrow" class="eyebrow">ATTESA</p>
+          <h2 id="phaseTitle">Il villaggio si sta formando</h2>
+          <p id="phaseText">Condividi il codice con gli altri giocatori.</p>
+        </section>
+
+        <div id="mainContent" class="content-stack"></div>
       </section>
     </main>
   </div>
 
-
-  <nav id="mobileGameDock" class="mobile-game-dock hidden" aria-label="Navigazione partita">
-    <button data-scroll-target="roomStatusCard"><span>◉</span><small>Stato</small></button>
-    <button data-scroll-target="roomRoleSection"><span>🪪</span><small>Ruolo</small></button>
-    <button data-scroll-target="roomPlayersSection"><span>👥</span><small>Giocatori</small></button>
-    <button id="mobileActionNavBtn" data-scroll-target="roomActionSection"><span>⚡</span><small>Azione</small><i id="actionNavDot"></i></button>
-  </nav>
-
-  <div id="settingsModal" class="settings-modal hidden">
-    <div class="settings-sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">
-        <div>
-          <p class="eyebrow">Preferenze</p>
-          <h3>Impostazioni</h3>
+  <dialog id="rulesDialog" class="rules-dialog">
+    <div class="dialog-head">
+      <div><p class="eyebrow">REGOLAMENTO</p><h2>Lupus in Fabula</h2></div>
+      <button id="closeRulesBtn" class="icon-btn" type="button" aria-label="Chiudi">×</button>
+    </div>
+    <div class="rules-content">
+      <section>
+        <h3>Obiettivo</h3>
+        <p>Il villaggio vince quando tutti i lupi sono eliminati. I lupi vincono appena il loro numero è uguale o superiore a quello di tutti gli altri giocatori vivi.</p>
+      </section>
+      <section>
+        <h3>Preparazione</h3>
+        <p>Servono almeno 5 giocatori. Il dispositivo base crea la stanza e può partecipare. L’app assegna i ruoli in modo casuale e invia a ogni dispositivo soltanto le informazioni che quel ruolo deve conoscere.</p>
+      </section>
+      <section>
+        <h3>Notte</h3>
+        <p>Tutti chiudono gli occhi. La voce chiama i ruoli uno alla volta. Sul telefono si attiva soltanto il comando del ruolo chiamato. I lupi scelgono una vittima; Guardia, Veggente e Strega agiscono nel proprio turno. L’app risolve automaticamente protezioni, salvataggi e attacchi.</p>
+      </section>
+      <section>
+        <h3>Giorno e voto</h3>
+        <p>All’alba vengono annunciate le vittime, senza rivelarne il ruolo salvo l’opzione scelta nella stanza. I vivi discutono, poi votano. Non si può votare se stessi. In caso di parità nessuno viene eliminato.</p>
+      </section>
+      <section>
+        <h3>Giocatori eliminati</h3>
+        <p>Non possono più parlare, suggerire, votare o mostrare informazioni private. Possono seguire la partita dal proprio telefono. Al termine vengono mostrati tutti i ruoli.</p>
+      </section>
+      <section>
+        <h3>Ruoli inclusi</h3>
+        <div class="role-rule-grid">
+          <article><b>🐺 Lupo Mannaro</b><p>Conosce il branco e vota la vittima notturna. Una parità interna viene risolta con sorteggio tra i bersagli più votati.</p></article>
+          <article><b>🧑‍🌾 Contadino</b><p>Non ha poteri notturni. Deve ragionare su accuse, difese e votazioni.</p></article>
+          <article><b>🔮 Veggente</b><p>Ogni notte scopre se una persona appartiene o no alla squadra dei lupi.</p></article>
+          <article><b>🛡️ Guardia</b><p>Protegge una persona dall’attacco dei lupi. Non può scegliere la stessa persona per due notti consecutive.</p></article>
+          <article><b>🧪 Strega</b><p>Ha una pozione di salvezza e una di veleno, utilizzabili una sola volta ciascuna.</p></article>
+          <article><b>🕯️ Medium</b><p>Scopre in privato se la persona eliminata dal voto apparteneva al branco.</p></article>
         </div>
-        <button id="closeSettingsBtn" class="icon-btn" aria-label="Chiudi">×</button>
-      </div>
-
-      <section class="settings-group voice-settings-group">
-        <h3>Narratore vocale</h3>
-        <label class="setting-row"><span><b>Voce automatica</b><small>Legge frasi diverse a ogni partita</small></span><input id="voiceEnabledInput" type="checkbox" checked></label>
-        <label class="setting-row voice-rate-row"><span><b>Velocità</b><small id="voiceRateValue">1×</small></span><input id="voiceRateInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label>
-        <button id="testVoiceBtn" class="secondary full" type="button">Prova la voce</button>
       </section>
-
-      <section class="settings-group atmosphere-settings-group">
-        <h3>Atmosfera</h3>
-        <label class="setting-row theme-setting-row">
-          <div><b>Tema della partita</b><small>Cambia colori e atmosfera senza modificare le regole.</small></div>
-          <select id="themeSetting" aria-label="Tema della partita">
-            <option value="castle">Castello</option>
-            <option value="horror">Horror</option>
-            <option value="vampire">Vampiri</option>
-            <option value="zombie">Zombie</option>
-            <option value="western">Far West</option>
-          </select>
-        </label>
-        <label class="setting-row">
-          <div><b>Transizioni cinematografiche</b><small>Mostra una scena breve al cambio fase.</small></div>
-          <input id="cinematicSetting" type="checkbox" checked />
-        </label>
+      <section>
+        <h3>Composizione automatica</h3>
+        <p>L’app inserisce circa un lupo ogni quattro giocatori, almeno un lupo, poi aggiunge i ruoli speciali abilitati quando il gruppo è abbastanza numeroso. Gli spazi restanti diventano Contadini.</p>
       </section>
-
-      <label class="setting-row">
-        <div><b>Effetti sonori</b><small>Suoni brevi durante il gioco.</small></div>
-        <input id="soundSetting" type="checkbox" />
-      </label>
-      <label class="setting-row">
-        <div><b>Vibrazione</b><small>Feedback tattile sui comandi.</small></div>
-        <input id="vibrationSetting" type="checkbox" />
-      </label>
-      <label class="setting-row">
-        <div><b>Schermo sempre acceso</b><small>Evita il blocco durante la partita.</small></div>
-        <input id="wakeLockSetting" type="checkbox" />
-      </label>
-      <p id="wakeLockStatus" class="hint"></p>
-
-      <button id="resetAppBtn" class="ghost danger-outline full">Aggiorna app e svuota cache</button>
+      <section>
+        <h3>Disconnessioni</h3>
+        <p>Riaprendo la stessa pagina sullo stesso telefono, il giocatore tenta la riconnessione automatica. La stanza resta in memoria finché il server rimane attivo; un riavvio del servizio azzera le partite in corso.</p>
+      </section>
     </div>
-  </div>
+  </dialog>
 
-  <div id="confirmModal" class="confirm-modal hidden">
-    <div class="confirm-card">
-      <h3 id="confirmTitle">Conferma</h3>
-      <p id="confirmText">Sei sicuro?</p>
-      <div class="split-actions">
-        <button id="confirmCancelBtn" class="secondary">Annulla</button>
-        <button id="confirmOkBtn" class="primary">Conferma</button>
-      </div>
-    </div>
-  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <div id="roleOverlay" class="role-overlay hidden">
-    <div class="role-overlay-bg"></div>
-    <div class="role-overlay-card">
-      <button id="closeRoleOverlayBtn" class="overlay-close">×</button>
-      <div id="roleOverlayIcon" class="role-overlay-icon">🌙</div>
-      <h2 id="roleOverlayName">Ruolo</h2>
-      <p id="roleOverlayTeam">Squadra</p>
-      <div id="roleOverlayDesc" class="role-overlay-desc"></div>
-    </div>
-  </div>
-
-  <div id="errorBox" class="error-box hidden">
-    <button id="closeErrorBoxBtn" class="overlay-close">×</button>
-    <h3>Errore tecnico</h3>
-    <pre id="errorBoxText"></pre>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
-  <script type="module" src="script.js"></script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
-    }
-  </script>
-<div id="phaseCinematic" class="phase-cinematic hidden" aria-live="polite">
-    <div class="phase-cinematic-content">
-      <span id="phaseCinematicIcon">🌙</span>
-      <b id="phaseCinematicTitle">Notte</b>
-      <small id="phaseCinematicText">Tutti chiudono gli occhi</small>
-    </div>
-  </div>
-
-  <div id="audioUnlockOverlay" class="audio-unlock-overlay hidden"><div class="audio-unlock-card"><span>🔊</span><h2>Attiva la voce</h2><p>Tocca una volta per permettere al telefono di parlare durante la partita.</p><button id="audioUnlockBtn" class="primary" type="button">Attiva narratore vocale</button></div></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/script.js" defer></script>
 </body>
 </html>
