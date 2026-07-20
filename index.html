@@ -25,7 +25,7 @@
         </div>
       </div>
       <div class="top-actions">
-        <span class="version-pill">V24.1</span>
+        <span class="version-pill">V26</span>
         <button id="settingsBtn" class="icon-btn" aria-label="Impostazioni">⚙️</button>
       </div>
     </header>
@@ -125,7 +125,8 @@
               <span id="gameTimerCompact" class="timer-compact hidden">--</span>
             </div>
             <div class="game-header-actions">
-              <button id="roomSpeakBtn" class="mini-icon-btn narrator-only hidden" type="button" aria-label="Ripeti voce">🔊</button>
+              <button id="voiceToggleBtn" class="mini-icon-btn voice-on" type="button" aria-label="Voce automatica">🔊</button>
+              <button id="roomSpeakBtn" class="mini-icon-btn narrator-only hidden" type="button" aria-label="Ripeti frase">↻</button>
               <button id="roomSettingsBtn" class="mini-icon-btn" type="button" aria-label="Impostazioni">⚙️</button>
               <button id="leaveRoomBtn" class="mini-icon-btn danger-mini" type="button" aria-label="Esci">×</button>
             </div>
@@ -178,10 +179,10 @@
 
             <section id="roomRoleSection" class="dashboard-panel compact-role-panel hidden">
               <div class="panel-title"><span>Ruolo</span><b>👁</b></div>
-              <div id="myRoleCard" class="mini-role-card hidden-role">Nascosto</div>
+              <div id="myRoleCard" class="mini-role-card hidden-role"><span class="role-hidden-label">Ruolo nascosto</span></div>
               <div id="roomPrivateInfo" class="room-private-info"></div>
               <p id="roleAutoHideHint" class="privacy-hint hidden"></p>
-              <button id="toggleMyRoleBtn" class="secondary role-toggle-button">Mostra</button>
+              <button id="toggleMyRoleBtn" class="secondary role-toggle-button">👁 Mostra ruolo</button>
             </section>
 
             <section id="roomActionSection" class="dashboard-panel compact-action-panel hidden">
@@ -231,8 +232,32 @@
           <p class="eyebrow">Preferenze</p>
           <h3>Impostazioni</h3>
         </div>
-        <button id="closeSettingsBtn" class="icon-btn" aria-label="Chiudi">×</button>
+        <section class="settings-group voice-settings-group">
+              <h3>Narratore vocale</h3>
+              <label class="setting-row"><span><b>Voce automatica</b><small>Legge le fasi della partita</small></span><input id="voiceEnabledInput" type="checkbox" checked></label>
+              <label class="setting-row voice-rate-row"><span><b>Velocità</b><small id="voiceRateValue">1×</small></span><input id="voiceRateInput" type="range" min="0.75" max="1.35" step="0.05" value="1"></label>
+              <button id="testVoiceBtn" class="secondary full" type="button">Prova la voce</button>
+            </section>
+            <button id="closeSettingsBtn" class="icon-btn" aria-label="Chiudi">×</button>
       </div>
+
+      <section class="settings-group atmosphere-settings-group">
+        <h3>Atmosfera</h3>
+        <label class="setting-row theme-setting-row">
+          <div><b>Tema della partita</b><small>Cambia colori e atmosfera senza modificare le regole.</small></div>
+          <select id="themeSetting" aria-label="Tema della partita">
+            <option value="castle">Castello</option>
+            <option value="horror">Horror</option>
+            <option value="vampire">Vampiri</option>
+            <option value="zombie">Zombie</option>
+            <option value="western">Far West</option>
+          </select>
+        </label>
+        <label class="setting-row">
+          <div><b>Transizioni cinematografiche</b><small>Mostra una scena breve al cambio fase.</small></div>
+          <input id="cinematicSetting" type="checkbox" checked />
+        </label>
+      </section>
 
       <label class="setting-row">
         <div><b>Effetti sonori</b><small>Suoni brevi durante il gioco.</small></div>
@@ -289,5 +314,14 @@
       window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
     }
   </script>
+<div id="phaseCinematic" class="phase-cinematic hidden" aria-live="polite">
+    <div class="phase-cinematic-content">
+      <span id="phaseCinematicIcon">🌙</span>
+      <b id="phaseCinematicTitle">Notte</b>
+      <small id="phaseCinematicText">Tutti chiudono gli occhi</small>
+    </div>
+  </div>
+
+  <div id="audioUnlockOverlay" class="audio-unlock-overlay hidden"><div class="audio-unlock-card"><span>🔊</span><h2>Attiva la voce</h2><p>Tocca una volta per permettere al telefono di parlare durante la partita.</p><button id="audioUnlockBtn" class="primary" type="button">Attiva narratore vocale</button></div></div>
 </body>
 </html>

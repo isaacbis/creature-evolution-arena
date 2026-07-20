@@ -23,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const APP_VERSION = "V24.1";
+const APP_VERSION = "V26";
 
 const ROLES = [
   { id: "wolf", name: "Lupo Mannaro", team: "Lupi", desc: "Di notte sceglie con gli altri lupi una vittima." },
@@ -380,6 +380,18 @@ let roleHideTimer = null;
 let roleHideInterval = null;
 let lastRenderedPhase = null;
 let lastTurnKey = "";
+let voiceEnabled = localStorage.getItem("lupusVoiceEnabled") !== "false";
+let voiceRate = Number(localStorage.getItem("lupusVoiceRate") || "1");
+let voiceUnlocked = sessionStorage.getItem("lupusVoiceUnlocked") === "true";
+let lastSpokenKey = "";
+let lastSpokenText = "";
+let availableVoices = [];
+let selectedTheme = localStorage.getItem("lupusTheme") || "castle";
+let cinematicEnabled = localStorage.getItem("lupusCinematic") !== "false";
+let lastCinematicKey = "";
+let lastImmersiveKey = "";
+let cinematicTimer = null;
+
 let playersPage = 0;
 let playerTargetPage = 0;
 let playerTargetContext = "";
@@ -503,6 +515,8 @@ async function leaveCurrentRoom() {
   room.code = null;
   room.isHost = false;
   room.revealMine = false;
+  lastSpokenKey = "";
+  lastSpokenText = "";
   playersPage = 0;
   playerTargetPage = 0;
   playerTargetContext = "";
@@ -1235,11 +1249,137 @@ function compactTimerText(d) {
   return `${Math.max(0, Math.ceil((d.phaseDeadline - Date.now()) / 1000))}s`;
 }
 
+
+function loadVoices(){ if("speechSynthesis" in window) availableVoices=speechSynthesis.getVoices()||[]; }
+function italianVoice(){ return availableVoices.find(v=>/^it(-|_)/i.test(v.lang))||availableVoices.find(v=>/ital/i.test(v.name))||availableVoices[0]||null; }
+function setVoiceEnabled(v){ voiceEnabled=!!v; localStorage.setItem("lupusVoiceEnabled",String(voiceEnabled)); if($("#voiceEnabledInput")) $("#voiceEnabledInput").checked=voiceEnabled; updateVoiceButtons(); if(!voiceEnabled&&"speechSynthesis" in window) speechSynthesis.cancel(); }
+function setVoiceRate(v){ voiceRate=Math.max(.75,Math.min(1.35,Number(v)||1)); localStorage.setItem("lupusVoiceRate",String(voiceRate)); if($("#voiceRateInput")) $("#voiceRateInput").value=voiceRate; if($("#voiceRateValue")) $("#voiceRateValue").textContent=`${voiceRate.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}×`; }
+function requestVoiceUnlock(){ if(voiceEnabled&&!voiceUnlocked&&"speechSynthesis" in window) $("#audioUnlockOverlay")?.classList.remove("hidden"); }
+function unlockVoice(){ voiceUnlocked=true; sessionStorage.setItem("lupusVoiceUnlocked","true"); $("#audioUnlockOverlay")?.classList.add("hidden"); speakNarration("Narratore vocale attivato.",{force:true}); }
+function speakNarration(text,opt={}){ if(!text||!("speechSynthesis" in window)) return; if(!voiceEnabled&&!opt.force) return; if(!voiceUnlocked&&!opt.force){ requestVoiceUnlock(); return; } const clean=String(text).replace(/\s+/g," ").trim(); if(!clean)return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(clean); u.lang="it-IT"; u.rate=voiceRate; u.pitch=1; u.volume=1; const v=italianVoice(); if(v)u.voice=v; speechSynthesis.speak(u); lastSpokenText=clean; }
+function narrationForState(d, players){
+  if(!d)return null;
+  const p=d.phase||"lobby", r=d.round||d.nightNumber||0;
+  if(p==="lobby")return null;
+  if(p==="gameOver"){
+    const w=d.winner;
+    return {key:`end:${w}`,text:w==="wolves"?"La partita è terminata. Hanno vinto i lupi.":w==="village"?"La partita è terminata. Ha vinto il villaggio.":"La partita è terminata."};
+  }
+  if(p==="day")return{key:`day:${r}:${d.phaseStartedAt||''}`,text:"La notte è terminata. Tutti possono riaprire gli occhi. Inizia la discussione."};
+  if(p==="vote")return{key:`vote:${r}:${d.phaseStartedAt||''}`,text:"È il momento della votazione. Ogni giocatore scelga chi eliminare."};
+  if(p==="hunter")return{key:`hunter:${d.pendingHunterId||''}`,text:"Il Cacciatore è stato eliminato e deve scegliere chi portare con sé."};
+  if(p==="night"){
+    const s=currentNightStep(d, players||[]);
+    const messages={
+      cupid:"Cupido si sveglia e sceglie due innamorati.",
+      wolves:"I lupi si svegliano e scelgono una vittima.",
+      seer:"Il Veggente si sveglia e osserva un giocatore.",
+      guard:"La Guardia si sveglia e sceglie chi proteggere.",
+      witch:"La Strega si sveglia. Può salvare la vittima oppure usare la pozione di morte.",
+      medium:"Il Medium si sveglia e consulta uno dei morti.",
+      dawn:"La notte è terminata. Tutti possono riaprire gli occhi."
+    };
+    return{key:`night:${r}:${s}`,text:messages[s]||"Scende la notte. Tutti chiudono gli occhi."};
+  }
+  return null;
+}
+function maybeSpeakGameState(d, players){
+  if (!room.isHost) return;
+  const n=narrationForState(d, players);
+  if(!n||n.key===lastSpokenKey)return;
+  lastSpokenKey=n.key;
+  speakNarration(n.text);
+}
+function updateVoiceButtons(){ if($("#voiceToggleBtn")){ $("#voiceToggleBtn").textContent=voiceEnabled?"🔊":"🔇"; $("#voiceToggleBtn").classList.toggle("voice-on",voiceEnabled); $("#voiceToggleBtn").classList.toggle("voice-off",!voiceEnabled);} if($("#voiceEnabledInput")) $("#voiceEnabledInput").checked=voiceEnabled; setVoiceRate(voiceRate); }
+
+
+function applyTheme(theme) {
+  const allowed = ["castle","horror","vampire","zombie","western"];
+  selectedTheme = allowed.includes(theme) ? theme : "castle";
+  localStorage.setItem("lupusTheme", selectedTheme);
+  document.documentElement.dataset.gameTheme = selectedTheme;
+  if ($("#themeSetting")) $("#themeSetting").value = selectedTheme;
+}
+
+function setCinematicEnabled(enabled) {
+  cinematicEnabled = Boolean(enabled);
+  localStorage.setItem("lupusCinematic", String(cinematicEnabled));
+  if ($("#cinematicSetting")) $("#cinematicSetting").checked = cinematicEnabled;
+}
+
+function phaseScene(d, players) {
+  const phase = d?.phase || "lobby";
+  if (phase === "night") {
+    const step = currentNightStep(d, players || []);
+    const scenes = {
+      cupid:["💘","Cupido","Sceglie i due innamorati"],
+      wolves:["🐺","I lupi si svegliano","Il branco sceglie una vittima"],
+      seer:["🔮","Il Veggente si sveglia","Osserva un giocatore"],
+      guard:["🛡️","La Guardia si sveglia","Sceglie chi proteggere"],
+      witch:["🧪","La Strega si sveglia","Può salvare oppure avvelenare"],
+      medium:["🕯️","Il Medium si sveglia","Consulta il mondo dei morti"],
+      dawn:["🌅","Arriva l’alba","Tutti possono riaprire gli occhi"]
+    };
+    return { key:`night:${d.round||d.nightNumber||0}:${step}`, values:scenes[step] || ["🌙","Scende la notte","Tutti chiudono gli occhi"] };
+  }
+  const scenes = {
+    day:["☀️","Il villaggio si sveglia","Inizia la discussione"],
+    vote:["🗳️","È il momento del voto","Scegliete chi eliminare"],
+    hunter:["🏹","Ultimo colpo","Il Cacciatore sceglie il bersaglio"],
+    gameOver:["🏆","Partita terminata", d?.winnerText || "Scoprite il vincitore"]
+  };
+  return scenes[phase] ? { key:`${phase}:${d.round||0}:${d.phaseStartedAt||d.winner||''}`, values:scenes[phase] } : null;
+}
+
+function showPhaseCinematic(d, players) {
+  if (!cinematicEnabled) return;
+  const scene = phaseScene(d, players);
+  if (!scene || scene.key === lastCinematicKey) return;
+  lastCinematicKey = scene.key;
+  const [icon,title,text] = scene.values;
+  $("#phaseCinematicIcon").textContent = icon;
+  $("#phaseCinematicTitle").textContent = title;
+  $("#phaseCinematicText").textContent = text;
+  const overlay = $("#phaseCinematic");
+  overlay.className = `phase-cinematic phase-${d.phase}`;
+  clearTimeout(cinematicTimer);
+  requestAnimationFrame(() => overlay.classList.add("show"));
+  cinematicTimer = setTimeout(() => {
+    overlay.classList.remove("show");
+    setTimeout(() => overlay.classList.add("hidden"), 320);
+  }, 1450);
+  overlay.classList.remove("hidden");
+}
+
+function immersiveHaptic(d, players, me) {
+  if (!settings?.vibration || !navigator.vibrate || !me) return;
+  if (d.phase === "night") {
+    const step = currentNightStep(d, players);
+    const active = (step === "wolves" && isWolf(me.role)) || step === me.role;
+    if (active) navigator.vibrate([35,45,70]);
+  } else if (d.phase === "vote") navigator.vibrate(45);
+  else if (d.phase === "gameOver") navigator.vibrate([80,60,120]);
+}
+
 /* -------------------- INIT -------------------- */
 
 function init() {
   makeRolePicker($("#onlineRolePicker"), "online");
 
+  applyTheme(selectedTheme);
+  setCinematicEnabled(cinematicEnabled);
+  $("#themeSetting").onchange = e => applyTheme(e.target.value);
+  $("#cinematicSetting").onchange = e => setCinematicEnabled(e.target.checked);
+
+  loadVoices();
+  if("speechSynthesis" in window) speechSynthesis.onvoiceschanged=loadVoices;
+  updateVoiceButtons();
+  $("#voiceToggleBtn").onclick=()=>{setVoiceEnabled(!voiceEnabled); if(voiceEnabled)requestVoiceUnlock(); toast(voiceEnabled?"Narratore vocale attivo.":"Narratore vocale disattivato.");};
+  $("#roomSpeakBtn").onclick=()=>{if(lastSpokenText)speakNarration(lastSpokenText,{force:true});};
+  $("#voiceEnabledInput").onchange=e=>{setVoiceEnabled(e.target.checked); if(voiceEnabled)requestVoiceUnlock();};
+  $("#voiceRateInput").oninput=e=>setVoiceRate(e.target.value);
+  $("#testVoiceBtn").onclick=()=>{if(!voiceUnlocked){requestVoiceUnlock();return;} speakNarration("Questa è la voce del narratore automatico.",{force:true});};
+  $("#audioUnlockBtn").onclick=unlockVoice;
   $("#settingsBtn").onclick = openSettings;
   $("#roomSettingsBtn").onclick = openSettings;
   $("#closeSettingsBtn").onclick = closeSettings;
@@ -1701,15 +1841,15 @@ function renderRoom() {
     if (!room.isHost) el.classList.add("hidden");
   });
 
-  $("#toggleMyRoleBtn").textContent = room.revealMine ? "Nascondi subito" : "Mostra il mio ruolo";
+  $("#toggleMyRoleBtn").textContent = room.revealMine ? "🙈 Nascondi" : "👁 MOSTRA RUOLO";
   if (!room.revealMine) $("#roleAutoHideHint").classList.add("hidden");
   if (me?.role && room.revealMine) {
     $("#myRoleCard").className = "mini-role-card";
-    $("#myRoleCard").innerHTML = `<span class="mini-role-icon">${roleIcon(me.role)}</span><span><b>${roleName(me.role)}</b><small>${me.name}</small></span>`;
+    $("#myRoleCard").innerHTML = `<span class="mini-role-icon">${roleIcon(me.role)}</span><span class="role-copy"><b>${roleName(me.role)}</b><small>${roleDesc(me.role)}</small></span>`;
     $("#myRoleCard").onclick = () => openRoleOverlay(me.role, me.name);
   } else {
     $("#myRoleCard").className = "mini-role-card hidden-role";
-    $("#myRoleCard").innerHTML = me?.role ? "Carta nascosta" : "Ruolo non ancora assegnato";
+    $("#myRoleCard").innerHTML = me?.role ? `<span class="role-hidden-lock">🔒</span><span><b>Il tuo ruolo è nascosto</b><small>Tocca MOSTRA RUOLO</small></span>` : "Ruolo non ancora assegnato";
     $("#myRoleCard").onclick = null;
   }
 
@@ -1728,6 +1868,8 @@ function renderRoom() {
   $("#roomActionSection").classList.toggle("hidden", isLobby || isGameOver);
   $("#hostControlBar").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
   $("#roomSpeakBtn").classList.toggle("hidden", !(room.isHost && !isLobby && !isGameOver));
+  $("#voiceToggleBtn").classList.toggle("hidden", !room.isHost && !isLobby);
+  document.documentElement.dataset.gamePhase = d.phase;
   $("#hostPhaseControls").classList.add("hidden");
   $("#gameQuickNav").classList.add("hidden");
   $("#mobileGameDock").classList.add("hidden");
@@ -1753,6 +1895,13 @@ function renderRoom() {
   renderPlayerPages(d, players);
   renderOnlineSetupSummary();
   renderRoomActions(d, players, me);
+  maybeSpeakGameState(d, players);
+  showPhaseCinematic(d, players);
+  const immersiveKey = phaseScene(d, players)?.key || d.phase;
+  if (immersiveKey !== lastImmersiveKey) {
+    lastImmersiveKey = immersiveKey;
+    immersiveHaptic(d, players, me);
+  }
 }
 
 function phaseLabel(phase) {

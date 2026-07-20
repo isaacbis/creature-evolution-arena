@@ -1,5 +1,5 @@
 {
-  "name": "Lupus Online V24.1",
+  "name": "Lupus Online V26 Immersive Edition",
   "short_name": "Lupus",
   "start_url": "./",
   "display": "standalone",
@@ -19,7 +19,7 @@
       "purpose": "any maskable"
     }
   ],
-  "description": "Lupus Online V24.1: dashboard unica corretta e ottimizzata per narratore-giocatore.",
+  "description": "Lupus V26 con narratore esterno, temi, scene cinematografiche e interfaccia mobile.",
   "orientation": "portrait",
   "categories": [
     "games",
